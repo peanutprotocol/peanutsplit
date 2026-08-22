@@ -40,6 +40,28 @@ import type { Tool, ToolField } from '@/tools/types'
  */
 const ALL = listAllTranslations()
 
+/** Lowercased, accent-folded words — the unit the head-term check compares. */
+const words = (text: string): string[] =>
+    text
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .split(/[^a-z0-9]+/)
+        .filter(Boolean)
+
+/** Every word of `term` is the start of some word in `text` — "alternative" covers "alternatives". */
+const carriesTerm = (text: string, term: string): boolean => {
+    const have = words(text)
+    return words(term).every((needle) => have.some((word) => word.startsWith(needle)))
+}
+
+/** The headings a page renders: the `<Hero title>` (its H1) and every `#`–`###` line of the body. */
+function renderedHeadings(doc: (typeof ALL)[number]): string[] {
+    const hero = doc.body.match(/<Hero\b[\s\S]*?title="([^"]*)"[\s\S]*?\/?>/)
+    const markdown = [...doc.body.matchAll(/^#{1,3} (.*)$/gm)].map((match) => match[1])
+    return [...(hero ? [hero[1]] : []), ...markdown]
+}
+
 describe('content tree', () => {
     /**
      * The loader swallows a broken file on purpose — a half-written article must not be able to
@@ -101,6 +123,34 @@ describe('content tree', () => {
     it('gives every capture page the query it answers', () => {
         for (const doc of ALL.filter((doc) => doc.collection === 'capture')) {
             expect(doc.frontmatter.intent, `capture/${doc.slug}/${doc.locale}.md has no intent`).toBeTruthy()
+        }
+    })
+
+    /**
+     * The head term has to be in the title and in a heading. The page voice keeps the headings
+     * human — "Why people go looking", "The difference, plainly" — which is right for Google and
+     * invisible to Bing, whose ranking leans on an exact heading match and which feeds DuckDuckGo,
+     * Ecosia, Copilot and ChatGPT search. A six-month-old AdSense site with no links outranked
+     * this engine's Splitwise page there on a single "## Best Free Splitwise Alternatives"
+     * heading (2026-08-22). One heading per page carrying the term is the whole cost.
+     *
+     * Word-prefix match after folding case and accents, so "alternativa splitwise" is satisfied
+     * by "Alternativa a Splitwise" and "expense" by "expenses". The H1 is the stronger slot but
+     * comparison H1s name the wedge on purpose (§11.3), so any rendered heading counts.
+     */
+    it('puts every capture and comparison head term in the title and in a heading', () => {
+        for (const doc of ALL) {
+            if (!['capture', 'comparison'].includes(doc.frontmatter.type ?? '')) continue
+            const where = `${doc.collection}/${doc.slug}/${doc.locale}.md`
+            const term = doc.frontmatter.headTerm
+            expect(term, `${where} has no headTerm`).toBeTruthy()
+            const headings = renderedHeadings(doc)
+            expect(headings.length, `${where} renders no heading`).toBeGreaterThan(0)
+            expect(carriesTerm(doc.frontmatter.title, term!), `${where}: title lacks "${term}"`).toBe(true)
+            expect(
+                headings.some((heading) => carriesTerm(heading, term!)),
+                `${where}: no heading carries "${term}" — headings: ${headings.join(' | ')}`
+            ).toBe(true)
         }
     })
 

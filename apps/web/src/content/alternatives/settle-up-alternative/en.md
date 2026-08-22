@@ -3,6 +3,7 @@ title: Settle Up alternative with no account
 description: Settle Up syncs your group through an account, and the group can see your email. What a link-based room does instead, and what moving actually costs.
 date: 2026-07-30
 type: comparison
+headTerm: settle up alternative
 tags: [alternatives, no-account]
 claims:
     - link-is-the-key
@@ -72,7 +73,7 @@ No app required: Share a group link so friends can view the balance in their bro
 
 Friends can **view** the balance. Somebody who never signs up can watch the numbers move; adding an expense is what the account is for.
 
-## Where the two differ
+## Where Settle Up and the alternative differ
 
 |                               | Peanut Split                                                        | Settle Up                                                     |
 | ----------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------- |

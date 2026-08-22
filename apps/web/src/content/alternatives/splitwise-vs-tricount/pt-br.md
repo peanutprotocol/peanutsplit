@@ -3,6 +3,7 @@ title: 'Splitwise vs Tricount: qual dos dois usar'
 description: Os dois fazem a conta. Eles se separam no limite do plano grátis, nas moedas e na hora de acertar. O que o site de cada um diz, conferido em julho de 2026.
 date: 2026-07-30
 type: comparison
+headTerm: splitwise vs tricount
 tags: [alternativas, moedas]
 claims:
     - free-forever
@@ -193,7 +194,7 @@ O Tricount é da bunq, um banco, e o registro automático por cartão funciona s
 
 **Para quem isso decide:** quase ninguém. Nenhum dos dois movimenta o dinheiro se o grupo já não compartilha um trilho, e no Brasil a linha do cartão nem começa.
 
-## Lado a lado
+## Splitwise vs Tricount, lado a lado
 
 |                          | Splitwise                                                        | Tricount                                  | Peanut Split                                                                       |
 | ------------------------ | ---------------------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------- |

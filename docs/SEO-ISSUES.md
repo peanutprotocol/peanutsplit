@@ -258,6 +258,14 @@ with a correct `x-default`; all JSON-LD parses with zero duplicate keys.
 
 ## Closed
 
+- **No heading carried the head term, and the site was not in Bing's index** — closed
+  2026-08-22: `site:peanutsplit.com` returned nothing on DuckDuckGo/Bing while a six-month-old
+  AdSense site (expensessplit.com, GitHub Pages, zero links) sat at #3 for "free splitwise
+  alternative" there on one exact-match `##` heading. IndexNow ran for all 48 sitemap URLs
+  (HTTP 202) once the key file went live. Engine: `headTerm:` frontmatter, required on `capture`
+  and `comparison` in every locale, gated by `content.test.ts` into the `<title>` and ≥1 rendered
+  heading (stylebook §11.2 "Head term"); one heading per page edited, 19 files. Still open, needs
+  auth: verify peanutsplit.com in Bing Webmaster Tools (import from Search Console).
 - **Locale roots 404 and `/pt` had no redirect** — closed 2026-08-22 (the commit after
   `83a48a4`), verified on production: `/es-419` and `/pt-br` 308 to their `/blog` hub, and
   `/pt/:path*` joins `/es/:path*` as a territory-less legacy prefix. Both roots were live 404s,

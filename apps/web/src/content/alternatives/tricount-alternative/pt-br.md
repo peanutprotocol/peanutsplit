@@ -3,6 +3,7 @@ title: Alternativa ao Tricount sem banco em comum
 description: Uma sala é um link, e o acerto não passa pelo banco de ninguém. O Tricount recebe por conta bancária e cartão bunq. Veja o que muda num grupo espalhado.
 date: 2026-07-28
 type: comparison
+headTerm: alternativa tricount
 tags: [alternativas, moedas]
 claims:
     - free-forever
@@ -68,7 +69,7 @@ As duas citações nomeiam o trilho: receber direto numa conta bancária, e paga
 
 Quatro pessoas em São Paulo se resolvem. Quatro pessoas em São Paulo, Lisboa, Berlim e Bangkok chegam ao número certo e depois passam três semanas sem pagar.
 
-## O que o Split faz de diferente
+## O que a alternativa ao Tricount faz de diferente
 
 |               | Peanut Split                                                                          | Tricount                                                    |
 | ------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------- |

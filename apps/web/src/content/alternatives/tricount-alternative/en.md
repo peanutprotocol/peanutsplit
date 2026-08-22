@@ -3,6 +3,7 @@ title: Tricount alternative for cross-border groups
 description: Tricount settles up through a bank account and a bunq card. If your group shares neither, here is what a link-based split does instead.
 date: 2026-07-28
 type: comparison
+headTerm: tricount alternative
 tags: [alternatives, currencies]
 claims:
     - free-forever
@@ -62,7 +63,7 @@ Both quotes name the rail: a bank account, and a bunq card. If your group has ne
 
 A group of four in Berlin will have a fine time. A group of four in Berlin, Buenos Aires, Lisbon and Bangkok will get to a correct number and then spend three weeks not paying it.
 
-## What Split does differently
+## What the Tricount alternative does differently
 
 |                 | Peanut Split                                                                         | Tricount                                                 |
 | --------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------- |
