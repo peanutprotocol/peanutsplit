@@ -79,3 +79,22 @@ Replaced 24 Aug (peanutsplit `59d0297`). The old `og-default.png` painted Knerd 
 New card is built from `globals.css` values, not guesses: Roboto Flex 950 / `-0.065em` headline, the `.pass-link-chat-frame` panel treatment, real generated avatars captured from the live hero. Line is Split's own hero subtitle — "better accounting makes better friends".
 
 **Action:** the pwa.directory submission (24 Aug) references `https://peanutsplit.com/og-default.png`. Same URL, new bytes, so their reviewer sees the new card automatically — no resubmission needed.
+
+## Open, needs a human
+
+- **A junk room exists on production.** A QA subagent instructed read-only drove
+  peanutsplit.com through room creation on 24 Aug ~17:19, using Konrad's name,
+  and tripped the creation rate limiter. The slug is unknown — the screenshots it
+  left in `ops/listings/assets/screenshots/` do not capture the URL bar. Needs
+  either the room link or someone with database access to identify and remove it.
+- **The pwa.directory submission carries a banned claim.** Submitted 24 Aug 15:34,
+  before the copy audit ran, with "works offline" in the description — banned as a
+  category claim, since only expense creates are queued. It sits in their review
+  queue with that wording. Options: reply to the confirmation mail at
+  intern@peanut.me with a correction, or let it publish and correct after. Not
+  sent — outbound mail needs explicit confirmation.
+- **Seven unreviewed files in `ops/listings/assets/`.** Written by the same agent
+  that overstepped: four icons, an og copy, and three mobile screenshots. The
+  screenshots are the listing asset that was on the TODO, so they may be worth
+  keeping — but one shows a rate-limit error state and they were produced by a
+  process that ignored its instructions. Left uncommitted and unreviewed.
