@@ -15,7 +15,71 @@ const PUBLIC_SOURCE_FRONTMATTER_KEYS = new Set(['publicSourceTitle', 'publicSour
 const NON_COPY_FRONTMATTER_KEYS = new Set(['claims', 'competitorClaims'])
 const PUBLIC_SOURCE_WRAPPER_LABEL = 'has an unbalanced or nested PublicSourceOnly release boundary'
 const PUBLIC_SOURCE_BOUNDARY_PATTERN =
-    /\b(?:AGPL(?:-3\.0(?:-or-later)?)?|FOSS|open[- ]source|self[- ]host(?:ed|ing|able)?|public (?:source|repository)|source code|host (?:it|the (?:code|software|release)) yourself)\b|source.{0,30}publicly available|código abierto|código aberto|código fonte|código[- ]fonte|código fuente|software libre|software livre|repositorio público|repositório público|alojar(?:lo|la|se| Split)?.{0,35}(?:por tu cuenta|propio servidor)|auto[- ]hospedar|hospedar.{0,30}por conta própria|\]\(\/source(?:[?#][^)]*)?\)|href=["']\/source(?:[?#][^"']*)?["']/giu
+    /\b(?:AGPL(?:[- ]?v?3(?:\.0)?(?:[- ]or[- ]later)?)?|FOSS|GNU Affero (?:General Public License|GPL)(?: v?3(?:\.0)?(?: or later)?)?|Affero General Public License|open[- ]source|free software|self[- ]host(?:ed|ing|able)?|public (?:source|repository)|source code|host (?:it|the (?:code|software|release)) yourself|run your own copy|host your own.{0,25}(?:copy|instance))\b|\b(?:source(?: code)?|code|repository)\b.{0,35}\b(?:is )?(?:now )?(?:public|publicly available|available(?: on GitHub)?)\b|código abierto|código aberto|código fonte|código[- ]fonte|código fuente|software libre|software livre|repositorio público|repositório público|alojar(?:lo|la|se| Split)?.{0,35}(?:por tu cuenta|propio servidor)|auto[- ]?alojar|auto[- ]?hospedar|hospedar.{0,30}por conta própria|(?:https:\/\/peanutsplit\.com)?\/source(?:[\/?#\s]|$)/giu
+
+const NAMED_ENTITY_VALUES = new Map(
+    Object.entries({
+        amp: '&',
+        apos: "'",
+        colon: ':',
+        equals: '=',
+        gt: '>',
+        lbrace: '{',
+        lcub: '{',
+        lpar: '(',
+        lt: '<',
+        nbsp: ' ',
+        ensp: ' ',
+        emsp: ' ',
+        hairsp: ' ',
+        mediumspace: ' ',
+        newline: '\n',
+        num: '#',
+        period: '.',
+        quest: '?',
+        quot: '"',
+        rbrace: '}',
+        rcub: '}',
+        rpar: ')',
+        sol: '/',
+        tab: '\t',
+        thinsp: ' ',
+    })
+)
+
+/** Normalize the text a Markdown/MDX reader sees before applying posture semantics. */
+export function normalizeMarketingCopy(text) {
+    const numericEntities = text.replace(/&#(x[0-9a-f]+|[0-9]+);?/giu, (_entity, value) => {
+        const hexadecimal = value.slice(0, 1).toLowerCase() === 'x'
+        const codePoint = Number.parseInt(hexadecimal ? value.slice(1) : value, hexadecimal ? 16 : 10)
+        if (!Number.isFinite(codePoint) || codePoint < 0 || codePoint > 0x10ffff) return ' '
+        try {
+            return String.fromCodePoint(codePoint)
+        } catch {
+            return ' '
+        }
+    })
+    return (
+        numericEntities
+            .replace(/&([a-z][a-z0-9]+);/giu, (entity, name) => NAMED_ENTITY_VALUES.get(name.toLowerCase()) ?? entity)
+            .replace(/%([0-9a-f]{2})/giu, (_escape, value) => {
+                const byte = Number.parseInt(value, 16)
+                return byte >= 0x20 && byte <= 0x7e ? String.fromCharCode(byte) : ' '
+            })
+            .replace(/[\u00ad\u200b-\u200d\ufeff]/gu, '')
+            .replace(/[\u2010-\u2015\u2212\ufe58\ufe63\uff0d]/gu, '-')
+            .replace(/\p{Zs}/gu, ' ')
+            .replace(/!\[([^\]]*)\]\(([^)]*)\)/gu, ' $1 $2 ')
+            .replace(/\[([^\]]+)\]\(([^)]*)\)/gu, ' $1 $2 ')
+            // Strip tag names but preserve attributes (especially href) for route auditing.
+            .replace(/<\s*\/?\s*[a-z][\w:-]*([^>]*)>/giu, (_tag, attributes) =>
+                /^\s*\/?\s*$/u.test(attributes) ? ' ' : ` ${attributes} `
+            )
+            .replace(/[*_~`\[\](){},='"<>]/gu, ' ')
+            .replace(/\s+/gu, ' ')
+            .trim()
+    )
+}
 
 /**
  * These are posture failures, not a word-choice score. The official host has no paid tier today,
@@ -121,9 +185,10 @@ export function productionTypescriptFiles() {
 
 export function findPostureFailures(text, { allowPublicSourceCandidate = false } = {}) {
     const found = []
+    const normalized = normalizeMarketingCopy(text)
     for (const { label, pattern } of prohibitedClaims) {
         if (allowPublicSourceCandidate && label === FOSS_RELEASE_LABEL) continue
-        for (const match of text.matchAll(pattern)) {
+        for (const match of normalized.matchAll(pattern)) {
             found.push({ label, match: match[0] })
         }
     }
@@ -135,7 +200,7 @@ function findBoundaryPostureFailures(text, { candidate, gated }) {
     if (!candidate || gated) return found
 
     if (!found.some((failure) => failure.label === FOSS_RELEASE_LABEL)) {
-        const match = text.match(PUBLIC_SOURCE_BOUNDARY_PATTERN)?.[0]
+        const match = normalizeMarketingCopy(text).match(PUBLIC_SOURCE_BOUNDARY_PATTERN)?.[0]
         if (match) found.push({ label: FOSS_RELEASE_LABEL, match })
     }
     return found
