@@ -9,8 +9,13 @@ coverage/
 !.env.example
 
 .DS_Store
+__pycache__/
+*.py[cod]
 next-env.d.ts
 
 # build artifact — regenerated on every typecheck
 *.tsbuildinfo
 node_modules
+
+# Generated listing report — published as an artifact, not source
+ops/listings/report.html
