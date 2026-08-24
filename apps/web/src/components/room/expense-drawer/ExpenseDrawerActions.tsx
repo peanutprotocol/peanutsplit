@@ -8,6 +8,7 @@ import { SlideToConfirm } from '@/components/ui/SlideToConfirm'
 interface ExpenseDrawerActionsProps {
     editing: boolean
     pending: boolean
+    disabled: boolean
     deleting: boolean
     confirmingDelete: boolean
     deleteTriggerRef: RefObject<HTMLButtonElement | null>
@@ -29,6 +30,7 @@ interface ExpenseDrawerActionsProps {
 export function ExpenseDrawerActions({
     editing,
     pending,
+    disabled,
     deleting,
     confirmingDelete,
     deleteTriggerRef,
@@ -45,6 +47,7 @@ export function ExpenseDrawerActions({
                 shadowSize="4"
                 onClick={onSave}
                 loading={pending}
+                disabled={disabled}
                 className="justify-center text-h6"
                 data-testid="save-expense"
             >

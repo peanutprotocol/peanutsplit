@@ -206,6 +206,9 @@ export function ExpenseDrawer({
     const [manualFxRateInput, setManualFxRateInput] = useState('')
     const [manualFxRateSource, setManualFxRateSource] = useState<ManualFxRateSource>(null)
     const deleteTriggerRef = useRef<HTMLButtonElement>(null)
+    const payerEditorControlRef = useRef<HTMLButtonElement>(null)
+    const splitEditorControlRef = useRef<HTMLButtonElement>(null)
+    const dateEditorControlRef = useRef<HTMLButtonElement>(null)
     const payerNameRef = useRef<HTMLInputElement>(null)
     const participantNameRef = useRef<HTMLInputElement>(null)
     const amountRef = useRef<HTMLInputElement>(null)
@@ -224,6 +227,40 @@ export function ExpenseDrawer({
     /** The key stays server-side, so the drawer asks the deployment whether the
      *  scanner can work before it offers the camera action. */
     const { enabled: modelEnabled, resolved: modelResolved } = useModelStatus(slug, splitV2Enabled())
+
+    useEffect(() => {
+        if (!editor) return
+
+        const frame = window.requestAnimationFrame(() => {
+            const scrollBody = formRef.current
+            const control =
+                editor === 'payer'
+                    ? payerEditorControlRef.current
+                    : editor === 'split'
+                      ? splitEditorControlRef.current
+                      : dateEditorControlRef.current
+            if (!scrollBody || !control) return
+
+            const scrollRect = scrollBody.getBoundingClientRect()
+            const controlRect = control.getBoundingClientRect()
+            const delta =
+                controlRect.top < scrollRect.top
+                    ? controlRect.top - scrollRect.top
+                    : controlRect.bottom > scrollRect.bottom
+                      ? controlRect.bottom - scrollRect.bottom
+                      : 0
+            if (delta === 0) return
+
+            // Scroll the drawer's one scroll owner without moving focus away from
+            // the summary button that deliberately opened this editor.
+            scrollBody.scrollTo({
+                top: scrollBody.scrollTop + delta,
+                behavior: motionAllowed ? 'smooth' : 'auto',
+            })
+        })
+
+        return () => window.cancelAnimationFrame(frame)
+    }, [editor, formRef, motionAllowed])
 
     useEffect(() => {
         mountedRef.current = true
@@ -1418,6 +1455,7 @@ export function ExpenseDrawer({
                             <div className="flex items-center justify-between gap-3 border-b border-dashed border-grey-1 px-3 py-2">
                                 <h3 className="text-h8">{t('whoPaid')}</h3>
                                 <button
+                                    ref={payerEditorControlRef}
                                     type="button"
                                     onClick={() => dispatchWorkflow({ type: 'editor-closed' })}
                                     aria-label={t('collapseSection')}
@@ -1547,6 +1585,7 @@ export function ExpenseDrawer({
                                     <p className="mt-1 text-xs text-grey-1">{splitModeHint}</p>
                                 </div>
                                 <button
+                                    ref={splitEditorControlRef}
                                     type="button"
                                     onClick={() => dispatchWorkflow({ type: 'editor-closed' })}
                                     aria-label={t('collapseSection')}
@@ -2053,6 +2092,7 @@ export function ExpenseDrawer({
 
                     {editor === 'date' && (
                         <ExpenseDateEditor
+                            collapseRef={dateEditorControlRef}
                             summary={dateSummary}
                             value={selectedDateInput}
                             today={todayInput}
@@ -2097,6 +2137,7 @@ export function ExpenseDrawer({
                 <ExpenseDrawerActions
                     editing={Boolean(expense)}
                     pending={pending}
+                    disabled={newPayerName.trim().length > 0 || newParticipantName.trim().length > 0}
                     deleting={deleteExpense.isPending}
                     confirmingDelete={confirmingDelete}
                     deleteTriggerRef={deleteTriggerRef}

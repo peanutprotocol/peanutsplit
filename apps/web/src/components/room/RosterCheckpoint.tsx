@@ -29,6 +29,7 @@ export function RosterCheckpoint({ state, onContinue }: RosterCheckpointProps) {
     const addMember = useAddMember(state.room.slug)
     const feedback = useFeedback()
     const inputRef = useRef<HTMLInputElement>(null)
+    const addRequestRef = useRef(false)
     const [members, setMembers] = useState<readonly ApiMember[]>(state.members)
     const [name, setName] = useState('')
     const [error, setError] = useState<string | null>(null)
@@ -36,27 +37,43 @@ export function RosterCheckpoint({ state, onContinue }: RosterCheckpointProps) {
     // "Somebody was added" is measured against the roster this checkpoint opened with.
     const [openedWith] = useState(state.members.length)
     const rosterChanged = members.length > openedWith
+    const hasPendingName = name.trim().length > 0
+    const readyToFinish = rosterChanged || hasPendingName
 
-    const add = async (event: React.FormEvent) => {
-        event.preventDefault()
+    const commitPendingName = async (): Promise<boolean> => {
         const trimmed = name.trim()
-        if (!trimmed || addMember.isPending) return
+        if (!trimmed) return true
+        if (addMember.isPending || addRequestRef.current) return false
 
+        addRequestRef.current = true
         setError(null)
         try {
             const next = await addMember.mutateAsync({ name: trimmed })
             setMembers(next.state.members)
             setName('')
             feedback('pop')
-            requestAnimationFrame(() => inputRef.current?.focus())
+            return true
         } catch (err) {
             feedback('error', { haptic: 'error' })
             if (isApiError(err, 'DUPLICATE_MEMBER_NAME')) {
                 setError(t('duplicate', { name: trimmed }))
-                return
+            } else {
+                setError(errorMessage(err, t('failed')))
             }
-            setError(errorMessage(err, t('failed')))
+            requestAnimationFrame(() => inputRef.current?.focus())
+            return false
+        } finally {
+            addRequestRef.current = false
         }
+    }
+
+    const add = async (event: React.FormEvent) => {
+        event.preventDefault()
+        if (await commitPendingName()) requestAnimationFrame(() => inputRef.current?.focus())
+    }
+
+    const continueToRoom = async () => {
+        if (await commitPendingName()) onContinue()
     }
 
     return (
@@ -119,14 +136,14 @@ export function RosterCheckpoint({ state, onContinue }: RosterCheckpointProps) {
                 </Card>
 
                 <Button
-                    variant={rosterChanged ? 'primary' : 'stroke'}
-                    shadowSize={rosterChanged ? '4' : undefined}
-                    onClick={onContinue}
+                    variant={readyToFinish ? 'primary' : 'stroke'}
+                    shadowSize={readyToFinish ? '4' : undefined}
+                    onClick={() => void continueToRoom()}
                     disabled={addMember.isPending}
                     className="justify-center text-h6"
                     data-testid="go-to-room"
                 >
-                    {rosterChanged ? t('done') : t('skip')}
+                    {readyToFinish ? t('done') : t('skip')}
                 </Button>
             </div>
         </section>
