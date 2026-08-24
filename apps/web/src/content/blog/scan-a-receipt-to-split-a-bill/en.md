@@ -1,19 +1,19 @@
 ---
 title: Scan a receipt to split a bill by item
-description: Photograph the bill, check the lines it read, tap who had what. Receipt splitting is free forever, with no premium tier or account to make first.
+description: Photograph the bill, check the lines it read, tap who had what. Receipt splitting is free to use, with no premium tier or account to make first.
 date: 2026-07-28
 type: guide
 v2Only: true
 tags: [receipts, dinners]
 claims:
-    - free-forever
+    - hosted-price
     - link-is-the-key
     - receipt-scan-30-a-day
     - receipt-photo-handling
 cast: []
 faqs:
-    - question: Is receipt scanning free forever?
-      answer: Yes. Receipt scanning is free forever, with no premium tier or upgrade. A room can scan up to 30 bills a day, which is a limit on the cost of running it, not a tier you can buy your way out of.
+    - question: Is receipt scanning free to use?
+      answer: Yes. Receipt scanning is free to use, with no premium tier or upgrade. A room can scan up to 30 bills a day, which is a limit on the cost of running it, not a tier you can buy your way out of.
     - question: Do you keep my receipt photo?
       answer: Split sends the photo to Gemini for reading, either through OpenRouter or directly. Its server does not save the image or extracted lines. If you share a photo into the installed Android app, your browser temporarily parks that one image on your device for the room handoff; it is single-use and rejected after ten minutes. What Split saves is the expense you approve at the end.
     - question: What if it reads a line wrong?
@@ -61,9 +61,9 @@ That is also why scanning is not a login-gated feature dressed up as a premium o
 
 If the "Scan receipt" button is not in your room, scanning is unavailable on that deployment. You can still enter the total as an ordinary expense and set each person's exact share manually.
 
-## Free forever, and what that means here
+## Free to use, and what that means here
 
-Splitwise puts itemised receipt scanning behind Pro, and Settle Up sells [receipt photos on a paid tier of its own](/guides/splitwise-vs-settle-up). This does not, and there is no tier to move you onto later — Split is made by Peanut and exists to introduce people to it, which is how it gets paid for.
+Splitwise puts itemised receipt scanning behind Pro, and Settle Up sells [receipt photos on a paid tier of its own](/guides/splitwise-vs-settle-up). Split has no paid receipt tier.
 
 There is one number worth knowing: a room can scan 30 bills a day. That is a ceiling on what a single room can cost to run, not a plan you can upgrade past, and no dinner has ever come close to it.
 
@@ -73,7 +73,7 @@ There is one number worth knowing: a room can scan 30 bills a day. That is a cei
   text="Start a split" />
 
 <FAQ>
-<FAQItem question="Is receipt scanning free forever?">Yes. Receipt scanning is free forever, with no premium tier or upgrade. A room can scan up to 30 bills a day, which is a limit on the cost of running it, not a tier you can buy your way out of.</FAQItem>
+<FAQItem question="Is receipt scanning free to use?">Yes. Receipt scanning is free to use, with no premium tier or upgrade. A room can scan up to 30 bills a day, which is a limit on the cost of running it, not a tier you can buy your way out of.</FAQItem>
 <FAQItem question="Do you keep my receipt photo?">Split sends the photo to Gemini for reading, either through OpenRouter or directly. Its server does not save the image or extracted lines. If you share a photo into the installed Android app, your browser temporarily parks that one image on your device for the room handoff; it is single-use and rejected after ten minutes. What Split saves is the expense you approve at the end.</FAQItem>
 <FAQItem question="What if it reads a line wrong?">You see every line before anything is saved. Fix the text, fix the amount, delete what is not yours, add what it missed. If the lines do not add up to the printed total, it says so and shows the gap.</FAQItem>
 <FAQItem question="Do I have to scan to split by item?">No. For a short bill, enter one ordinary expense and set exact shares manually. The item-by-item assignment screen is part of receipt scanning.</FAQItem>

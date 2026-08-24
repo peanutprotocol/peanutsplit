@@ -49,7 +49,7 @@ export default defineConfig({
               timeout: 180_000,
               env: {
                   DATABASE_URL:
-                      process.env.E2E_DATABASE_URL ?? 'postgresql://peanut:peanut@localhost:5432/peanut_split_dev',
+                      process.env.E2E_DATABASE_URL ?? 'postgresql://split:split@localhost:5433/peanut_split_dev',
                   SPLIT_FX_MODE: 'static',
                   NEXT_PUBLIC_BASE_URL: baseURL,
                   // Keep the notification control in the e2e surface. Tests that exercise it

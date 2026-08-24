@@ -11,7 +11,7 @@ claims:
     - netting-is-bounded-exact
     - settle-is-a-record
     - room-size-20
-    - free-forever
+    - hosted-price
     - no-app
     - recap-card
 cast:
@@ -37,7 +37,7 @@ faqs:
 
 Whether that money comes back matters more than the amount involved. When it does not, the person who fronted it usually says nothing about it, and stops being the one who organises anything, and the trips end without anybody deciding to end them.
 
-Let Split by Peanut keep the ledger from the first booking instead. The room opens in about ten seconds, there is no account to make and nothing to download, and what anybody adds is on everybody's screen as they add it. By August the total is old news, and the last message in the group chat is a payment plan rather than a request.
+Let Split keep the ledger from the first booking instead. The room opens in about ten seconds, there is no account to make and nothing to download, and what anybody adds is on everybody's screen as they add it. By August the total is old news, and the last message in the group chat is a payment plan rather than a request.
 
 ## The room goes in before the deposit does
 
@@ -93,14 +93,14 @@ There is a card at the end of it too — what the trip cost and who fronted the 
 <Checklist title="What being paid back looks like when the room was open all along">
 <ChecklistItem title="One ledger, March to August">The deposit and Thursday's round are the same kind of line, both dated, and neither needs explaining.</ChecklistItem>
 <ChecklistItem title="Nobody gets named">The room shows balances, not blame. There is never a reason to post a list of who has not paid yet, and doing it is how a finished trip becomes a grudge.</ChecklistItem>
-<ChecklistItem title="Recording it is one tap">Settle however the two of you settle, with cash at the airport, a bank transfer or a Peanut link, and one of you taps to say it happened. Split records the payment, it does not make it.</ChecklistItem>
+<ChecklistItem title="Recording it is one tap">Settle however the two of you settle, with cash at the airport, a bank transfer or another payment app, and one of you taps to say it happened. Split records the payment, it does not make it.</ChecklistItem>
 </Checklist>
 
 ## Good to know
 
 Four facts about the room, worth having in March rather than in August.
 
-- **It is free forever, with nothing to upgrade to.** Peanut makes it to introduce people to Peanut, which is how Split gets paid for, so there is no paid tier waiting to be sold to you halfway through a trip.
+- **The official service is free to use and has no paid tier.**
 - **It does not move the money.** A settled row means somebody tapped to say they paid, not that a payment cleared. Split does not check with a bank and cannot, which is fine among friends and worth knowing about your own ledger.
 - **It will not chase anyone.** No reminder emails, no nudges into the group chat. If somebody goes quiet, that part is still yours, and all anyone can hand you is [what to write the first time and what to write when it needs repeating](/guides/ask-a-friend-to-pay-you-back).
 - **It holds up to twenty people.** A group, not a conference.

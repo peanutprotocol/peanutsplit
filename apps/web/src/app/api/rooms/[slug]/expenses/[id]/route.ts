@@ -198,7 +198,7 @@ export const PATCH = (request: Request, ctx: Ctx) =>
         return result.state
     })
 
-/** Soft delete — the client shows a 6s Undo that calls /api/expenses/:id/restore.
+/** Soft delete — the client shows a 6s Undo that calls /api/rooms/:slug/expenses/:id/restore.
  *  Deleting twice is a no-op, not an error: the undo toast is tappable twice. */
 export const DELETE = (request: Request, ctx: Ctx) =>
     respond(async () => {

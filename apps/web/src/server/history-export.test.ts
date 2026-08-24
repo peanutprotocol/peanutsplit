@@ -7,10 +7,13 @@ import {
 } from './history-export'
 
 const at = (value: string) => new Date(value)
+const percentEncodeEveryByte = (value: string): string =>
+    [...new TextEncoder().encode(value)].map((byte) => `%${byte.toString(16).padStart(2, '0')}`).join('')
 
 describe('room history export serialization', () => {
     it('orders every safe event field, maps device ordinals, and states the legacy cutoff', () => {
         const slug = 'ski-trip-Qx7_CAPABILITY'
+        const encodedUpperSlug = percentEncodeEveryByte(slug.toUpperCase())
         const exported = buildRoomHistoryExport(
             {
                 id: 'room-id',
@@ -28,7 +31,11 @@ describe('room history export serialization', () => {
                         actorMemberName: `Ana ${slug}`,
                         before: { description: 'Dinner' },
                         after: { deletedAt: '2026-08-03T12:01:00.000Z' },
-                        detail: null,
+                        detail: {
+                            url: `https://split.test/r/${encodedUpperSlug}`,
+                            analyticsKey: 'analytics-key-must-not-leave',
+                            memberToken: 'member-proof-must-not-leave',
+                        },
                         createdAt: at('2026-08-03T12:01:00.000Z'),
                     },
                     {
@@ -74,13 +81,19 @@ describe('room history export serialization', () => {
             deviceLabel: 'AA',
             before: { description: 'Dinner' },
             after: { deletedAt: '2026-08-03T12:01:00.000Z' },
+            detail: { url: 'https://split.test/r/[REDACTED_ROOM_CAPABILITY]' },
         })
-        expect(serializeRoomHistoryExport(exported).endsWith('\n')).toBe(true)
-        expect(JSON.stringify(exported)).not.toContain(slug)
+        const serialized = serializeRoomHistoryExport(exported)
+        expect(serialized.endsWith('\n')).toBe(true)
+        expect(serialized.toLowerCase()).not.toContain(slug.toLowerCase())
+        expect(serialized.toLowerCase()).not.toContain(encodedUpperSlug.toLowerCase())
+        expect(serialized).not.toContain('analytics-key-must-not-leave')
+        expect(serialized).not.toContain('member-proof-must-not-leave')
     })
 
     it('recursively removes secret-bearing fields and embedded capability values without erasing audit facts', () => {
         const slug = 'room-AbCd_1234'
+        const encodedUpperSlug = percentEncodeEveryByte(slug.toUpperCase())
         const redacted = redactAuditPayload(
             {
                 slug,
@@ -93,10 +106,15 @@ describe('room history export serialization', () => {
                     {
                         url: `https://split.test/r/${slug}?from=export`,
                         note: `Upper-case echo: ${slug.toUpperCase()}`,
+                        encodedUrl: `https://split.test/r/${encodedUpperSlug}`,
                         tokenRotated: true,
                     },
                 ],
-                [`key-${slug}`]: 'a capability-bearing object key',
+                [`key-${encodedUpperSlug}`]: 'a safe fact under a capability-bearing object key',
+                analyticsKey: 'analytics-pseudonym',
+                'member%54oken': 'percent-encoded credential field',
+                pushEndpoint: 'https://push.test/subscription-proof',
+                bearer: 'detached-bearer-proof',
                 ordinary: { amountMinor: '1000' },
             },
             slug
@@ -109,14 +127,21 @@ describe('room history export serialization', () => {
         expect(serialized).not.toContain('another-proof')
         expect(serialized).not.toContain('secret-value')
         expect(serialized).not.toContain('api-secret-value')
+        expect(serialized).not.toContain('analytics-pseudonym')
+        expect(serialized).not.toContain('percent-encoded credential field')
+        expect(serialized).not.toContain('subscription-proof')
+        expect(serialized).not.toContain('detached-bearer-proof')
+        expect(serialized.toLowerCase()).not.toContain(encodedUpperSlug.toLowerCase())
         expect(redacted).toEqual({
             nested: [
                 {
                     url: 'https://split.test/r/[REDACTED_ROOM_CAPABILITY]?from=export',
                     note: 'Upper-case echo: [REDACTED_ROOM_CAPABILITY]',
+                    encodedUrl: 'https://split.test/r/[REDACTED_ROOM_CAPABILITY]',
                     tokenRotated: true,
                 },
             ],
+            'key-[REDACTED_ROOM_CAPABILITY]': 'a safe fact under a capability-bearing object key',
             ordinary: { amountMinor: '1000' },
         })
     })

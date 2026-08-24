@@ -127,7 +127,7 @@ verbatim**; the rest are Split terms with no mono equivalent.
 | settle up (verb)                        | **saldar**                                   | liquidar (accounting), pasar la cuenta, arreglar cuentas                        |
 | settled                                 | saldado / saldadas                           | cerrado, finiquitado                                                            |
 | who owes who                            | **quién le debe a quién**                    | quién debe qué                                                                  |
-| free forever                            | **gratis para siempre**                      | gratuito, sin costo, versión gratis                                             |
+| free to use, with no paid tier          | **de uso gratuito, sin plan pago**           | gratis para siempre, versión gratis                                             |
 | automatic conversion for 156 currencies | conversión automática para 156 monedas       | doce monedas, multimoneda, cualquier moneda, 150+ (stylebook §6.7)              |
 | converted at the day's rate             | al tipo de cambio del día                    | tipo de cambio en vivo / en tiempo real (stylebook §6.6)                        |
 | flatmate                                | roomie / compañero de departamento           | **compañero de piso** (Spain), piso                                             |
@@ -304,7 +304,7 @@ Split's full list:
    `date`, `canonical`. Claim IDs and cast keys are identifiers, not words. **`tags` is the
    exception — facet labels are reader-facing and do translate** (`tags: [alternativas, monedas]` is
    live and correct).
-3. **Brand names:** Split · Peanut · Peanut Split · Split by Peanut · Splitwise · **Settle Up** ·
+3. **Brand names:** Split · Peanut · Peanut Split · Splitwise · **Settle Up** ·
    Tricount · Splid · Spliit · Kittysplit · bunq · WhatsApp · Visa · Apple Pay · Google Pay.
    (`Visa`/`Apple Pay`/`Google Pay` is mono's own card guardrail, carried.)
 4. **Cast persona labels and the friend-group names** — decision 4, §6.

@@ -11,10 +11,20 @@
     "dev:web": "pnpm --dir apps/web dev",
     "build": "pnpm --filter @peanut-split/api build && pnpm --dir apps/web build",
     "typecheck": "pnpm --filter @peanut-split/api typecheck && pnpm --dir apps/web typecheck",
-    "test": "node --test scripts/split-content-publisher.test.mjs && pnpm --filter @peanut-split/api test && pnpm --dir apps/web test",
+    "test": "pnpm docs:check && node --test scripts/split-content-publisher.test.mjs && pnpm --filter @peanut-split/api test && pnpm --dir apps/web test",
+    "docs:generate": "node scripts/generate-reference-docs.mjs",
+    "docs:check": "node scripts/generate-reference-docs.mjs --check",
     "split-content-publisher:test": "node --test scripts/split-content-publisher.test.mjs",
+    "public-release:dry-run": "node scripts/public-release.mjs --draft --dry-run",
+    "public-release:draft": "node scripts/public-release.mjs --draft",
+    "public-release:candidate": "node scripts/public-release.mjs --release",
+    "public-release:audit": "node scripts/public-release-audit.mjs",
+    "public-release:attest": "node scripts/public-release-attest.mjs",
+    "public-release:receipt": "node scripts/public-release-receipt.mjs",
+    "public-release:test": "node --test scripts/public-release.test.mjs",
     "i18n:audit": "pnpm --dir apps/web run i18n:audit",
     "marketing-copy:audit": "pnpm --dir apps/web run marketing-copy:audit",
+    "marketing-copy:audit:all": "pnpm --dir apps/web run marketing-copy:audit:all",
     "ui-icons:audit": "pnpm --dir apps/web run ui-icons:audit",
     "classes:audit": "pnpm --dir apps/web run classes:audit",
     "format": "prettier --write . && pnpm --dir apps/web format",
@@ -22,6 +32,7 @@
     "verify": "pnpm typecheck && pnpm i18n:audit && pnpm marketing-copy:audit && pnpm ui-icons:audit && pnpm test && pnpm --filter @peanut-split/api test:integration && pnpm --filter @peanut-split/api verify:settle"
   },
   "devDependencies": {
-    "prettier": "^3.3.3"
+    "prettier": "^3.3.3",
+    "typescript": "^5.9.2"
   }
 }

@@ -74,7 +74,7 @@ export const ENGLISH_CARD_COPY: CardCopy = {
     peopleOne: '1 person',
     peopleMany: (count) => `${count} people`,
     emptyRoster: 'Nobody has joined yet',
-    tagline: 'no signup · free forever',
+    tagline: 'no signup · free to use',
 }
 
 /** The card's copy in a room's own language. Null (and anything unrecognised)

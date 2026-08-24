@@ -10,7 +10,7 @@ claims:
     - link-is-the-key
     - netting-is-bounded-exact
     - settle-is-a-record
-    - free-forever
+    - hosted-price
     - room-size-20
     - automatic-currency-conversion
 cast: []
@@ -27,7 +27,7 @@ faqs:
 
 Fairness is one word doing several jobs, and the sum you want depends on what is uneven. A bigger bedroom is one question, a longer drive is another, and a dinner where one person had the tasting menu and another had soup is a third.
 
-Getting it wrong is rarely dramatic. It is the person who did the maths becoming the person who has to defend it, three weeks later, in a group chat, with the working on their phone and nowhere else. Split by Peanut holds the number so nobody has to be that person.
+Getting it wrong is rarely dramatic. It is the person who did the maths becoming the person who has to defend it, three weeks later, in a group chat, with the working on their phone and nowhere else. Split holds the number so nobody has to be that person.
 
 ## Which sum you actually want
 
@@ -49,7 +49,7 @@ It is right more often than the search results suggest: when the difference is s
 
 ## Good to know
 
-Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for, so there is no paid tier and nothing to move behind one later.
+The official service is free to use and has no paid tier.
 
 The calculators do the weighting and the room does the ledger. It automatically converts 156 currencies at the day's indicative rate and holds up to twenty people. Split records a payment rather than making one. It does not check with a bank and cannot.
 

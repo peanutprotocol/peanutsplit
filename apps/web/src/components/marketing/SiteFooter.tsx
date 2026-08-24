@@ -1,38 +1,21 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { useLocale, useTranslations } from 'next-intl'
-import peanutLogo from '@/assets/logos/peanut-logo.svg'
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
 import { INDEXED_LOCALES, asLocale, type Locale } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
 import { hrefFor, listDocs } from '@/lib/content'
+import { publicFossReleased } from '@/lib/flags'
 
 /** Guides listed by name before the column defers to the hub. Four is the point at which the
  *  column stops being a directory and starts being a second copy of /blog. */
 const GUIDES_SHOWN = 4
 
-/** Paths on peanut.me, which is a different app with its own routing — nothing here can be
- *  derived from Split's own route table, so it is written out once. The locale prefix is
- *  deliberate: peanut.me 307s `/help` to `/en/help`, and a link that lands on the final URL
- *  costs a crawler no hop. */
-const PEANUT_LINKS = [
-    { key: 'peanutHome', path: '' },
-    { key: 'peanutHelp', path: '/en/help' },
-    { key: 'peanutTerms', path: '/en/terms' },
-    { key: 'peanutPrivacy', path: '/en/privacy' },
-] as const
-
 /**
- * The site's foot: the Peanut mark, and every page Split has, grouped.
+ * The site's foot: every public Split page, plus one internal source-and-stewardship receipt.
  *
- * It used to be one centred row of four grey links, which is the shape a footer takes when
- * nobody has decided what it is for. This is the shape peanut.me uses — logo and maker credit on
- * the left, named columns beside it, a thin bar underneath — because Split is a Peanut product
- * and the two feet should rhyme.
- *
- * Peanut appears here as the maker mark while the product itself owns the page above it. Pink is
- * also the Pass-the-Link story field now; the footer stays dark so that maker attribution does
- * not compete with the product's primary scene.
+ * The footer deliberately contains no Peanut logo, referral URL or outbound Peanut link. The
+ * dedicated internal page explains Squirrel Labs' stewardship and the official host's bounded,
+ * contextual Peanut references without turning every page into a promotion surface.
  *
  * The guide and comparison columns are read off disk for the current locale, so a new markdown
  * file appears here without anyone editing this component. That is the point: a page nothing
@@ -61,17 +44,7 @@ export function SiteFooter({ showLocaleSwitcher = true }: { showLocaleSwitcher?:
     return (
         <footer data-focus-surface="dark" className="mt-auto bg-n-1 pb-[env(safe-area-inset-bottom)] text-white">
             <div className="mx-auto w-full max-w-xl px-5 py-8">
-                <a
-                    href="https://peanut.me?utm_source=split&utm_medium=footer"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={t('logoLinkLabel')}
-                    className="inline-flex transition-opacity hover:opacity-80"
-                >
-                    <Image src={peanutLogo} alt={t('logoAlt')} width={104} height={26} unoptimized />
-                </a>
-
-                <nav className="mt-6 grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-4">
+                <nav className="grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-3">
                     <div>
                         <h2 className="text-h9 uppercase tracking-wide text-white">{t('colSplit')}</h2>
                         <ul className="mt-2 flex flex-col gap-1.5">
@@ -95,6 +68,13 @@ export function SiteFooter({ showLocaleSwitcher = true }: { showLocaleSwitcher?:
                                     {t('importLink')}
                                 </Link>
                             </li>
+                            {publicFossReleased() && (
+                                <li>
+                                    <Link href="/source" className={linkClass}>
+                                        {t('sourceStewardship')}
+                                    </Link>
+                                </li>
+                            )}
                         </ul>
                     </div>
 
@@ -134,24 +114,6 @@ export function SiteFooter({ showLocaleSwitcher = true }: { showLocaleSwitcher?:
                             </ul>
                         </div>
                     )}
-
-                    <div>
-                        <h2 className="text-h9 uppercase tracking-wide text-white">{t('colPeanut')}</h2>
-                        <ul className="mt-2 flex flex-col gap-1.5">
-                            {PEANUT_LINKS.map((entry) => (
-                                <li key={entry.key}>
-                                    <a
-                                        href={`https://peanut.me${entry.path}?utm_source=split&utm_medium=footer`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className={linkClass}
-                                    >
-                                        {t(entry.key)}
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
                 </nav>
             </div>
 

@@ -94,9 +94,9 @@ export function SplitGuideLayout({
             <header className="border-b border-n-1 bg-primary-1">
                 <div className="mx-auto flex w-full max-w-xl items-center justify-between px-5 py-4">
                     <a href={CANONICAL_ORIGIN} className="font-bold text-n-1 underline-offset-2 hover:underline">
-                        Peanut
+                        Peanut Split
                     </a>
-                    <span className="text-sm font-bold">Split</span>
+                    <span className="text-sm font-bold">Guides</span>
                 </div>
             </header>
 

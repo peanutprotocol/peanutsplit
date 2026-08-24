@@ -11,6 +11,8 @@ import type { RoomState, RoomStateWithMember } from '@/lib/api-types'
 const BASE = 'http://localhost'
 type Params = Record<string, string>
 type Handler = (request: Request, ctx: { params: Promise<Params> }) => Promise<Response>
+const percentEncodeEveryByte = (value: string): string =>
+    [...new TextEncoder().encode(value)].map((byte) => `%${byte.toString(16).padStart(2, '0')}`).join('')
 
 async function call(
     handler: Handler,
@@ -54,6 +56,7 @@ describe('GET /api/rooms/[slug]/history/export', () => {
         })
         const created = await json<RoomStateWithMember>(createResponse)
         const slug = created.room.slug
+        const encodedUpperSlug = percentEncodeEveryByte(slug.toUpperCase())
         const roomPath = `/api/rooms/${slug}`
         const expenseBody = {
             clientKey: crypto.randomUUID(),
@@ -114,11 +117,21 @@ describe('GET /api/rooms/[slug]/history/export', () => {
                 subjectId: created.room.id,
                 actorDeviceHash: 'private-device-hash',
                 deviceOrdinal: 27,
-                before: { nested: [{ roomUrl: `https://split.test/r/${slug}` }] },
-                after: { room: { slug, name: 'Ski & Spa' } },
+                before: {
+                    nested: [{ roomUrl: `https://split.test/r/${slug}`, encodedRoomUrl: encodedUpperSlug }],
+                    [`fact-${encodedUpperSlug}`]: 'safe fact',
+                },
+                after: {
+                    room: {
+                        slug,
+                        name: 'Ski & Spa',
+                        analyticsKey: created.room.analyticsKey ?? 'private-analytics-pseudonym',
+                    },
+                },
                 detail: {
                     memberToken: created.memberToken,
                     secret: 'private-secret',
+                    pushEndpoint: 'https://push.test/subscription-proof',
                     tokenRotated: true,
                 },
             },
@@ -176,13 +189,17 @@ describe('GET /api/rooms/[slug]/history/export', () => {
             'raw-phone-install-id',
             'private-device-hash',
             'private-secret',
+            'subscription-proof',
             'actorDeviceHash',
+            encodedUpperSlug,
         ]) {
-            expect(bodyText).not.toContain(secret)
+            expect(bodyText.toLowerCase()).not.toContain(secret.toLowerCase())
         }
         expect(bodyText).not.toContain('"slug"')
         expect(bodyText).not.toContain('"memberToken"')
         expect(bodyText).not.toContain('"secret"')
+        expect(bodyText).not.toContain('"analyticsKey"')
+        expect(bodyText).not.toContain('"pushEndpoint"')
     })
 
     it('exports the explicit history_started marker and says earlier legacy actions are unavailable', async () => {

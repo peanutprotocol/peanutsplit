@@ -6,7 +6,7 @@ type: comparison
 headTerm: tricount alternative
 tags: [alternatives, currencies]
 claims:
-    - free-forever
+    - hosted-price
     - no-app
     - link-is-the-key
     - automatic-currency-conversion
@@ -18,8 +18,8 @@ competitorClaims:
     - tricount-bunq-card
     - tricount-100-free
 faqs:
-    - question: Is Split free forever?
-      answer: Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for.
+    - question: Is Split free to use?
+      answer: Yes. The official service is free to use and has no paid tier.
     - question: Do I have to download anything?
       answer: No. A room is a web link. Whoever opens it types a name and starts adding expenses. No app store, no account, no email.
     - question: Can we still settle by bank transfer or cash?
@@ -67,7 +67,7 @@ A group of four in Berlin will have a fine time. A group of four in Berlin, Buen
 
 |                 | Peanut Split                                                                        | Tricount                                                 |
 | --------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| Cost            | Free forever, no paid tier                                                          | "100% free"                                              |
+| Cost            | Free to use, no paid tier                                                           | "100% free"                                              |
 | Doing the maths | Balances reconcile to the cent                                                      | "tricount does the math for you"                         |
 | Settling up     | Whatever the two people can actually use: cash, a local transfer, or a payment link | "get paid directly to your bank account", or a bunq card |
 | Best case       | Group spread across countries, banks and currencies                                 | Group that shares banking rails                          |
@@ -80,7 +80,7 @@ Settling up is the row that matters. The rest is close enough that it should not
 
 <Checklist title="Where a split actually fails">
 <ChecklistItem title="Nobody has the same app">"Just send it to me" collapses when one person has Revolut, one has a bank that shuts at four, and one is in a country neither reaches. So don't require a particular one.</ChecklistItem>
-<ChecklistItem title="You paid in one currency and owe in another">Pick what the room counts in, add expenses in whatever you actually spent, and Split converts. Free forever, and not a feature behind a tier.</ChecklistItem>
+<ChecklistItem title="You paid in one currency and owe in another">Pick what the room counts in, add expenses in whatever you actually spent, and Split converts. Free to use, and not a feature behind a tier.</ChecklistItem>
 </Checklist>
 
 ## When Tricount is the better tool
@@ -97,7 +97,7 @@ That is the trade. Less product, fewer assumptions about who you bank with.
   text="Start a split" />
 
 <FAQ>
-<FAQItem question="Is Split free forever?">Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for.</FAQItem>
+<FAQItem question="Is Split free to use?">Yes. The official service is free to use and has no paid tier.</FAQItem>
 <FAQItem question="Do I have to download anything?">No. A room is a web link. Whoever opens it types a name and starts adding expenses. No app store, no account, no email.</FAQItem>
 <FAQItem question="Can we still settle by bank transfer or cash?">Yes. Split nets the debts down so you make two or three transfers instead of twenty, and records each one however it happened. It does not require anyone to use a particular bank or app.</FAQItem>
 <FAQItem question="How do I get back into a room?">Open the link again. There is no login to recover and no password to reset, so the link is the key. Keep it pinned in the group chat, where anybody who needs it can find it.</FAQItem>

@@ -6,7 +6,7 @@ type: comparison
 headTerm: splitwise vs tricount
 tags: [alternatives, currencies]
 claims:
-    - free-forever
+    - hosted-price
     - link-is-the-key
     - no-app
     - automatic-currency-conversion
@@ -202,7 +202,7 @@ Tricount is owned by bunq, a bank, and the card-based automatic tracking runs in
 | Where it runs         | "Free for iPhone, Android, and web."                             | download                                           | Any browser, nothing to install                                         |
 | Offline               | "Offline mode" listed as a core feature                          | "add expenses that sync later"                     | New expenses queue on the phone; recording a payment needs a connection |
 | Settling up           | "record any cash or online payment"                              | "paid directly to your bank account"               | However the two of you pay; one of you taps to record it                |
-| Behind it             | "Made with :) in Providence, RI, USA"                            | "tricount by bunq"                                 | Peanut                                                                  |
+| Behind it             | "Made with :) in Providence, RI, USA"                            | "tricount by bunq"                                 | Squirrel Labs                                                           |
 
 Quotes taken from splitwise.com, kb.splitwise.com, feedback.splitwise.com and tricount.com on 31 July 2026.
 
@@ -237,7 +237,7 @@ Both are bigger products with more in them, and a group that would have been hap
 
 ## Good to know
 
-Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for, so there is no second version to sell you and no plan to build one.
+The official service is free to use and has no paid tier.
 
 <CTA
   title="For the group that fits neither"

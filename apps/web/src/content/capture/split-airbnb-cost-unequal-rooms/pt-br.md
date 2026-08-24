@@ -10,7 +10,7 @@ claims:
     - link-is-the-key
     - netting-is-bounded-exact
     - settle-is-a-record
-    - free-forever
+    - hosted-price
     - room-size-20
     - automatic-currency-conversion
 cast:
@@ -29,7 +29,7 @@ draft: true
 
 Dê um peso a cada quarto, some os pesos e cada um paga essa fração da reserva. A suíte com banheiro próprio vale mais que o quarto no sótão em que você precisa abaixar a cabeça para entrar, e o sofá-cama vale menos que os dois.
 
-A conta é a parte fácil. A reserva saiu de um cartão só lá em fevereiro e, quando chega o fim de semana, as camas já têm dono e ninguém tocou no assunto do dinheiro. Costuma ficar assim: alguém passa quatro noites no sofá, paga o mesmo que o casal da varanda, não fala nada e no ano seguinte está sempre ocupado. Deixe o Split by Peanut fazer a cobrança.
+A conta é a parte fácil. A reserva saiu de um cartão só lá em fevereiro e, quando chega o fim de semana, as camas já têm dono e ninguém tocou no assunto do dinheiro. Costuma ficar assim: alguém passa quatro noites no sofá, paga o mesmo que o casal da varanda, não fala nada e no ano seguinte está sempre ocupado. Deixe o Split fazer a cobrança.
 
 <Steps title="Fazendo na ordem certa">
 <Step title="Combine os pesos ainda no corredor">Faça isso enquanto todo mundo ainda decide quem dorme onde. Depois que as malas entram num quarto, vira reclamação, não decisão.</Step>
@@ -51,7 +51,7 @@ Quatro quartos parecidos não precisam de peso; dar peso a eles inventa uma dife
 
 ## Bom saber
 
-O Split é grátis para sempre, sem nada para desbloquear. A Peanut fez o Split para apresentar as pessoas à Peanut, e é assim que o Split se paga — não existe plano pago nem nada para esconder atrás de um depois.
+O serviço oficial é de uso grátis e não tem plano pago.
 
 Conversão automática para 156 moedas pela taxa indicativa do dia, não a do seu banco. Uma sala comporta até vinte pessoas. O Split registra um pagamento, não faz o pagamento. Não confere com nenhum banco, e não teria como.
 

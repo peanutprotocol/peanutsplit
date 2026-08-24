@@ -136,7 +136,7 @@ describe('what may be queued', () => {
         expect(isQueueable('/api/rooms/ski-trip-aaa/expenses/e1', 'DELETE')).toBe(false)
         // A replayed settlement is a double payment recorded as fact.
         expect(isQueueable('/api/rooms/ski-trip-aaa/settlements', 'POST')).toBe(false)
-        expect(isQueueable('/api/expenses/e1/restore', 'POST')).toBe(false)
+        expect(isQueueable('/api/rooms/ski-trip-aaa/expenses/e1/restore', 'POST')).toBe(false)
         expect(isQueueable('/api/rooms/ski-trip-aaa/members', 'POST')).toBe(false)
         expect(isQueueable('/api/rooms', 'POST')).toBe(false)
         expect(isQueueable('/api/rooms/ski-trip-aaa/expenses', 'GET')).toBe(false)

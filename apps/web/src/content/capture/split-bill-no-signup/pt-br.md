@@ -11,7 +11,7 @@ claims:
     - no-app
     - netting-is-bounded-exact
     - settle-is-a-record
-    - free-forever
+    - hosted-price
     - room-size-20
 cast:
     - ana
@@ -31,7 +31,7 @@ draft: true
 
 A conta nunca foi o problema. Você adiantou o sinal da casa e depois o táxi do aeroporto, e dividir isso por cinco não vai render um doutorado a ninguém. O que sobra é a mensagem que começa com "desculpa te encher", escrita cinco vezes, uma para cada pessoa. Chega!
 
-A maioria empurra isso por uma semana. Tem gente que nunca manda, e fica com uma mágoa calada que acaba com a amizade. Passe essa cobrança para o Split by Peanut. O link vai no grupo e os números ficam numa página que ninguém precisa contestar.
+A maioria empurra isso por uma semana. Tem gente que nunca manda, e fica com uma mágoa calada que acaba com a amizade. Passe essa cobrança para o Split. O link vai no grupo e os números ficam numa página que ninguém precisa contestar.
 
 <Steps title="O que todo mundo precisa fazer">
 <Step title="Abrir o link">Abre no navegador que já está no celular. Não tem página de loja de apps no caminho.</Step>
@@ -43,7 +43,7 @@ No fim, a sala junta as dívidas, então o grupo faz duas ou três transferênci
 
 ## Bom saber
 
-O Split é grátis para sempre, sem nada para desbloquear pagando. A Peanut faz o Split para apresentar as pessoas à Peanut, e é assim que o Split se paga — então não existe plano pago aqui, nem nada para esconder atrás de um depois.
+O serviço oficial é de uso grátis e não tem plano pago.
 
 O Split não confere com nenhum banco e não teria como, então uma linha acertada quer dizer que alguém tocou para dizer que pagou. Ele foi feito para um grupo, não para uma multidão: até vinte pessoas.
 

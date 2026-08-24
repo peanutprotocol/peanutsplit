@@ -211,6 +211,25 @@ describe('drawable', () => {
 })
 
 describe('the route builders', () => {
+    it('keeps safe comparison artwork live while the public-source upgrade is closed', async () => {
+        vi.stubEnv('NEXT_PUBLIC_FOSS_RELEASED', '')
+        try {
+            expect(
+                await cardFor(
+                    contentOgImage(
+                        ['alternatives', 'capture'],
+                        'en',
+                        'page'
+                    )({
+                        params: Promise.resolve({ page: 'splitwise-alternative' }),
+                    })
+                )
+            ).toEqual({ lines: ['SPLIT', 'IT'], tagline: 'Splitwise alternative, free with no signup' })
+        } finally {
+            vi.unstubAllEnvs()
+        }
+    })
+
     /**
      * The root `/[page]` slot serves more than one collection, so the builder has to find which one
      * owns the slug. A builder that read only the first collection would 'Peanut Split' every
@@ -233,7 +252,7 @@ describe('the route builders', () => {
                     params: Promise.resolve({ page: 'splitwise-alternative' }),
                 })
             )
-        ).toEqual({ lines: ['SPLIT', 'IT'], tagline: 'Alternativa a Splitwise gratis, sin registro' })
+        ).toEqual({ lines: ['SPLIT', 'IT'], tagline: 'Alternativa a Splitwise de código abierto' })
     })
 
     /**

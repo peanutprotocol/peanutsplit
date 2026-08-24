@@ -138,7 +138,7 @@ describe('installed generated Split artifact', () => {
 
             const metadata = await splitGuideMetadataFor(entry.locale, entry.slug, artifactRoot)
             const alternates = guideAlternates(entry.slug, artifactRoot)
-            expect(metadata.title, identity).toBe(`${guide!.title} | Peanut`)
+            expect(metadata.title, identity).toBe(`${guide!.title} | Split`)
             expect(metadata.description, identity).toBe(guide!.description)
             // Every sibling resolves to a real manifest path. None is advertised as an alternate
             // here, because this suite runs without `SEO_INDEXABLE` — a box that has not claimed

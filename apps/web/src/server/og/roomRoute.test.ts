@@ -85,7 +85,7 @@ describe('room opengraph-image', () => {
             name: 'Їдемо до Ґанку в Києві',
             stat: '1 витрата · наразі €2340.00',
             people: '8 людей',
-            tagline: 'без реєстрації · безкоштовно назавжди',
+            tagline: 'без реєстрації · користування безкоштовне',
         })
         expect(card?.avatars.map(({ letter }) => letter)).toEqual(['Ї', 'Є', 'О', 'Б', 'А', 'М'])
 

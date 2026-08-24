@@ -10,7 +10,7 @@ claims:
     - link-is-the-key
     - netting-is-bounded-exact
     - settle-is-a-record
-    - free-forever
+    - hosted-price
     - room-size-20
     - automatic-currency-conversion
 cast:
@@ -28,7 +28,7 @@ faqs:
 
 Give each bedroom a weight, add the weights up, and everybody pays that share of the booking. The master with its own bathroom counts for more than the attic room you have to duck to get into, and the sofa bed counts for less than either.
 
-The arithmetic is the easy half. The booking went on one card in February, and by the weekend the beds are claimed and the money has not been mentioned. It often stays that way: somebody does four nights on a sofa, pays what the couple with the balcony paid, never mentions it, and is busy the year after. Let Split by Peanut do the asking.
+The arithmetic is the easy half. The booking went on one card in February, and by the weekend the beds are claimed and the money has not been mentioned. It often stays that way: somebody does four nights on a sofa, pays what the couple with the balcony paid, never mentions it, and is busy the year after. Let Split do the asking.
 
 <Steps title="Doing it in the right order">
 <Step title="Agree the weights in the hallway">Do it while people are still deciding who sleeps where. Once the bags are in a room it is a complaint rather than a decision.</Step>
@@ -50,7 +50,7 @@ Four rooms much of a muchness do not need weights; weighting them invents a diff
 
 ## Good to know
 
-Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for, so there is no paid tier and nothing to move behind one later.
+The official service is free to use and has no paid tier.
 
 Automatic conversion for 156 currencies at the day's indicative rate rather than your bank's. A room holds up to twenty people. Split records a payment rather than making one. It does not check with a bank and cannot.
 

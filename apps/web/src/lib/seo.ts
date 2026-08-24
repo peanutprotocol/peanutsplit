@@ -14,6 +14,8 @@ import type { Doc, Faq } from '@/lib/content'
  */
 
 const SITE_NAME = 'Peanut Split'
+const STEWARD_NAME = 'Squirrel Labs'
+const STEWARD_URL = 'https://squirrellabs.dev/'
 
 /**
  * The site's one-line description. Lives here rather than inline in the root layout because two
@@ -22,7 +24,7 @@ const SITE_NAME = 'Peanut Split'
  * the served meta description is the kind of mismatch that gets structured data ignored.
  */
 export const SITE_DESCRIPTION =
-    'Accountless, link-based expense splitting. Create a room, share the link, settle up however you like. Free forever.'
+    'Accountless, link-based expense splitting. Create a room, share the link, settle up however you like. Free to use.'
 
 /**
  * OG spells locales `language_TERRITORY`; everything else here uses BCP 47.
@@ -42,8 +44,8 @@ export const OG_LOCALE: Record<Locale, string> = {
     uk: 'uk_UA',
 }
 
-/** Stable node id so every page's publisher points at one entity instead of re-declaring it. */
-export const ORGANIZATION_ID = `${CANONICAL_ORIGIN}/#organization`
+/** Stable legal publisher id. The product and website remain separate schema nodes. */
+export const ORGANIZATION_ID = `${STEWARD_URL}#organization`
 
 /**
  * The site's one Organization, spelled out. Pages that emit the site `@graph` reference it by
@@ -53,12 +55,8 @@ export const ORGANIZATION_ID = `${CANONICAL_ORIGIN}/#organization`
 export const ORGANIZATION_NODE = {
     '@type': 'Organization' as const,
     '@id': ORGANIZATION_ID,
-    name: SITE_NAME,
-    url: CANONICAL_ORIGIN,
-    logo: {
-        '@type': 'ImageObject' as const,
-        url: `${CANONICAL_ORIGIN}/icons/icon-512.png`,
-    },
+    name: STEWARD_NAME,
+    url: STEWARD_URL,
 }
 
 /**
@@ -303,7 +301,7 @@ export const isCalculatorDoc = (doc: Doc): boolean =>
 
 /**
  * WebSite + SoftwareApplication for the LP. The price assertion is the one claim here that
- * could rot: free forever is a stated commitment on the site (HonestyStrip), so the markup is
+ * could rot: free to use is a stated commitment on the site (HonestyStrip), so the markup is
  * allowed to say it. If that commitment ever changes, this changes with it.
  */
 export function siteSchema() {

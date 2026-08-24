@@ -2,8 +2,8 @@ import { useTranslations } from 'next-intl'
 import { Icon } from '@/components/ui/Icon'
 
 /**
- * The promises, stated plainly. Free forever is a commitment, not a growth line — if it ever
- * stops being true, this section changes before anything else does.
+ * The current policy, stated plainly. The official service is free to use; this deliberately makes
+ * no promise about its lifetime. If the policy changes, this section changes before anything else.
  */
 export function HonestyStrip() {
     const t = useTranslations('marketing.honesty')

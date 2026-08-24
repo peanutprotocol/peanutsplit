@@ -1,19 +1,19 @@
 ---
 title: Escaneie a conta e divida por item
-description: Fotografe a conta, confira as linhas e toque em quem pediu o quê. Dividir por item é grátis para sempre, sem plano premium nem conta para criar.
+description: Fotografe a conta, confira as linhas e toque em quem pediu o quê. Dividir por item é de uso grátis, sem plano premium nem conta para criar.
 date: 2026-07-28
 type: guide
 v2Only: true
 tags: [recibos, jantares]
 claims:
-    - free-forever
+    - hosted-price
     - link-is-the-key
     - receipt-scan-30-a-day
     - receipt-photo-handling
 cast: []
 faqs:
-    - question: Escanear a conta é grátis para sempre?
-      answer: É. Escanear a conta é grátis para sempre, sem plano premium nem upgrade. Uma sala escaneia até 30 contas por dia, que é um limite no custo de rodar isso, não um plano que você compra para escapar.
+    - question: Escanear a conta é de uso grátis?
+      answer: É. Escanear a conta é de uso grátis, sem plano premium nem upgrade. Uma sala escaneia até 30 contas por dia, que é um limite no custo de rodar isso, não um plano que você compra para escapar.
     - question: Vocês guardam a foto da minha conta?
       answer: O Split envia a foto para o Gemini ler, pelo OpenRouter ou direto. O servidor dele não guarda a imagem nem as linhas extraídas. Se você compartilha uma foto no app instalado do Android, o navegador guarda essa imagem por um tempo no seu aparelho para passá-la à sala; ela é usada uma única vez e recusada depois de dez minutos. O que o Split guarda é a despesa que você aprova no fim.
     - question: E se ele ler uma linha errada?
@@ -62,9 +62,9 @@ O Split envia a foto para o Gemini ler, pelo OpenRouter ou direto. O servidor do
 
 Se o botão "Escanear recibo" não está na sua sala, escanear não está disponível nessa instalação. Você ainda pode lançar o total como uma despesa comum e definir a cota exata de cada um na mão.
 
-## Grátis para sempre, e o que isso significa aqui
+## De uso grátis, e o que isso significa aqui
 
-O Splitwise coloca o escaneamento de recibo por item atrás do Pro, e o Settle Up vende [foto de recibo num tier pago próprio](/guides/splitwise-vs-settle-up). O Split não faz isso, e não existe tier para te empurrar depois — o Split é feito pela Peanut e existe para apresentar as pessoas a ela, que é como ele se paga.
+O Splitwise coloca o escaneamento de recibo por item atrás do Pro, e o Settle Up vende [foto de recibo num tier pago próprio](/guides/splitwise-vs-settle-up). O Split não tem plano pago para recibos.
 
 Tem um número que vale saber: uma sala escaneia 30 contas por dia. É um teto no quanto uma sala custa para rodar, não um plano do qual dá para fazer upgrade, e nenhum jantar chegou perto disso.
 
@@ -74,7 +74,7 @@ Tem um número que vale saber: uma sala escaneia 30 contas por dia. É um teto n
   text="Criar um split" />
 
 <FAQ>
-<FAQItem question="Escanear a conta é grátis para sempre?">É. Escanear a conta é grátis para sempre, sem plano premium nem upgrade. Uma sala escaneia até 30 contas por dia, que é um limite no custo de rodar isso, não um plano que você compra para escapar.</FAQItem>
+<FAQItem question="Escanear a conta é de uso grátis?">É. Escanear a conta é de uso grátis, sem plano premium nem upgrade. Uma sala escaneia até 30 contas por dia, que é um limite no custo de rodar isso, não um plano que você compra para escapar.</FAQItem>
 <FAQItem question="Vocês guardam a foto da minha conta?">O Split envia a foto para o Gemini ler, pelo OpenRouter ou direto. O servidor dele não guarda a imagem nem as linhas extraídas. Se você compartilha uma foto no app instalado do Android, o navegador guarda essa imagem por um tempo no seu aparelho para passá-la à sala; ela é usada uma única vez e recusada depois de dez minutos. O que o Split guarda é a despesa que você aprova no fim.</FAQItem>
 <FAQItem question="E se ele ler uma linha errada?">Você vê cada linha antes de salvar qualquer coisa. Corrija o texto, corrija o valor, apague o que não é seu, acrescente o que ele deixou passar. Se as linhas não batem com o total impresso, ele avisa e mostra a diferença.</FAQItem>
 <FAQItem question="Preciso escanear para dividir por item?">Não. Para uma conta curta, lance uma despesa comum e defina as cotas exatas na mão. A tela que atribui item por item faz parte do escaneamento da conta.</FAQItem>

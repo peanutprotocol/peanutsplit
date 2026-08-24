@@ -166,7 +166,7 @@ export const mileageSplitCalculator: Tool = {
         h1: 'Mileage split calculator',
         intro: [
             'Say how far the car went and how many people were in it. The drive is costed at the official reimbursement rate for the country you pick, and underneath is what each passenger owes whoever drove.',
-            'A fair rate for each kilometre is never the petrol on its own. It is standing in for the tyres, the service that comes round sooner, and the value the car sheds while you are enjoying it — which is why an official figure sits well above what the pump alone would suggest. Type over it if you know the car better than the state does, or build your own from what it drinks. Let Split by Peanut do the asking afterwards, so the driver never has to raise it in the group chat.',
+            'A fair rate for each kilometre is never the petrol on its own. It is standing in for the tyres, the service that comes round sooner, and the value the car sheds while you are enjoying it — which is why an official figure sits well above what the pump alone would suggest. Type over it if you know the car better than the state does, or build your own from what it drinks. Let Split do the asking afterwards, so the driver never has to raise it in the group chat.',
         ],
         resultTitle: 'Who owes the driver what',
         resultHint: 'Say how many people rode with the driver.',
@@ -188,7 +188,7 @@ export const mileageSplitCalculator: Tool = {
         goodToKnow: {
             title: 'Good to know',
             body: [
-                'Split is free forever, with nothing to upgrade to.',
+                'The official service is free to use and has no paid tier.',
                 'Automatic conversion for 156 currencies at the day’s indicative rate.',
                 'A room holds up to twenty people.',
                 'Split records a payment rather than making one. It does not check with a bank and cannot.',

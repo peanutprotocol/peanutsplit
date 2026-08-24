@@ -1,4 +1,5 @@
 import type { ApiExpense, ApiMember, ApiRoom, ApiSettlement, ApiTransfer, RoomState } from './api-types'
+import { sanitizeExportValue } from './export-sanitizer'
 
 /**
  * A portable room snapshot. The bearer slug is deliberately absent: exported
@@ -10,7 +11,7 @@ export interface PortableRoom {
     /** V2 adds first-class PERCENTAGE/SHARES modes and per-share splitWeight. */
     version: 2
     exportedAt: string
-    room: Omit<ApiRoom, 'id' | 'slug' | 'coverUrl'>
+    room: Omit<ApiRoom, 'id' | 'slug' | 'analyticsKey' | 'coverUrl'>
     members: ApiMember[]
     expenses: ApiExpense[]
     settlements: ApiSettlement[]
@@ -18,10 +19,14 @@ export interface PortableRoom {
     suggestedTransfers: ApiTransfer[]
 }
 
-export function portableRoom(state: RoomState, exportedAt = new Date().toISOString()): PortableRoom {
-    const { id: _id, slug: _slug, coverUrl: _coverUrl, ...room } = state.room
+type SanitizedRoomState = Omit<RoomState, 'room'> & {
+    room: Omit<ApiRoom, 'slug' | 'analyticsKey'>
+}
 
-    return {
+export function portableRoom(state: RoomState, exportedAt = new Date().toISOString()): PortableRoom {
+    const { id: _id, slug: liveSlug, analyticsKey: _analyticsKey, coverUrl: _coverUrl, ...room } = state.room
+
+    const snapshot: PortableRoom = {
         schema: 'peanut-split-room',
         version: 2,
         exportedAt,
@@ -32,6 +37,8 @@ export function portableRoom(state: RoomState, exportedAt = new Date().toISOStri
         balances: state.balances,
         suggestedTransfers: state.suggestedTransfers,
     }
+
+    return sanitizeExportValue(snapshot, liveSlug) as PortableRoom
 }
 
 export function roomJson(state: RoomState, exportedAt?: string): string {
@@ -85,6 +92,10 @@ const dataRow = (...cells: CsvCell[]): string =>
  * exact shares and frozen FX provenance are not flattened away.
  */
 export function roomCsv(state: RoomState): string {
+    // Sanitize the whole projected source before formula escaping or CSV
+    // quoting, so every current and future free-text/URL field gets the same
+    // capability treatment as portable JSON and history exports.
+    const safeState = sanitizeExportValue(state, state.room.slug) as SanitizedRoomState
     const rows: string[] = [row(...CSV_HEADERS)]
 
     rows.push(
@@ -93,11 +104,9 @@ export function roomCsv(state: RoomState): string {
             '',
             '',
             '',
-            spreadsheetText(state.room.name),
+            spreadsheetText(safeState.room.name),
             '',
-            state.room.currency,
-            '',
-            '',
+            safeState.room.currency,
             '',
             '',
             '',
@@ -108,12 +117,14 @@ export function roomCsv(state: RoomState): string {
             '',
             '',
             '',
-            state.room.createdAt,
+            '',
+            '',
+            safeState.room.createdAt,
             ''
         )
     )
 
-    for (const member of state.members) {
+    for (const member of safeState.members) {
         rows.push(
             dataRow(
                 'member',
@@ -143,7 +154,7 @@ export function roomCsv(state: RoomState): string {
         )
     }
 
-    for (const expense of state.expenses) {
+    for (const expense of safeState.expenses) {
         rows.push(
             dataRow(
                 'expense',
@@ -178,7 +189,7 @@ export function roomCsv(state: RoomState): string {
                     share.memberId,
                     '',
                     share.amountMinor,
-                    state.room.currency,
+                    safeState.room.currency,
                     '',
                     share.enteredAmountMinor,
                     share.splitWeight,
@@ -198,7 +209,7 @@ export function roomCsv(state: RoomState): string {
         }
     }
 
-    for (const settlement of state.settlements) {
+    for (const settlement of safeState.settlements) {
         rows.push(
             dataRow(
                 'settlement',
@@ -207,7 +218,7 @@ export function roomCsv(state: RoomState): string {
                 '',
                 '',
                 settlement.amountMinor,
-                state.room.currency,
+                safeState.room.currency,
                 '',
                 '',
                 '',
@@ -226,7 +237,7 @@ export function roomCsv(state: RoomState): string {
         )
     }
 
-    for (const [memberId, amountMinor] of Object.entries(state.balances)) {
+    for (const [memberId, amountMinor] of Object.entries(safeState.balances)) {
         rows.push(
             dataRow(
                 'balance',
@@ -235,7 +246,7 @@ export function roomCsv(state: RoomState): string {
                 memberId,
                 '',
                 amountMinor,
-                state.room.currency,
+                safeState.room.currency,
                 '',
                 '',
                 '',
@@ -254,7 +265,7 @@ export function roomCsv(state: RoomState): string {
         )
     }
 
-    for (const transfer of state.suggestedTransfers) {
+    for (const transfer of safeState.suggestedTransfers) {
         rows.push(
             dataRow(
                 'suggested_transfer',
@@ -263,7 +274,7 @@ export function roomCsv(state: RoomState): string {
                 '',
                 '',
                 transfer.amountMinor,
-                state.room.currency,
+                safeState.room.currency,
                 '',
                 '',
                 '',
@@ -285,14 +296,12 @@ export function roomCsv(state: RoomState): string {
     return `${rows.join('\r\n')}\r\n`
 }
 
-export function exportFilename(roomName: string, extension: 'csv' | 'json'): string {
-    const stem =
-        roomName
-            .normalize('NFKD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-|-$/g, '')
-            .slice(0, 48) || 'split-room'
-    return `${stem}.${extension}`
+/**
+ * The caller historically passed only the display name, which can itself
+ * contain a pasted room link. Without the live slug there is no sound way to
+ * distinguish that credential from ordinary words, so snapshot names stay
+ * deliberately generic.
+ */
+export function exportFilename(_roomName: string, extension: 'csv' | 'json'): string {
+    return `split-room.${extension}`
 }

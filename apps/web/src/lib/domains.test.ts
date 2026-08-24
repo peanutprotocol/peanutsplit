@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { CANONICAL_APP_ENTRY, CANONICAL_HOST, CANONICAL_ORIGIN, isProductHost, LEGACY_ALIAS_HOST } from './domains'
-import { resolveSiteUrl } from './site'
+import { parseRequestAuthority, productUrl, requestAuthorityMatchesOrigin, resolveSiteUrl } from './site'
 
 describe('domain constants', () => {
     it('keeps the whole public product on peanutsplit.com', () => {
@@ -51,11 +51,42 @@ describe('domain constants', () => {
         expect(isProductHost('.')).toBe(false)
     })
 
-    it('allows local origins but ignores any public build-arg override', () => {
-        expect(resolveSiteUrl('http://localhost:3100/path')).toBe('http://localhost:3100')
+    it('accepts an exact HTTPS public origin and loopback-only HTTP', () => {
+        expect(resolveSiteUrl('https://split.example.org')).toBe('https://split.example.org')
+        expect(resolveSiteUrl('https://split.example.org:8443/')).toBe('https://split.example.org:8443')
         expect(resolveSiteUrl('http://127.0.0.1:8777')).toBe('http://127.0.0.1:8777')
-        expect(resolveSiteUrl('https://split.peanut.me')).toBe(CANONICAL_ORIGIN)
-        expect(resolveSiteUrl('https://example.com')).toBe(CANONICAL_ORIGIN)
-        expect(resolveSiteUrl('not a URL')).toBe(CANONICAL_ORIGIN)
+        expect(resolveSiteUrl('https://localhost:3100')).toBe('https://localhost:3100')
+    })
+
+    it.each([
+        'http://split.example.org',
+        'https://split.example.org/path',
+        'https://user:password@split.example.org',
+        'https://split.example.org?from=config',
+        'https://split.example.org#fragment',
+        'https://split.example.org.',
+        'https://bad_host.example',
+        'http://localhost:3100/path',
+        ' https://split.example.org',
+        'not a URL',
+    ])('rejects non-origin or unsafe public configuration %j', (value) => {
+        expect(resolveSiteUrl(value)).toBe(CANONICAL_ORIGIN)
+    })
+
+    it('compares a strict request authority with the configured origin and its effective port', () => {
+        expect(parseRequestAuthority('SPLIT.EXAMPLE.ORG:8443')).toEqual({ host: 'split.example.org', port: 8443 })
+        expect(requestAuthorityMatchesOrigin('SPLIT.EXAMPLE.ORG:8443', 'https://split.example.org:8443')).toBe(true)
+        expect(requestAuthorityMatchesOrigin('split.example.org', 'https://split.example.org')).toBe(true)
+        expect(requestAuthorityMatchesOrigin('split.example.org:443', 'https://split.example.org')).toBe(true)
+        expect(requestAuthorityMatchesOrigin('split.example.org:80', 'https://split.example.org')).toBe(false)
+        expect(requestAuthorityMatchesOrigin('split.example.org, attacker.example', 'https://split.example.org')).toBe(
+            false
+        )
+    })
+
+    it('builds product links from the configured origin rather than a request host', () => {
+        expect(productUrl('/r/trip-R7LxQ3TBJV_uQ2PMhzc8rw', 'https://split.example.org')).toBe(
+            'https://split.example.org/r/trip-R7LxQ3TBJV_uQ2PMhzc8rw'
+        )
     })
 })

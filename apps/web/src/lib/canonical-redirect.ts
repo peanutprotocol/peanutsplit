@@ -1,4 +1,5 @@
-import { CANONICAL_HOST, CANONICAL_ORIGIN, isProductHost } from './domains'
+import { isProductHost } from './domains'
+import { parseRequestAuthority, requestAuthorityMatchesOrigin, resolveSiteUrl } from './site'
 
 export interface CanonicalRedirect {
     target: string
@@ -7,20 +8,26 @@ export interface CanonicalRedirect {
 
 const PROBE_PATHS = new Set(['/healthcheck', '/readiness'])
 
-function bareHost(host: string): string {
-    return host.trim().toLowerCase().replace(/:\d+$/, '')
-}
-
 /**
- * Collapse every public alias onto peanutsplit.com while preserving the path and query.
- * Probe endpoints stay host-local so Dokploy can keep checking both configured domains.
+ * Collapse every official public host onto the configured product origin while preserving the
+ * path and query. The request authority can decide whether a redirect is needed, but it can never
+ * choose its destination. Probe endpoints stay host-local so Dokploy can keep checking aliases.
  */
-export function canonicalRedirect(host: string, pathname: string, search: string): CanonicalRedirect | null {
+export function canonicalRedirect(
+    host: string,
+    pathname: string,
+    search: string,
+    configuredSiteUrl: string
+): CanonicalRedirect | null {
     if (PROBE_PATHS.has(pathname)) return null
 
-    const requestedHost = bareHost(host)
-    const isAlias = isProductHost(requestedHost) && requestedHost !== CANONICAL_HOST
-    if (!isAlias) return null
+    const requested = parseRequestAuthority(host)
+    if (!requested) return null
 
-    return { target: `${CANONICAL_ORIGIN}${pathname}${search}`, status: 308 }
+    const targetOrigin = resolveSiteUrl(configuredSiteUrl)
+    const targetHost = new URL(targetOrigin).hostname.toLowerCase()
+    if (!isProductHost(requested.host) && requested.host !== targetHost) return null
+    if (requestAuthorityMatchesOrigin(host, targetOrigin)) return null
+
+    return { target: `${targetOrigin}${pathname}${search}`, status: 308 }
 }

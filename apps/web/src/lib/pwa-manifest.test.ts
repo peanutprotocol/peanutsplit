@@ -82,7 +82,7 @@ describe('the room slug never leaves the device', () => {
 describe('the manifest request host boundary', () => {
     const boundary = async (
         values: Record<string, string>,
-        environment: string | undefined = 'production'
+        configuredSiteUrl = 'https://peanutsplit.com'
     ): Promise<{ host: string | null; canonical: boolean }> => {
         const { isCanonicalPwaRequest, pwaRequestHost } = await import('./pwa-manifest')
         const normalized = Object.fromEntries(
@@ -91,7 +91,7 @@ describe('the manifest request host boundary', () => {
         const headers = { get: (name: string) => normalized[name.toLowerCase()] ?? null }
         return {
             host: pwaRequestHost(headers),
-            canonical: isCanonicalPwaRequest(headers, environment),
+            canonical: isCanonicalPwaRequest(headers, configuredSiteUrl),
         }
     }
 
@@ -111,6 +111,18 @@ describe('the manifest request host boundary', () => {
             host: 'split.peanut.me',
             canonical: false,
         })
+    })
+
+    it('binds a neutral self-host manifest to its configured HTTPS authority', async () => {
+        await expect(
+            boundary({ 'x-forwarded-host': 'SPLIT.EXAMPLE.ORG:8443' }, 'https://split.example.org:8443')
+        ).resolves.toEqual({ host: 'split.example.org', canonical: true })
+        await expect(
+            boundary({ 'x-forwarded-host': 'peanutsplit.com' }, 'https://split.example.org:8443')
+        ).resolves.toEqual({ host: 'peanutsplit.com', canonical: false })
+        await expect(
+            boundary({ 'x-forwarded-host': 'split.example.org' }, 'https://split.example.org:8443')
+        ).resolves.toEqual({ host: 'split.example.org', canonical: false })
     })
 
     it.each([
@@ -143,12 +155,12 @@ describe('the manifest request host boundary', () => {
         })
     })
 
-    it('allows loopback only outside a production build', async () => {
-        await expect(boundary({ host: 'localhost:3100' }, 'development')).resolves.toEqual({
+    it('allows only the exact configured loopback authority', async () => {
+        await expect(boundary({ host: 'localhost:3100' }, 'http://localhost:3100')).resolves.toEqual({
             host: 'localhost',
             canonical: true,
         })
-        await expect(boundary({ host: 'localhost:3100' }, 'production')).resolves.toEqual({
+        await expect(boundary({ host: 'localhost:3100' }, 'http://localhost:3000')).resolves.toEqual({
             host: 'localhost',
             canonical: false,
         })

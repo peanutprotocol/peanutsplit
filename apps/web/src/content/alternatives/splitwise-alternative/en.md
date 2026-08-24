@@ -1,13 +1,18 @@
 ---
 title: Splitwise alternative, free with no signup
-description: A Splitwise alternative that is free forever, with no account and no app. Share one link, everyone adds what they paid, and nothing is capped or sold as Pro.
+description: A Splitwise alternative free to use today, with no account and no app. Share one link, add expenses without a daily cap, and use every core feature.
+publicSourceTitle: Free and open-source Splitwise alternative
+publicSourceDescription: The official service is free to use with no paid tier. Its AGPL source can be self-hosted, with schema and deployment limits documented.
 date: 2026-07-25
-updated: 2026-08-21
+updated: 2026-08-24
 type: comparison
+releaseGate: public-source
 headTerm: splitwise alternative
 tags: [alternatives]
 claims:
-    - free-forever
+    - hosted-price
+    - squirrel-labs-stewardship
+    - public-source-and-self-hosting
     - link-is-the-key
     - no-app
     - automatic-currency-conversion
@@ -20,25 +25,20 @@ competitorClaims:
     - splitwise-pro-currency
     - splitwise-pro-ad-free
     - splitwise-free-daily-cap
+publicSourceFaqs:
+    - question: Is Split FOSS or only free to use?
+      answer: Both, but the claims mean different things. The official service is free to use and has no paid tier. Released software is available under AGPL-3.0-or-later, which grants rights to inspect, run, modify, share and self-host that release.
+    - question: Can I self-host Split?
+      answer: Yes. The public repository includes Compose, PostgreSQL migrations, schema and API documentation. You operate the domain and TLS, database, backups, secrets, upgrades, monitoring and any optional integrations.
+    - question: Who maintains Split, and why can another product appear?
+      answer: Squirrel Labs is currently the sole maintainer and pays every project cost, including work hours and operation of peanutsplit.com. The official service may include a few quiet, contextual settlement references; they never require a click, nag, or feature gate, and forks do not have to keep them.
 faqs:
-    - question: Is it free forever?
-      answer: Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut.
     - question: Do I need an account?
       answer: No, and neither does anyone you send the link to. There is no email, no password and no ID check anywhere in Split.
     - question: Is there a limit on how many expenses we can add?
       answer: No. Add fifty in an afternoon if that is the kind of trip it is.
-    - question: Do we have to download an app?
-      answer: No. Split opens in a browser. Installing it is optional and adds a launcher icon. There is no app store or account.
-    - question: Does it work without signal?
-      answer: Expenses do. Anything you type with no connection is held on your phone, up to thirty of them, and sent the moment there is one. Recording a settle-up waits for a connection on purpose, because a payment written down twice is worse than one written down late.
-    - question: Is it in Spanish or Portuguese?
-      answer: 'Yes, and in five more: English, Spanish, Brazilian Portuguese, Polish, German, French and Ukrainian, picked from whatever the phone opening the link is set to. This comparison page itself is in English, Spanish and Portuguese.'
     - question: Can I import my Splitwise history?
       answer: Yes. Export your group from Splitwise as a spreadsheet and drop the file on peanutsplit.com/import. The expenses, who paid and the balances all come across, and you get a room link to send the group. The file is read in your browser and never uploaded.
-    - question: How do we get back to a room?
-      answer: Keep the link in the group chat so everyone can find it there. Split also saves opened rooms on this device, and you can paste a room link on the home page to add it back.
-    - question: Does it work on my phone?
-      answer: It is a website, so it works anywhere. You can install it from a supported browser for a launcher icon and standalone window.
 ---
 
 {/* Every claim about Splitwise here is a verbatim quote from a Splitwise page, each one re-opened
@@ -55,12 +55,49 @@ price. */}
 
 <Hero
   eyebrow="splitwise alternative"
-  title="Split the bill without making everyone sign up"
-  subtitle="Splitwise works. It also asks every person in the group to make an account before they can add a single expense, and that is where most groups quietly give up. Split by Peanut is a link. Send it, people type a name, everyone adds what they paid."
+  title="A free Splitwise alternative with no signup"
+  subtitle="Splitwise works. It also asks every person in the group to make an account before they can add a single expense, and that is where most groups quietly give up. Split is a link. Send it, people type a name, everyone adds what they paid."
   cta="Start a split"
   ctaHint="Takes ten seconds. No email, no password, no download." />
 
 [Already on Splitwise? Bring your group’s history with you](/import)
+
+<PublicSourceOnly>
+
+## Free and open source are separate promises
+
+The official service is free to use and has no paid tier. That is a price statement about
+peanutsplit.com today, not a promise that one host will exist or stay zero-price forever.
+
+The released software is licensed under AGPL-3.0-or-later. Open source describes what you may do
+with that release: inspect it, run it, modify it, share it and host it yourself under the licence.
+It does not mean “free of charge,” and it does not promise how every future release will be licensed.
+
+[Read the source, licence and stewardship receipts](/source)
+
+## What you can self-host
+
+The public source includes the Next.js application, PostgreSQL schema and migrations, a Compose
+reference deployment, and generated documentation for the data model and HTTP API. The self-hosting
+guide names the current boundaries too: one application replica, process-local wakeups and rate
+limits, static exchange rates unless you configure a provider, and no bundled production TLS,
+backups or monitoring.
+
+Running it makes you the operator. You own the domain and TLS, database, backups, secrets, upgrades,
+logs, privacy notices and every optional integration you enable. The source page links each document
+and the immutable releases.
+
+## Maintained by Squirrel Labs
+
+Peanut Split is maintained by Squirrel Labs. Squirrel Labs is currently the sole maintainer and pays
+every project cost, including maintainer work hours and operation of peanutsplit.com. The fair deal
+is that the official service may carry the few quiet, contextual references described on the
+[source and stewardship page](/source). They never require a click, nag the user, become preselected,
+or gate a feature. Those references are part of
+the official hosted service, not a condition of the AGPL licence. Forks and self-hosters do not
+have to preserve the references or promote either company.
+
+</PublicSourceOnly>
 
 ## Why people go looking
 
@@ -80,7 +117,7 @@ A trip is exactly when you add a dozen in an afternoon. Split has no cap and no 
 Splitwise can convert all your bills to any currency you’d like, using today’s foreign exchange rates.
 </Quote>
 
-Also Pro. If the group is in Lisbon paying in euros and settling in pounds, that is the whole job. In Split it is built in and free forever.
+Also Pro. If the group is in Lisbon paying in euros and settling in pounds, that is the whole job. In Split it is built in and free to use.
 
 ### The free app shows you ads
 
@@ -88,7 +125,7 @@ Also Pro. If the group is in Lisbon paying in euros and settling in pounds, that
 A totally ad-free experience
 </Quote>
 
-Pro again. Split has no ads and no paid tier to sell you, because it is not how Peanut makes money.
+Pro again. Split has no paid tier.
 
 ## If the counter has already stopped you today
 
@@ -108,13 +145,13 @@ Running two ledgers for one trip is worth it for the days the counter is in the 
 
 ## The Splitwise alternative, plainly
 
-|                      | Peanut Split                                   | Splitwise                                            |
-| -------------------- | ---------------------------------------------- | ---------------------------------------------------- |
-| Getting started      | Open the link and type a name.                 | Everyone makes an account first.                     |
-| Getting the group in | Paste one link into the group chat.            | Invite people one by one, and each of them signs up. |
-| Adding expenses      | As many as you like, every day.                | Removing the daily cap is sold as a Pro feature.     |
-| Other currencies     | Built in and free forever.                     | Currency conversion is sold as a Pro feature.        |
-| Cost                 | Free forever, with no paid tier to upgrade to. | Free with ads, or Splitwise Pro.                     |
+|                      | Split                               | Splitwise                                            |
+| -------------------- | ----------------------------------- | ---------------------------------------------------- |
+| Getting started      | Open the link and type a name.      | Everyone makes an account first.                     |
+| Getting the group in | Paste one link into the group chat. | Invite people one by one, and each of them signs up. |
+| Adding expenses      | As many as you like, every day.     | Removing the daily cap is sold as a Pro feature.     |
+| Other currencies     | Built in and free to use.           | Currency conversion is sold as a Pro feature.        |
+| Cost                 | Free to use; no paid tier.          | Free with ads, or Splitwise Pro.                     |
 
 Quotes and features taken from splitwise.com/pro and kb.splitwise.com, checked against those pages on 2026-08-21.
 
@@ -138,15 +175,14 @@ Splitwise scans receipts, does card imports and draws charts, and it has apps in
   text="Start a split" />
 
 <FAQ title="Questions people actually ask">
-<FAQItem question="Is it free forever?">Yes. Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut.</FAQItem>
+<PublicSourceOnly>
+<FAQItem question="Is Split FOSS or only free to use?">Both, but the claims mean different things. The official service is free to use and has no paid tier. Released software is available under AGPL-3.0-or-later, which grants rights to inspect, run, modify, share and self-host that release.</FAQItem>
+<FAQItem question="Can I self-host Split?">Yes. The public repository includes Compose, PostgreSQL migrations, schema and API documentation. You operate the domain and TLS, database, backups, secrets, upgrades, monitoring and any optional integrations.</FAQItem>
+<FAQItem question="Who maintains Split, and why can another product appear?">Squirrel Labs is currently the sole maintainer and pays every project cost, including work hours and operation of peanutsplit.com. The official service may include a few quiet, contextual settlement references; they never require a click, nag, or feature gate, and forks do not have to keep them.</FAQItem>
+</PublicSourceOnly>
 <FAQItem question="Do I need an account?">No, and neither does anyone you send the link to. There is no email, no password and no ID check anywhere in Split.</FAQItem>
 <FAQItem question="Is there a limit on how many expenses we can add?">No. Add fifty in an afternoon if that is the kind of trip it is.</FAQItem>
-<FAQItem question="Do we have to download an app?">No. Split opens in a browser. Installing it is optional and adds a launcher icon. There is no app store or account.</FAQItem>
-<FAQItem question="Does it work without signal?">Expenses do. Anything you type with no connection is held on your phone, up to thirty of them, and sent the moment there is one. Recording a settle-up waits for a connection on purpose, because a payment written down twice is worse than one written down late.</FAQItem>
-<FAQItem question="Is it in Spanish or Portuguese?">Yes, and in five more: English, Spanish, Brazilian Portuguese, Polish, German, French and Ukrainian, picked from whatever the phone opening the link is set to. This comparison page itself is in English, Spanish and Portuguese.</FAQItem>
 <FAQItem question="Can I import my Splitwise history?">Yes. Export your group from Splitwise as a spreadsheet and drop the file on peanutsplit.com/import. The expenses, who paid and the balances all come across, and you get a room link to send the group. The file is read in your browser and never uploaded.</FAQItem>
-<FAQItem question="How do we get back to a room?">Keep the link in the group chat so everyone can find it there. Split also saves opened rooms on this device, and you can paste a room link on the home page to add it back.</FAQItem>
-<FAQItem question="Does it work on my phone?">It is a website, so it works anywhere. You can install it from a supported browser for a launcher icon and standalone window.</FAQItem>
 </FAQ>
 
 <RelatedPages>

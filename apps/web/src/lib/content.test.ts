@@ -9,6 +9,7 @@ import {
     getAuthoredDoc,
     getDoc,
     hrefFor,
+    isDocAvailable,
     listAllAuthoredTranslations,
     listAllDocs,
     listAllTranslations,
@@ -232,6 +233,92 @@ describe('content tree', () => {
             if (prior === undefined) delete process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED
             else process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED = prior
         }
+    })
+
+    it('keeps the canonical comparison routable while gating its public-source upgrade', () => {
+        const prior = process.env.NEXT_PUBLIC_FOSS_RELEASED
+        try {
+            delete process.env.NEXT_PUBLIC_FOSS_RELEASED
+            const safe = getAuthoredDoc('alternatives', 'splitwise-alternative')
+            expect(safe).not.toBeNull()
+            expect(isDocAvailable(safe!)).toBe(true)
+            expect(listSlugs('alternatives')).toContain('splitwise-alternative')
+            expect(safe!.frontmatter.title).toBe('Splitwise alternative, free with no signup')
+            expect(safe!.frontmatter.description).not.toMatch(/AGPL|open[- ]source|self[- ]host/i)
+            expect(safe!.frontmatter.faqs?.map((faq) => faq.question)).toEqual([
+                'Do I need an account?',
+                'Is there a limit on how many expenses we can add?',
+                'Can I import my Splitwise history?',
+            ])
+
+            process.env.NEXT_PUBLIC_FOSS_RELEASED = '1'
+            const released = getAuthoredDoc('alternatives', 'splitwise-alternative')
+            expect(isDocAvailable(released!)).toBe(true)
+            expect(listSlugs('alternatives')).toContain('splitwise-alternative')
+            expect(released!.frontmatter.title).toBe('Free and open-source Splitwise alternative')
+            expect(released!.frontmatter.description).toContain('AGPL')
+            expect(released!.frontmatter.faqs?.map((faq) => faq.question).slice(0, 3)).toEqual([
+                'Is Split FOSS or only free to use?',
+                'Can I self-host Split?',
+                'Who maintains Split, and why can another product appear?',
+            ])
+        } finally {
+            if (prior === undefined) delete process.env.NEXT_PUBLIC_FOSS_RELEASED
+            else process.env.NEXT_PUBLIC_FOSS_RELEASED = prior
+        }
+    })
+
+    it('still withholds a whole-page public-source candidate without a complete release receipt', () => {
+        const candidate = getAuthoredDoc('alternatives', 'splitwise-alternative')!
+        const wholePageCandidate = {
+            ...candidate,
+            frontmatter: { ...candidate.frontmatter, publicSourceUpgrade: false },
+        }
+        const prior = process.env.NEXT_PUBLIC_FOSS_RELEASED
+        try {
+            delete process.env.NEXT_PUBLIC_FOSS_RELEASED
+            expect(isDocAvailable(wholePageCandidate)).toBe(false)
+
+            process.env.NEXT_PUBLIC_FOSS_RELEASED = '1'
+            expect(isDocAvailable(wholePageCandidate)).toBe(true)
+        } finally {
+            if (prior === undefined) delete process.env.NEXT_PUBLIC_FOSS_RELEASED
+            else process.env.NEXT_PUBLIC_FOSS_RELEASED = prior
+        }
+    })
+
+    it('requires the public-source claim and release gate to travel together', () => {
+        const publicSourceLanguage =
+            /\b(?:AGPL(?:-3\.0(?:-or-later)?)?|FOSS|open[- ]source|self[- ]host(?:ed|ing|able)?)\b|código abierto|código aberto|software libre|software livre/iu
+        for (const doc of ALL) {
+            const claimsPublicSource = doc.frontmatter.claims?.includes('public-source-and-self-hosting') ?? false
+            const usesPublicSourceLanguage = publicSourceLanguage.test(
+                [
+                    doc.frontmatter.title,
+                    doc.frontmatter.description,
+                    ...(doc.frontmatter.faqs ?? []).flatMap((faq) => [faq.question, faq.answer]),
+                    doc.body,
+                ].join('\n')
+            )
+            expect(
+                doc.frontmatter.releaseGate === 'public-source',
+                `${doc.collection}/${doc.slug}/${doc.locale}.md must pair the public-source claim with its gate`
+            ).toBe(claimsPublicSource)
+            expect(
+                claimsPublicSource,
+                `${doc.collection}/${doc.slug}/${doc.locale}.md uses public-source language without the claim and gate`
+            ).toBe(usesPublicSourceLanguage)
+        }
+
+        expect(
+            ALL.filter((doc) => doc.frontmatter.releaseGate === 'public-source').map(
+                (doc) => `${doc.collection}/${doc.slug}/${doc.locale}.md`
+            )
+        ).toEqual([
+            'alternatives/splitwise-alternative/en.md',
+            'alternatives/splitwise-alternative/es-419.md',
+            'alternatives/splitwise-alternative/pt-br.md',
+        ])
     })
 })
 
@@ -988,7 +1075,7 @@ describe('page style gate', () => {
     it('names the product in full once, then calls it Split', () => {
         for (const doc of ALL) {
             const prose = bodyProse(doc).replace(/^\s*\|.*$/gm, ' ')
-            const count = (prose.match(/Peanut Split|Split by Peanut/g) ?? []).length
+            const count = (prose.match(/Peanut Split/g) ?? []).length
             expect(
                 count,
                 `${doc.collection}/${doc.slug}/${doc.locale}.md: an approved full name enters once (§3.17/§10.1) — every later mention is "Split"`
@@ -1689,16 +1776,15 @@ describe('tool style gate', () => {
     })
 
     /**
-     * §3.17/§10.1: the product enters by name once and is "Split" everywhere after. Both approved
-     * full names count against the one allowance — a page that said "Peanut Split" in the intro
-     * and "Split by Peanut" in the CTA has entered twice.
+     * §3.17/§10.1: the product enters by its only approved full name once and is "Split"
+     * everywhere after.
      */
     it('names the product in full once, then calls it Split', () => {
         for (const [id, tool] of GATED_PAGES) {
             const count = (
                 toolStrings(tool)
                     .join('\n')
-                    .match(/Peanut Split|Split by Peanut/g) ?? []
+                    .match(/Peanut Split/g) ?? []
             ).length
             expect(count, `${id}: the product enters by name once (§3.17)`).toBeLessThanOrEqual(1)
         }

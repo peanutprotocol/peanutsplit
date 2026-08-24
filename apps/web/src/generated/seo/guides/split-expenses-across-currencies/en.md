@@ -4,10 +4,10 @@ description: "Learn which amount to enter when sharing expenses across currencie
 slug: split-expenses-across-currencies
 type: guide
 lang: en
-author: Peanut
+author: Squirrel Labs
 date: 2026-07-26
 tags: [currencies, trips]
-claims: [automatic-currency-conversion, free-forever]
+claims: [automatic-currency-conversion, hosted-price]
 cast: []
 canonical: https://peanutsplit.com/guides/split-expenses-across-currencies
 schema_types: [BlogPosting]
@@ -24,17 +24,18 @@ generated_from:
   workflow: split-content/_system/workflows/generate-guide.md
   context:
     - split-content/_system/context/messaging.md
+    - split-content/_system/context/valid-links.md
   guidelines:
     - split-content/_system/guidelines/seo.md
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-11
+generated_at: 2026-08-24
 ---
 
 One dinner in Bangkok leaves a receipt in baht, a room in euros, and a card statement in pounds; if
 the group mixes those records, somebody absorbs the difference and resentment can follow everyone
-into the next trip. Let Split by Peanut handle that part. It keeps the receipt currency in the room
+into the next trip. Let Peanut Split handle that part. It keeps the receipt currency in the room
 and applies one conversion rule to the shared expense.
 
 By then, the organiser has a receipt, a calculator, and several screenshots open. Put away the
@@ -70,10 +71,10 @@ would mix two methods in one room.
 - Check the currency symbol before entering the receipt.
 - Ask the payer when a line item is unclear.
 
-## Why conversion is free forever
+## The hosted price
 
-Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut,
-which is how Split gets paid for.
+The official Split service is free to use and has no paid tier. That describes the service
+today; it is not a promise about its price or availability for its entire lifetime.
 
 ## When a spreadsheet is the better tool
 

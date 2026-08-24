@@ -22,12 +22,22 @@ services:
             args:
                 NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
                 NEXT_PUBLIC_SPLIT_V2_ENABLED: ${NEXT_PUBLIC_SPLIT_V2_ENABLED:-}
+                NEXT_PUBLIC_FOSS_RELEASED: ${NEXT_PUBLIC_FOSS_RELEASED:-}
+                NEXT_PUBLIC_BUILD_COMMIT: ${NEXT_PUBLIC_BUILD_COMMIT:-}
+                NEXT_PUBLIC_SOURCE_COMMIT: ${NEXT_PUBLIC_SOURCE_COMMIT:-}
+                NEXT_PUBLIC_SOURCE_ARCHIVE_URL: ${NEXT_PUBLIC_SOURCE_ARCHIVE_URL:-}
+                NEXT_PUBLIC_SOURCE_ARCHIVE_SHA256: ${NEXT_PUBLIC_SOURCE_ARCHIVE_SHA256:-}
         restart: unless-stopped
         depends_on:
             db:
                 condition: service_healthy
         environment:
             DATABASE_URL: postgresql://split:split@db:5432/split
+            # Fork-safe defaults: do not claim the official site's indexed guides or call its FX
+            # service unless an operator makes those choices explicitly.
+            SEO_INDEXABLE: ${SEO_INDEXABLE:-false}
+            SPLIT_FX_MODE: ${SPLIT_FX_MODE:-static}
+            SPLIT_FX_ENDPOINT: ${SPLIT_FX_ENDPOINT:-}
             NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
             NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY:-}
             NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST:-https://eu.i.posthog.com}

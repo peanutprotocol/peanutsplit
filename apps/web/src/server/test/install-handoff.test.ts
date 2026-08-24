@@ -15,7 +15,7 @@ import {
 import { resetRateLimits } from '@/server/rateLimit'
 import { prisma, truncateAll } from '@/server/test/db'
 
-const ORIGIN = 'http://localhost'
+const ORIGIN = 'http://localhost:3000'
 
 const request = (
     path: string,

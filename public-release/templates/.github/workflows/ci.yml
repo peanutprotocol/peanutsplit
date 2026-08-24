@@ -1,0 +1,60 @@
+name: Public candidate
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: split
+          POSTGRES_PASSWORD: split
+          POSTGRES_DB: split
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U split -d split"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      DATABASE_URL: postgresql://split:split@127.0.0.1:5432/split
+      NEXT_PUBLIC_FOSS_RELEASED: ''
+      NEXT_PUBLIC_BUILD_COMMIT: ''
+      NEXT_PUBLIC_SOURCE_COMMIT: ''
+      NEXT_PUBLIC_SOURCE_ARCHIVE_URL: ''
+      NEXT_PUBLIC_SOURCE_ARCHIVE_SHA256: ''
+    steps:
+      - name: Check out the public tree
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Enable pinned pnpm
+        run: corepack enable && corepack prepare pnpm@10.17.1 --activate
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - name: Install
+        run: pnpm --dir apps/web install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm --dir apps/web typecheck
+      - name: FOSS release-boundary tests
+        run: >-
+          pnpm --dir apps/web exec vitest run
+          src/lib/flags.test.ts
+          src/lib/content.test.ts
+          src/lib/reference-budget.test.ts
+          src/lib/marketing-copy-policy.test.ts
+          src/components/marketing/SiteFooter.test.tsx
+          src/app/\(product-shell\)/\(marketing\)/source/page.test.tsx
+      - name: Production build
+        run: pnpm --dir apps/web build

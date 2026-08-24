@@ -4,10 +4,10 @@ description: "Per person or per room for a shared holiday cottage, how children 
 slug: split-holiday-house-per-person-or-per-room
 type: guide
 lang: en
-author: Peanut
+author: Squirrel Labs
 date: 2026-08-12
 tags: [trips, shared expenses]
-claims: [link-is-the-key, netting-is-bounded-exact, settle-is-a-record, free-forever]
+claims: [link-is-the-key, netting-is-bounded-exact, settle-is-a-record]
 cast: []
 canonical: https://peanutsplit.com/guides/split-holiday-house-per-person-or-per-room
 schema_types: [BlogPosting]
@@ -28,7 +28,7 @@ generated_from:
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-14
+generated_at: 2026-08-24
 ---
 
 {/* The Booking.com sentence on this page is a verbatim quote from
@@ -39,7 +39,7 @@ don't quote a price, and don't reword a sentence and keep the quotation marks ar
 Nine of you take a cottage in the Yorkshire Dales for a week, and somebody asks whether the
 six-year-old pays before anybody has packed a bag; get that wrong quietly and one family pays for
 a bedroom nobody used, says nothing about it, and finds a reason not to come next year. Let Split
-by Peanut hold the week's expenses. It keeps the cottage and the shopping in one shared Split room,
+hold the week's expenses. It keeps the cottage and the shopping in one shared Split room,
 so the numbers sit where the whole group can read them.
 
 Every method below charges either by the bedroom or by the head, then bends for a child, a late
@@ -164,14 +164,10 @@ three people and two receipts.
 
 ## Recording the payments once they happen
 
-Settle however you like: cash, a bank transfer, Peanut. Then somebody records it in the room. Split
+Settle however you like: cash, a bank transfer, or another payment app. Then somebody records it in the room. Split
 records the payment, it does not make it. It does not verify with any bank and cannot. The room
 holds the shares and collects nothing from anybody.
 
-## Good to know
-
-Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut,
-which is how Split gets paid for.
 
 ## When a shared note is the better tool
 

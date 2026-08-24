@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>PeanutSplit — draw your room</title>
+        <link
+            rel="icon"
+            href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><circle cx=%2216%22 cy=%2216%22 r=%2215%22 fill=%22%23ffc900%22/><path d=%22M11 9c6-5 14 2 8 7 5 6-3 13-8 7-5-5-4-10 0-14Z%22 fill=%22none%22 stroke=%22%23211c17%22 stroke-width=%222%22/></svg>"
+        />
+        <style>
+            @font-face {
+                font-family: 'Sniglet';
+                src: url('../public/fonts/sniglet-regular.ttf') format('truetype');
+                font-weight: 400;
+                font-display: swap;
+            }
+
+            @font-face {
+                font-family: 'Sniglet';
+                src: url('../public/fonts/sniglet-extrabold.ttf') format('truetype');
+                font-weight: 800;
+                font-display: swap;
+            }
+
+            :root {
+                color-scheme: light;
+                --ink: #211c17;
+                --muted: #6d6863;
+                --canvas: #faf4f0;
+                --paper: #fffdf8;
+                --yellow: #ffc900;
+                --pink: #ff90e8;
+                --mint: #bceccd;
+                --line: 1.5px solid var(--ink);
+                --shadow: 4px 4px 0 var(--ink);
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            html,
+            body {
+                min-height: 100%;
+            }
+
+            body {
+                margin: 0;
+                background: var(--canvas);
+                color: var(--ink);
+                font-family: Inter, ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif;
+            }
+
+            button,
+            a {
+                color: inherit;
+                font: inherit;
+            }
+
+            button:focus-visible,
+            a:focus-visible {
+                outline: 4px solid var(--pink);
+                outline-offset: 3px;
+            }
+
+            .shell {
+                display: grid;
+                min-height: 100dvh;
+                grid-template-columns: minmax(250px, 310px) 1fr;
+            }
+
+            aside {
+                position: relative;
+                z-index: 2;
+                display: flex;
+                flex-direction: column;
+                gap: 26px;
+                border-right: 2px solid var(--ink);
+                background: var(--paper);
+                padding: 26px 22px;
+                box-shadow: 5px 0 0 rgba(33, 28, 23, 0.1);
+            }
+
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-family: 'Sniglet', ui-rounded, system-ui, sans-serif;
+                font-weight: 800;
+            }
+
+            .brand-mark {
+                display: grid;
+                width: 38px;
+                height: 38px;
+                place-items: center;
+                border: var(--line);
+                border-radius: 50%;
+                background: var(--yellow);
+                box-shadow: 2px 2px 0 var(--ink);
+                font-size: 20px;
+            }
+
+            .eyebrow {
+                margin: 0 0 8px;
+                color: var(--muted);
+                font-size: 11px;
+                font-weight: 900;
+                letter-spacing: 0.09em;
+                text-transform: uppercase;
+            }
+
+            h1 {
+                margin: 0;
+                font-family: 'Sniglet', ui-rounded, system-ui, sans-serif;
+                font-size: clamp(28px, 3.2vw, 42px);
+                font-weight: 800;
+                letter-spacing: -0.035em;
+                line-height: 0.98;
+            }
+
+            .intro {
+                margin: 13px 0 0;
+                color: var(--muted);
+                font-size: 14px;
+                line-height: 1.5;
+            }
+
+            .tabs {
+                display: grid;
+                gap: 10px;
+            }
+
+            .tab {
+                width: 100%;
+                border: var(--line);
+                border-radius: 12px;
+                background: #fff;
+                padding: 13px 14px;
+                text-align: left;
+                cursor: pointer;
+                transition: transform 120ms ease, box-shadow 120ms ease;
+            }
+
+            .tab:hover {
+                transform: translateY(-2px);
+            }
+
+            .tab[aria-selected='true'] {
+                background: var(--yellow);
+                box-shadow: var(--shadow);
+                transform: translate(-2px, -2px);
+            }
+
+            .tab-title {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                font-family: 'Sniglet', ui-rounded, system-ui, sans-serif;
+                font-weight: 800;
+            }
+
+            .number {
+                display: grid;
+                width: 24px;
+                height: 24px;
+                place-items: center;
+                border: 1px solid var(--ink);
+                border-radius: 50%;
+                background: #fff;
+                font-family: Inter, system-ui, sans-serif;
+                font-size: 11px;
+            }
+
+            .tab p {
+                margin: 5px 0 0;
+                color: var(--muted);
+                font-size: 12px;
+                line-height: 1.35;
+            }
+
+            .tab[aria-selected='true'] p {
+                color: var(--ink);
+            }
+
+            .review-note {
+                margin-top: auto;
+                border: var(--line);
+                border-radius: 10px;
+                background: #fff3bd;
+                padding: 13px;
+                font-size: 12px;
+                line-height: 1.45;
+            }
+
+            .stage {
+                min-width: 0;
+                padding: 20px;
+            }
+
+            .stage-bar {
+                display: flex;
+                min-height: 42px;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                margin-bottom: 12px;
+            }
+
+            #concept-name {
+                margin: 0;
+                font-family: 'Sniglet', ui-rounded, system-ui, sans-serif;
+                font-size: 17px;
+                font-weight: 800;
+            }
+
+            .open-full {
+                display: inline-flex;
+                min-height: 36px;
+                align-items: center;
+                gap: 7px;
+                border: var(--line);
+                border-radius: 999px;
+                background: #fff;
+                padding: 7px 12px;
+                box-shadow: 2px 2px 0 var(--ink);
+                font-size: 12px;
+                font-weight: 800;
+                text-decoration: none;
+            }
+
+            .frame-wrap {
+                height: calc(100dvh - 94px);
+                min-height: 620px;
+                overflow: hidden;
+                border: 2px solid var(--ink);
+                border-radius: 18px;
+                background: #fff;
+                box-shadow: 6px 6px 0 var(--ink);
+            }
+
+            iframe {
+                width: 100%;
+                height: 100%;
+                border: 0;
+                background: var(--canvas);
+            }
+
+            @media (max-width: 760px) {
+                .shell {
+                    display: block;
+                }
+
+                aside {
+                    position: static;
+                    gap: 17px;
+                    border-right: 0;
+                    border-bottom: 2px solid var(--ink);
+                    padding: 18px 16px 17px;
+                    box-shadow: 0 4px 0 rgba(33, 28, 23, 0.1);
+                }
+
+                aside header .intro,
+                .review-note {
+                    display: none;
+                }
+
+                h1 {
+                    font-size: 30px;
+                }
+
+                .tabs {
+                    display: flex;
+                    overflow-x: auto;
+                    padding: 1px 5px 6px 1px;
+                    scroll-snap-type: x mandatory;
+                }
+
+                .tab {
+                    min-width: 168px;
+                    scroll-snap-align: start;
+                }
+
+                .tab p {
+                    display: none;
+                }
+
+                .stage {
+                    padding: 12px;
+                }
+
+                .frame-wrap {
+                    height: 760px;
+                    min-height: 0;
+                    border-radius: 14px;
+                    box-shadow: 4px 4px 0 var(--ink);
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                *,
+                *::before,
+                *::after {
+                    scroll-behavior: auto !important;
+                    transition: none !important;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <main class="shell">
+            <aside>
+                <div class="brand"><span class="brand-mark" aria-hidden="true">🥜</span> PeanutSplit</div>
+
+                <header>
+                    <p class="eyebrow">Feature mockups · 3 directions</p>
+                    <h1>Draw your room</h1>
+                    <p class="intro">
+                        Every direction starts in the same place: a custom-drawing tile at the very end of the room
+                        icon picker. Pick a direction, then try drawing inside the mockup.
+                    </p>
+                </header>
+
+                <nav class="tabs" role="tablist" aria-label="Drawing concepts">
+                    <button
+                        class="tab"
+                        role="tab"
+                        aria-selected="true"
+                        data-src="room-drawing-inline.html"
+                        data-name="Inline sketch"
+                    >
+                        <span class="tab-title">Inline sketch <span class="number">01</span></span>
+                        <p>Stay in context and turn the grid itself into a quick canvas.</p>
+                    </button>
+                    <button
+                        class="tab"
+                        role="tab"
+                        aria-selected="false"
+                        data-src="room-drawing-focused.html"
+                        data-name="Focused editor"
+                    >
+                        <span class="tab-title">Focused editor <span class="number">02</span></span>
+                        <p>Give fingers more room in a dedicated sheet with a live emblem preview.</p>
+                    </button>
+                    <button
+                        class="tab"
+                        role="tab"
+                        aria-selected="false"
+                        data-src="room-drawing-guided.html"
+                        data-name="Guided doodle"
+                    >
+                        <span class="tab-title">Guided doodle <span class="number">03</span></span>
+                        <p>Add a playful helping hand while keeping the drawing truly yours.</p>
+                    </button>
+                </nav>
+
+                <p class="review-note">
+                    <strong>Constant across all three:</strong> “draw your own” is the last picker item, custom art
+                    reads at tiny emblem size, and the primary exit is an explicit use/save action.
+                </p>
+            </aside>
+
+            <section class="stage" aria-labelledby="concept-name">
+                <div class="stage-bar">
+                    <h2 id="concept-name">Inline sketch</h2>
+                    <a class="open-full" id="open-full" href="room-drawing-inline.html" target="_blank">
+                        Open full screen <span aria-hidden="true">↗</span>
+                    </a>
+                </div>
+                <div class="frame-wrap">
+                    <iframe id="concept-frame" src="room-drawing-inline.html" title="Inline sketch mockup"></iframe>
+                </div>
+            </section>
+        </main>
+
+        <script>
+            const tabs = Array.from(document.querySelectorAll('.tab'))
+            const frame = document.querySelector('#concept-frame')
+            const name = document.querySelector('#concept-name')
+            const openFull = document.querySelector('#open-full')
+
+            function choose(tab) {
+                tabs.forEach((candidate) => candidate.setAttribute('aria-selected', String(candidate === tab)))
+                frame.src = tab.dataset.src
+                frame.title = `${tab.dataset.name} mockup`
+                name.textContent = tab.dataset.name
+                openFull.href = tab.dataset.src
+            }
+
+            tabs.forEach((tab) => tab.addEventListener('click', () => choose(tab)))
+        </script>
+    </body>
+</html>

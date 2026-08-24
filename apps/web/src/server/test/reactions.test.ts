@@ -15,7 +15,7 @@ import { POST as postRoom } from '@/app/api/rooms/route'
 import { POST as postMember } from '@/app/api/rooms/[slug]/members/route'
 import { POST as postExpense } from '@/app/api/rooms/[slug]/expenses/route'
 import { DELETE as deleteExpense } from '@/app/api/rooms/[slug]/expenses/[id]/route'
-import { POST as restoreExpense } from '@/app/api/expenses/[id]/restore/route'
+import { POST as restoreExpense } from '@/app/api/rooms/[slug]/expenses/[id]/restore/route'
 import { DELETE as unreact, POST as react } from '@/app/api/expenses/[id]/reactions/route'
 import type { ApiError, RoomState, RoomStateWithMember } from '@/lib/api-types'
 
@@ -309,9 +309,9 @@ describe('reactions ride their expense', () => {
         expect(await prisma.expenseReaction.count()).toBe(1)
 
         const { body: afterUndo } = await call<RoomState>(restoreExpense as Handler, {
-            path: `/api/expenses/${fixture.expenseId}/restore`,
+            path: `/api/rooms/${fixture.slug}/expenses/${fixture.expenseId}/restore`,
             method: 'POST',
-            params: { id: fixture.expenseId },
+            params: { slug: fixture.slug, id: fixture.expenseId },
         })
         expect(reactionsOf(afterUndo, fixture.expenseId)).toEqual([{ emoji: '🔥', memberId: fixture.bruno.id }])
     })

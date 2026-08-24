@@ -6,7 +6,7 @@ type: comparison
 headTerm: splitwise free limit
 tags: [alternatives]
 claims:
-    - free-forever
+    - hosted-price
     - link-is-the-key
     - no-app
     - automatic-currency-conversion
@@ -29,7 +29,7 @@ faqs:
     - question: How much does Splitwise Pro cost?
       answer: Splitwise does not publish a price on its own site. Its terms say the price may vary due to date of subscription, country, local taxes and regulations, promotions. Your own figure appears at checkout once you have signed in, which is why no two write-ups elsewhere agree.
     - question: Does a Split room have a daily limit?
-      answer: No. No cap on expenses, no ads, and no paid tier to upgrade to. Nothing counts what you add, so a whole week of receipts in one sitting works the same way one dinner does.
+      answer: No. There is no cap on expenses and no paid tier. Nothing counts what you add, so a whole week of receipts in one sitting works the same way one dinner does.
     - question: Can I move my group over in the middle of a trip?
       answer: Yes. Export the Splitwise group as a spreadsheet, import the CSV into a new Split room, check the warnings and balances, then send the new room link to the group. Leave the old group in place until everyone agrees the balances match.
 ---
@@ -100,8 +100,8 @@ Their own pages say three things about ads. The Pro page sells "A totally ad-fre
 |              | Peanut Split                                           | Splitwise free                                      |
 | ------------ | ------------------------------------------------------ | --------------------------------------------------- |
 | Expenses/day | No cap                                                 | A daily cap, lifted by a Pro subscription           |
-| Ads          | None                                                   | Pro is sold as an ad-free experience                |
-| Price        | Free forever, no paid tier                             | Pro price not published; varies by country and date |
+| Ads          | No third-party ads                                     | Pro is sold as an ad-free experience                |
+| Price        | Free to use, no paid tier                              | Pro price not published; varies by country and date |
 | Account      | None. A room is a link                                 | An account                                          |
 | Currencies   | 156 currencies, converted at the day's indicative rate | Currency conversion sits under Pro                  |
 
@@ -128,7 +128,7 @@ Splitwise also has things Split has no version of: receipt scanning, spending ch
 
 ## Good to know
 
-Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for. There is no paid tier, so there is no number to throttle.
+The official service is free to use and has no paid tier. With no paid tier, there is no number to throttle.
 
 Split does not move money and cannot check whether anyone paid. It nets the debts down to a short payment plan, then two people settle however they settle, by cash or a local transfer or whatever both can actually use, and one of them taps to record it. No bank sits behind us confirming that.
 
@@ -140,7 +140,7 @@ Split does not move money and cannot check whether anyone paid. It nets the debt
 <FAQ>
 <FAQItem question="How many expenses can I add to Splitwise for free?">Four a day. Splitwise's help centre says free users can add up to 4 expenses each day, and it is the only Splitwise page that gives a number at all.</FAQItem>
 <FAQItem question="How much does Splitwise Pro cost?">Splitwise does not publish a price on its own site. Its terms say the price may vary due to date of subscription, country, local taxes and regulations, promotions. Your own figure appears at checkout once you have signed in, which is why no two write-ups elsewhere agree.</FAQItem>
-<FAQItem question="Does a Split room have a daily limit?">No. No cap on expenses, no ads, and no paid tier to upgrade to. Nothing counts what you add, so a whole week of receipts in one sitting works the same way one dinner does.</FAQItem>
+<FAQItem question="Does a Split room have a daily limit?">No. There is no cap on expenses and no paid tier. Nothing counts what you add, so a whole week of receipts in one sitting works the same way one dinner does.</FAQItem>
 <FAQItem question="Can I move my group over in the middle of a trip?">Yes. Export the Splitwise group as a spreadsheet, import the CSV into a new Split room, check the warnings and balances, then send the new room link to the group. Leave the old group in place until everyone agrees the balances match.</FAQItem>
 </FAQ>
 

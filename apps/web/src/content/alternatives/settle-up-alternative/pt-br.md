@@ -7,7 +7,7 @@ headTerm: alternativa settle up
 tags: [alternativas, sem-conta]
 claims:
     - link-is-the-key
-    - free-forever
+    - hosted-price
     - no-app
     - automatic-currency-conversion
     - netting-is-bounded-exact
@@ -23,8 +23,8 @@ competitorClaims:
 faqs:
     - question: Preciso de conta para usar o Split?
       answer: 'Não. Uma sala é um link. Quem abre digita um nome e começa a lançar despesas: sem loja de aplicativos, sem conta, sem e-mail, sem senha.'
-    - question: O Split é grátis para sempre?
-      answer: É. O Split é grátis para sempre, não existe nada para assinar depois e não tem anúncio. A Peanut faz o Split para apresentar a Peanut às pessoas, e é daí que sai o dinheiro.
+    - question: O Split é de uso grátis?
+      answer: Sim. O serviço oficial é de uso grátis e não tem plano pago.
     - question: Dá para trazer os saldos do Settle Up?
       answer: Digitando, não importando. O Settle Up pode exportar CSV, mas o Split ainda não aceita esse arquivo nem tem uma conexão direta. Ponha quanto cada pessoa está para cima ou para baixo hoje, uma linha para cada uma, e o que já foi acertado no Settle Up continua acertado lá.
     - question: Como eu volto para uma sala?
@@ -85,7 +85,7 @@ Dá para **ver** o saldo. Quem nunca criou conta acompanha os números mexendo; 
 | ------------------------ | ---------------------------------------------------------------------------------- | ---------------------------------------------------------- |
 | Para começar             | Abre um link, digita um nome                                                       | Uma conta, depois convite por link ou QR code              |
 | O que o grupo vê de você | O nome que você digitou                                                            | Seu nome, seu e-mail e sua foto de perfil                  |
-| Preço                    | Grátis para sempre, sem plano pago, sem anúncios                                   | Grátis de usar, com partes atrás de um plano Premium       |
+| Preço                    | De uso grátis, sem plano pago                                                      | Grátis de usar, com partes atrás de um plano Premium       |
 | Cobrar as pessoas        | Nada. O Split não lembra ninguém                                                   | Lembra os membros do grupo e cutuca para acertarem         |
 | Reduzir as dívidas       | Um plano de pagamento curto, sempre ligado                                         | Transfere dívidas para cortar transações; dá para desligar |
 | Moedas                   | 156 moedas, pela taxa indicativa do dia                                            | Todas as moedas, por uma taxa baixada que você pode editar |
@@ -140,7 +140,7 @@ Não tem banco nem carteira atrás do Split. Duas pessoas acertam do jeito que e
 
 <FAQ title="Perguntas">
 <FAQItem question="Preciso de conta para usar o Split?">Não. Uma sala é um link. Quem abre digita um nome e começa a lançar despesas: sem loja de aplicativos, sem conta, sem e-mail, sem senha.</FAQItem>
-<FAQItem question="O Split é grátis para sempre?">É. O Split é grátis para sempre, não existe nada para assinar depois e não tem anúncio. A Peanut faz o Split para apresentar a Peanut às pessoas, e é daí que sai o dinheiro.</FAQItem>
+<FAQItem question="O Split é de uso grátis?">Sim. O serviço oficial é de uso grátis e não tem plano pago.</FAQItem>
 <FAQItem question="Dá para trazer os saldos do Settle Up?">Digitando, não importando. O Settle Up pode exportar CSV, mas o Split ainda não aceita esse arquivo nem tem uma conexão direta. Ponha quanto cada pessoa está para cima ou para baixo hoje, uma linha para cada uma, e o que já foi acertado no Settle Up continua acertado lá.</FAQItem>
 <FAQItem question="Como eu volto para uma sala?">Você abre o link de novo. Não tem login, então o link é a chave. Deixe ele no grupo do WhatsApp, e lembre que abrir uma sala pela primeira vez precisa de conexão.</FAQItem>
 </FAQ>
