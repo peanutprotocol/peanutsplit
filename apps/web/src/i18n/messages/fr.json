@@ -103,36 +103,6 @@
                 }
             }
         },
-        "how": {
-            "title": "Comment ça marche",
-            "step1": {
-                "title": "Crée un groupe"
-            },
-            "step2": {
-                "title": "Partage le lien"
-            },
-            "step3": {
-                "title": "Chacun ajoute ses dépenses"
-            },
-            "step4": {
-                "title": "Règle les comptes"
-            }
-        },
-        "uses": {
-            "title": "Les dépenses qu’on partage ici",
-            "item1": {
-                "title": "Voyages en groupe"
-            },
-            "item2": {
-                "title": "Colocataires"
-            },
-            "item3": {
-                "title": "Dîners et tournées"
-            },
-            "item4": {
-                "title": "Équipes à distance"
-            }
-        },
         "finalCta": {
             "title": "À TOI DE PARTAGER.",
             "button": "Créer un groupe"

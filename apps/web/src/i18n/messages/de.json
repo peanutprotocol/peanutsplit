@@ -103,36 +103,6 @@
                 }
             }
         },
-        "how": {
-            "title": "So funktioniert’s",
-            "step1": {
-                "title": "Gruppe erstellen"
-            },
-            "step2": {
-                "title": "Link teilen"
-            },
-            "step3": {
-                "title": "Alle tragen Ausgaben ein"
-            },
-            "step4": {
-                "title": "Ausgleichen"
-            }
-        },
-        "uses": {
-            "title": "Was ihr hier aufteilen könnt",
-            "item1": {
-                "title": "Gruppenreisen"
-            },
-            "item2": {
-                "title": "WGs"
-            },
-            "item3": {
-                "title": "Abendessen und Runden"
-            },
-            "item4": {
-                "title": "Remote-Teams"
-            }
-        },
         "finalCta": {
             "title": "JETZT SEID IHR DRAN.",
             "button": "Gruppe erstellen"

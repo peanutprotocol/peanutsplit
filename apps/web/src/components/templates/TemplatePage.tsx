@@ -4,11 +4,14 @@ import { Breadcrumbs } from '@/components/marketing/Breadcrumbs'
 import { ContentAnalytics } from '@/components/marketing/ContentAnalytics'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
+import { SkinFrame } from '@/components/marketing/SkinFrame'
 import { CTA, FAQ, FAQItem, RelatedLink, RelatedPages } from '@/components/marketing/mdx/blocks'
 import { buttonClassName } from '@/components/ui/button-style'
 import { Doodle } from '@/components/ui/Doodle'
 import { CATALOG_BY_CODE } from '@/lib/currency-catalog'
 import { breadcrumbSchema, faqSchema } from '@/lib/seo'
+import { hashSlug } from '@/lib/split-content/seed'
+import { templateSkin, templateWallpaperChapter } from '@/lib/split-content/template-skin'
 import type { Utm } from '@/lib/utm'
 import { templateCtaHref } from '@/templates/links'
 import { TEMPLATES_PATH, templatePath } from '@/templates/registry'
@@ -38,6 +41,13 @@ import type { RoomTemplate } from '@/templates/types'
  *
  * The campaign is passed in rather than read here — see `utm.ts`. Both anchors carry the same
  * values the reader arrived on, so the room they open belongs to the post that sent them.
+ *
+ * `SkinFrame` rather than `ChapterFrame`, for the reason `tool-skin.ts` gives: a template is a
+ * registry config rather than a `Doc`, so it never reaches `pageRecipe` and has no chapter to
+ * carry — no numerals, no receipt grammar, nothing that reads `--chapter-ink`. Every `split-*`
+ * class below is scoped `[data-skin='sticker']` in `globals.css`, so without the frame they are
+ * inert markup and the page renders flat beside every other content surface. That is what this
+ * shipped as; the wrap is what turns them on.
  */
 export async function TemplatePage({ template, utm = {} }: { template: RoomTemplate; utm?: Utm }) {
     const t = await getTranslations({ locale: 'en', namespace: 'content' })
@@ -50,14 +60,10 @@ export async function TemplatePage({ template, utm = {} }: { template: RoomTempl
         { name: template.copy.h1, href: path },
     ]
 
-    return (
-        <main className="flex min-h-dvh flex-col bg-background">
-            <ContentAnalytics template="room-template" source={template.slug} />
-            <JsonLd data={breadcrumbSchema(crumbs)} />
-            <JsonLd data={faqSchema([...template.faqs])} />
+    const skin = templateSkin(template.slug)
 
-            <Breadcrumbs crumbs={crumbs} />
-
+    const body = (
+        <>
             <header className="mx-auto w-full max-w-xl px-5 pb-2 pt-4">
                 <div className="flex items-start gap-3">
                     <Doodle name={template.room.emblem} size={38} weight={1.5} />
@@ -71,7 +77,10 @@ export async function TemplatePage({ template, utm = {} }: { template: RoomTempl
             </header>
 
             <section className="mx-auto w-full max-w-xl px-5 py-4">
-                <div className="rounded-sm border border-n-1 bg-white p-5">
+                {/* `split-cta-card` is the die-cut hook, not a claim about the block's job: the
+                    skin's sticker group is keyed on it, and a hand-rolled card without one stays a
+                    flat rectangle beside the stickered CTA and FAQ below. */}
+                <div className="split-cta-card rounded-sm border border-n-1 bg-white p-5">
                     <h2 className="split-block-title text-h6">{TEMPLATE_SETUP.title}</h2>
                     <dl className="mt-3 flex flex-col gap-2 text-sm leading-5 text-n-1">
                         <div className="flex flex-wrap items-baseline gap-x-2">
@@ -146,6 +155,33 @@ export async function TemplatePage({ template, utm = {} }: { template: RoomTempl
                         </RelatedLink>
                     ))}
                 </RelatedPages>
+            )}
+        </>
+    )
+
+    return (
+        <main className="flex min-h-dvh flex-col bg-background">
+            <ContentAnalytics template="room-template" source={template.slug} />
+            <JsonLd data={breadcrumbSchema(crumbs)} />
+            <JsonLd data={faqSchema([...template.faqs])} />
+
+            <Breadcrumbs crumbs={crumbs} />
+
+            {/* The skin paints the page between the crumbs and the footer, and nothing else.
+                `SiteFooter` is `mt-auto`, which only finds free space while it is a direct flex
+                child of this column — put it inside the frame and a short page floats its footer
+                mid-viewport over bare background. Same idiom as `ToolPage`. */}
+            {skin === 'none' ? (
+                body
+            ) : (
+                <SkinFrame
+                    skin={skin}
+                    seed={hashSlug(template.slug)}
+                    chapter={templateWallpaperChapter(template.slug)}
+                    className="flex flex-1 flex-col"
+                >
+                    {body}
+                </SkinFrame>
             )}
 
             <SiteFooter showLocaleSwitcher={false} />

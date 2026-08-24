@@ -103,36 +103,6 @@
                 }
             }
         },
-        "how": {
-            "title": "Como funciona",
-            "step1": {
-                "title": "Comece uma divisão"
-            },
-            "step2": {
-                "title": "Compartilhe o link"
-            },
-            "step3": {
-                "title": "Todo mundo lança os gastos"
-            },
-            "step4": {
-                "title": "Acertem as contas"
-            }
-        },
-        "uses": {
-            "title": "O que as pessoas dividem aqui",
-            "item1": {
-                "title": "Viagens em grupo"
-            },
-            "item2": {
-                "title": "Colegas de apê"
-            },
-            "item3": {
-                "title": "Jantares e rodadas"
-            },
-            "item4": {
-                "title": "Times remotos"
-            }
-        },
         "finalCta": {
             "title": "SUA VEZ DE DIVIDIR.",
             "button": "Começar uma divisão"

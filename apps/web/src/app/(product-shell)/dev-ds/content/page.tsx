@@ -7,8 +7,10 @@ import { pageRecipe, type PageKind } from '@/lib/split-content/recipe'
 import { hashSlug } from '@/lib/split-content/seed'
 import type { Skin } from '@/lib/split-content/skin'
 import { CHAPTER_DOODLE_POOLS } from '@/lib/split-content/spot-placer'
+import { templateSkin, templateWallpaperChapter } from '@/lib/split-content/template-skin'
 import { toolSkin, toolWallpaperChapter } from '@/lib/split-content/tool-skin'
 import { wallpaperDataUri } from '@/lib/split-content/wallpaper'
+import { TEMPLATES } from '@/templates/registry'
 import { TOOLS } from '@/tools/registry'
 
 /**
@@ -194,6 +196,42 @@ export default function ContentContactSheetPage() {
                                 </td>
                                 <td className="border-b border-n-1 p-2 text-xs text-grey-1">
                                     {toolWallpaperChapter(tool.slug)}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Templates are the second registry surface, and the same shape as the tools table for
+                the same reason: a template slug never reaches `pageRecipe` either. */}
+            <h2 className="mt-10 text-h5">Template rooms</h2>
+            <p className="mt-1 max-w-2xl text-sm text-grey-1">
+                Same seam as the tools above: <code>templateSkin</code> off the one map, and a wallpaper that borrows a
+                chapter&rsquo;s doodle pool without carrying its ink.
+            </p>
+            <div className="mt-4 overflow-x-auto rounded-sm border border-n-1 bg-white">
+                <table className="w-full min-w-[32rem] border-collapse text-left text-sm">
+                    <thead className="bg-primary-3">
+                        <tr>
+                            <th className="border-b border-n-1 p-2">Slug</th>
+                            <th className="border-b border-n-1 p-2">Skin</th>
+                            <th className="border-b border-n-1 p-2">Wallpaper pool</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {TEMPLATES.map((template) => (
+                            <tr key={template.slug} className="align-top">
+                                <td className="border-b border-n-1 p-2 font-mono text-xs">{template.slug}</td>
+                                <td className="border-b border-n-1 p-2">
+                                    <SkinCell
+                                        skin={templateSkin(template.slug)}
+                                        seed={hashSlug(template.slug)}
+                                        chapter={templateWallpaperChapter(template.slug)}
+                                    />
+                                </td>
+                                <td className="border-b border-n-1 p-2 text-xs text-grey-1">
+                                    {templateWallpaperChapter(template.slug)}
                                 </td>
                             </tr>
                         ))}

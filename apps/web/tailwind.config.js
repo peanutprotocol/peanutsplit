@@ -340,15 +340,6 @@ module.exports = {
                     '@apply h-16 w-full rounded-sm border border-n-1 bg-white px-5 text-base md:text-sm font-bold text-n-1 outline-none transition-colors placeholder:text-n-3':
                         {},
                 },
-                '.bg-peanut-repeat-normal': {
-                    '@apply bg-[url("../assets/bg/peanut-bg.svg")] bg-repeat bg-[length:100px_100px]': {},
-                },
-                '.bg-peanut-repeat-large': {
-                    '@apply bg-[url("../assets/bg/peanut-bg.svg")] bg-repeat bg-[length:200px_200px]': {},
-                },
-                '.bg-peanut-repeat-small': {
-                    '@apply bg-[url("../assets/bg/peanut-bg.svg")] bg-repeat bg-[length:50px_50px]': {},
-                },
             })
             addUtilities({
                 '.tap-highlight-color': {

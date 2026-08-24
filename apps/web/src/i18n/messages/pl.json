@@ -103,36 +103,6 @@
                 }
             }
         },
-        "how": {
-            "title": "Jak to działa",
-            "step1": {
-                "title": "Zacznij rozliczenie"
-            },
-            "step2": {
-                "title": "Udostępnij link"
-            },
-            "step3": {
-                "title": "Każdy dodaje wydatki"
-            },
-            "step4": {
-                "title": "Rozlicz się"
-            }
-        },
-        "uses": {
-            "title": "Co rozliczają tu inni",
-            "item1": {
-                "title": "Wyjazdy grupowe"
-            },
-            "item2": {
-                "title": "Współlokatorzy"
-            },
-            "item3": {
-                "title": "Kolacje i kolejki"
-            },
-            "item4": {
-                "title": "Zdalne ekipy"
-            }
-        },
         "finalCta": {
             "title": "TERAZ TWOJA KOLEJ.",
             "button": "Utwórz pokój"

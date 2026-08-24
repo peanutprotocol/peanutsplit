@@ -103,36 +103,6 @@
                 }
             }
         },
-        "how": {
-            "title": "How it works",
-            "step1": {
-                "title": "Start a split"
-            },
-            "step2": {
-                "title": "Share the link"
-            },
-            "step3": {
-                "title": "Everyone adds expenses"
-            },
-            "step4": {
-                "title": "Settle up"
-            }
-        },
-        "uses": {
-            "title": "What people split here",
-            "item1": {
-                "title": "Group trips"
-            },
-            "item2": {
-                "title": "Flatmates"
-            },
-            "item3": {
-                "title": "Dinners and rounds"
-            },
-            "item4": {
-                "title": "Remote crews"
-            }
-        },
         "finalCta": {
             "title": "YOUR TURN TO SPLIT.",
             "button": "Start a split"
