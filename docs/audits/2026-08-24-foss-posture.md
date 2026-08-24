@@ -287,7 +287,9 @@ launch**.
    `<PublicSourceOnly>` body regions open with that receipt. Closed-render regressions assert zero
    AGPL/FOSS/self-hosting copy or `/source` links, and the copy audit permits launch language only in
    those exact frontmatter/MDX regions. The application validates syntax and equality only; release
-   audit and deployment controls must establish that embedded receipt values are truthful.
+   audit and deployment controls must establish that embedded receipt values are truthful. The final
+   immutable verifier blocked 31 of 31 hand-crafted semantic mutations after Markdown/MDX rendered-text
+   normalization was added; zero boundary bypasses survived.
 5. **Restore and export blockers resolved.** Expense restore moved behind both room slug and expense
    id, with a mismatched-room 404/no-mutation regression. Portable JSON, CSV, and history exports now
    remove credential-shaped fields and raw, case-varied, and percent-encoded room capabilities while
