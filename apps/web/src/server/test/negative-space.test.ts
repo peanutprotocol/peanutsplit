@@ -20,7 +20,7 @@ import { POST as postRoom } from '@/app/api/rooms/route'
 import { POST as postMember } from '@/app/api/rooms/[slug]/members/route'
 import { POST as postExpense } from '@/app/api/rooms/[slug]/expenses/route'
 import { DELETE as deleteExpense, PATCH as patchExpense } from '@/app/api/rooms/[slug]/expenses/[id]/route'
-import { POST as restoreExpense } from '@/app/api/expenses/[id]/restore/route'
+import { POST as restoreExpense } from '@/app/api/rooms/[slug]/expenses/[id]/restore/route'
 import { POST as postSettlement } from '@/app/api/rooms/[slug]/settlements/route'
 import { DELETE as deleteSettlement } from '@/app/api/rooms/[slug]/settlements/[id]/route'
 import { POST as addReaction } from '@/app/api/expenses/[id]/reactions/route'
@@ -406,9 +406,9 @@ describe('restore', () => {
             token: created.memberToken,
         })
         await call<RoomState>(restoreExpense as Handler, {
-            path: `/api/expenses/${expenseId}/restore`,
+            path: `/api/rooms/${slug}/expenses/${expenseId}/restore`,
             method: 'POST',
-            params: { id: expenseId },
+            params: { slug, id: expenseId },
             token: created.memberToken,
         })
 
@@ -419,15 +419,15 @@ describe('restore', () => {
     })
 
     it('is a no-op on a live expense, and writes no second history entry for it', async () => {
-        const { created, expenseId } = await seedRoom()
+        const { slug, created, expenseId } = await seedRoom()
         const auditCount = () =>
             prisma.roomAuditEvent.count({ where: { subjectId: expenseId, action: 'expense_restored' } })
         expect(await auditCount()).toBe(0)
 
         const { status } = await call<RoomState>(restoreExpense as Handler, {
-            path: `/api/expenses/${expenseId}/restore`,
+            path: `/api/rooms/${slug}/expenses/${expenseId}/restore`,
             method: 'POST',
-            params: { id: expenseId },
+            params: { slug, id: expenseId },
             token: created.memberToken,
         })
         expect(status).toBe(200)
@@ -435,12 +435,53 @@ describe('restore', () => {
     })
 
     it('404s an expense id nobody ever wrote, rather than opening a transaction for it', async () => {
+        const { body: created } = await newRoom()
+        const id = crypto.randomUUID()
         const { status, body } = await call<ApiError>(restoreExpense as Handler, {
-            path: `/api/expenses/${crypto.randomUUID()}/restore`,
+            path: `/api/rooms/${created.room.slug}/expenses/${id}/restore`,
             method: 'POST',
-            params: { id: crypto.randomUUID() },
+            params: { slug: created.room.slug, id },
         })
         expect(`${status}:${codeOf(body)}`).toBe('404:EXPENSE_NOT_FOUND')
+    })
+
+    it('conceals a leaked expense id behind the correct room slug before restoring it', async () => {
+        const owner = await seedRoom('Owner room')
+        const other = await seedRoom('Other room')
+        await call<RoomState>(deleteExpense as Handler, {
+            path: `/api/rooms/${owner.slug}/expenses/${owner.expenseId}`,
+            method: 'DELETE',
+            params: { slug: owner.slug, id: owner.expenseId },
+            token: owner.created.memberToken,
+        })
+
+        const before = await prisma.expense.findUniqueOrThrow({ where: { id: owner.expenseId } })
+        const wrongRoom = await call<ApiError>(restoreExpense as Handler, {
+            path: `/api/rooms/${other.slug}/expenses/${owner.expenseId}/restore`,
+            method: 'POST',
+            params: { slug: other.slug, id: owner.expenseId },
+            token: other.created.memberToken,
+        })
+
+        expect(`${wrongRoom.status}:${codeOf(wrongRoom.body)}`).toBe('404:EXPENSE_NOT_FOUND')
+        expect('room' in wrongRoom.body).toBe(false)
+        expect((await prisma.expense.findUniqueOrThrow({ where: { id: owner.expenseId } })).deletedAt).toEqual(
+            before.deletedAt
+        )
+        expect(
+            await prisma.roomAuditEvent.count({ where: { subjectId: owner.expenseId, action: 'expense_restored' } })
+        ).toBe(0)
+
+        const correctRoom = await call<RoomState>(restoreExpense as Handler, {
+            path: `/api/rooms/${owner.slug}/expenses/${owner.expenseId}/restore`,
+            method: 'POST',
+            params: { slug: owner.slug, id: owner.expenseId },
+            token: owner.created.memberToken,
+        })
+        expect(correctRoom.status).toBe(200)
+        expect(correctRoom.body.room.slug).toBe(owner.slug)
+        expect(correctRoom.body.expenses.map((expense) => expense.id)).toContain(owner.expenseId)
+        expect((await prisma.expense.findUniqueOrThrow({ where: { id: owner.expenseId } })).deletedAt).toBeNull()
     })
 
     it('records exactly one history entry however many times undo is tapped', async () => {
@@ -460,8 +501,18 @@ describe('restore', () => {
             { slug, id: expenseId },
             'DELETE'
         )
-        await tap(restoreExpense as Handler, `/api/expenses/${expenseId}/restore`, { id: expenseId }, 'POST')
-        await tap(restoreExpense as Handler, `/api/expenses/${expenseId}/restore`, { id: expenseId }, 'POST')
+        await tap(
+            restoreExpense as Handler,
+            `/api/rooms/${slug}/expenses/${expenseId}/restore`,
+            { slug, id: expenseId },
+            'POST'
+        )
+        await tap(
+            restoreExpense as Handler,
+            `/api/rooms/${slug}/expenses/${expenseId}/restore`,
+            { slug, id: expenseId },
+            'POST'
+        )
 
         const events = await prisma.roomAuditEvent.findMany({ where: { subjectId: expenseId } })
         const counts = events.reduce<Record<string, number>>((result, event) => {

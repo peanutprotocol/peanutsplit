@@ -8,6 +8,7 @@ import { Icon } from '@/components/ui/Icon'
 import type { Locale } from '@/i18n/locales'
 import { castPersona } from '@/lib/cast'
 import type { Faq } from '@/lib/content'
+import { publicFossReleased } from '@/lib/flags'
 import type { Chapter } from '@/lib/split-content/chapter-tokens'
 import { spotDoodle, spotPlan } from '@/lib/split-content/spot-placer'
 import { ShortVersionSlot } from './ShortVersionSlot'
@@ -27,6 +28,11 @@ import { ShortVersionSlot } from './ShortVersionSlot'
  */
 
 const COLUMN = 'mx-auto w-full max-w-xl px-5'
+
+/** Prepared public-source copy stays in the reviewable document but emits no HTML before release. */
+export function PublicSourceOnly({ children }: { children: ReactNode }) {
+    return publicFossReleased() ? children : null
+}
 
 /**
  * What the engine knows about the page a block is rendering on (fun-engine.md S4). Built once per

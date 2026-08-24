@@ -76,7 +76,7 @@
                 "paymentTwo": "Você paga Jules · €40"
             },
             "rail": {
-                "free": "GRÁTIS PARA SEMPRE",
+                "free": "USO GRÁTIS",
                 "noSignup": "SEM CADASTRO",
                 "oneLink": "UM LINK",
                 "anyCurrency": "QUALQUER MOEDA",
@@ -110,7 +110,7 @@
         "honesty": {
             "title": "A parte honesta",
             "item1": {
-                "title": "Grátis para sempre"
+                "title": "Uso grátis"
             },
             "item2": {
                 "title": "Sem conta"
@@ -120,20 +120,14 @@
             }
         },
         "footer": {
-            "logoAlt": "Peanut",
-            "logoLinkLabel": "Visitar a Peanut",
             "colSplit": "Split",
             "createSplit": "Criar uma sala",
             "toolsLink": "Calculadoras",
             "importLink": "Importar do Splitwise",
+            "sourceStewardship": "Código e manutenção",
             "colCompare": "Comparar",
             "colGuides": "Guias",
             "allGuides": "Todos os guias",
-            "colPeanut": "Peanut",
-            "peanutHome": "Enviar dinheiro",
-            "peanutHelp": "Ajuda",
-            "peanutTerms": "Termos",
-            "peanutPrivacy": "Privacidade",
             "madeByPrefix": "feito com amor por",
             "madeByBrand": "Squirrel Labs"
         },
@@ -228,7 +222,7 @@
         },
         "readMore": {
             "toggle": "QUER SABER MAIS?",
-            "toggleHint": "Quem fez o Split, por que é grátis para sempre e como os links das salas funcionam.",
+            "toggleHint": "Quem mantém o Split, por que o serviço oficial é gratuito e como os links das salas funcionam.",
             "join": {
                 "title": "O que seus amigos veem",
                 "roomName": "Viagem de esqui",
@@ -271,8 +265,7 @@
             "settle": {
                 "title": "Como acertar as contas",
                 "cash": "Dinheiro",
-                "bank": "Transferência",
-                "peanut": "Mandar com a Peanut"
+                "bank": "Transferência"
             },
             "team": {
                 "title": "Quem construiu",
@@ -289,14 +282,14 @@
                 }
             },
             "who": {
-                "title": "Quem fez isso, e por que é grátis para sempre",
+                "title": "Quem mantém o Split e por que o serviço oficial é gratuito",
                 "built": {
-                    "title": "A Peanut fez o Split",
-                    "body": "A Peanut é um app de pagamentos e uma empresa de verdade com produto de verdade — não um projeto de fim de semana que some."
+                    "title": "A Squirrel Labs mantém o Split",
+                    "body": "Por enquanto, a Squirrel Labs é a única mantenedora e paga todos os custos, inclusive as horas de trabalho."
                 },
                 "free": {
-                    "title": "É grátis para sempre porque apresenta a Peanut para as pessoas",
-                    "body": "Sem plano premium, sem venda vindo depois, sem nada para comprar."
+                    "title": "As referências ficam opcionais, nunca obrigatórias",
+                    "body": "Esse é o acordo justo: poucas referências discretas, sem clique obrigatório, insistência nem recurso bloqueado."
                 },
                 "data": {
                     "title": "Não há muito aqui para vazar",
@@ -400,7 +393,7 @@
             "reportProblemHint": "Enviar detalhes em particular",
             "sound": "Som",
             "haptics": "Vibração",
-            "privacyNote": "Grátis para sempre, sem cadastro. Qualquer pessoa com o link de uma sala pode abri-la."
+            "privacyNote": "Uso grátis, sem cadastro. Qualquer pessoa com o link de uma sala pode abri-la."
         },
         "feedback": {
             "title": "Relatar um problema",
@@ -411,7 +404,7 @@
             "messagePlaceholder": "O que você fez, o que aconteceu e o que esperava que acontecesse?",
             "messageHint": "Obrigatório · pelo menos {minimum} caracteres. Links de salas são removidos do texto antes do armazenamento.",
             "attachmentsTitle": "Escolha o que anexar",
-            "attachmentsIntro": "Todos os anexos começam desativados. Ative apenas o que deseja enviar ao suporte da Peanut.",
+            "attachmentsIntro": "Todos os anexos começam desativados. Ative apenas o que deseja incluir para a equipe de manutenção do Split na Squirrel Labs.",
             "deviceTitle": "Detalhes do aparelho",
             "deviceHint": "Navegador e sistema, área visível, fuso horário, modo do app e estado da rede.",
             "exactDeviceData": "Ver os dados exatos do aparelho",
@@ -438,12 +431,12 @@
             "imageTooLarge": "Essa imagem é grande demais. Escolha uma captura com menos de 20 MB.",
             "imageUnreadable": "Não foi possível ler essa imagem. Escolha uma captura JPEG, PNG ou WebP.",
             "consentTitle": "Concordo em enviar este relato",
-            "consentHint": "O suporte da Peanut pode ler sua mensagem e somente os anexos selecionados acima. Os relatos não vão para análises nem aparecem na sala, e têm exclusão programada após 90 dias.",
+            "consentHint": "A equipe de manutenção do Split na Squirrel Labs pode ler sua mensagem e somente os anexos selecionados acima. Os relatos não vão para análises nem aparecem na sala, e têm exclusão programada após 90 dias.",
             "send": "Enviar relato",
             "cancel": "Cancelar",
             "sendFailed": "Não foi possível enviar o relato — seu texto e sua captura continuam aqui.",
             "successTitle": "Relato enviado",
-            "successBody": "Obrigado. O suporte da Peanut recebeu a mensagem e os anexos que você selecionou.",
+            "successBody": "Obrigado. O relato e os anexos selecionados foram salvos para a equipe de manutenção do Split na Squirrel Labs.",
             "done": "Concluir"
         },
         "export": {
@@ -1219,7 +1212,7 @@
         "hubDescription": "Como dividir despesas sem conta, sem instalar nada e sem assinatura.",
         "empty": "Nada publicado ainda.",
         "startRoom": "Criar uma sala",
-        "startRoomHint": "Sem cadastro. Sem instalação. Grátis para sempre.",
+        "startRoomHint": "Sem cadastro. Sem instalação. Uso grátis.",
         "published": "Publicado em {date}",
         "updated": "atualizado em {date}",
         "otherLanguages": "Também em"
@@ -1393,7 +1386,7 @@
         "peopleOne": "1 pessoa",
         "peopleMany": "{count} pessoas",
         "emptyRoster": "Ninguém entrou ainda",
-        "tagline": "sem cadastro · grátis para sempre"
+        "tagline": "sem cadastro · uso grátis"
     },
     "shareTarget": {
         "pick": "Para qual sala é esta conta?",

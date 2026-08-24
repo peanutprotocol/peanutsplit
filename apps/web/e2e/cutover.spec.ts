@@ -10,13 +10,19 @@ test('app paths serve in place on the local canonical build', async ({ page }) =
 })
 
 test('the former host is a one-way same-path compatibility alias', async ({ request }) => {
+    const configuredOrigin = new URL(test.info().project.use.baseURL as string).origin
     for (const path of ['/', '/app', '/new', '/import', '/r/not-a-real-room', '/manifest.webmanifest', '/sw.js']) {
         const response = await request.get(path, {
             headers: { 'x-forwarded-host': 'split.peanut.me' },
             maxRedirects: 0,
         })
         expect(response.status(), path).toBe(308)
-        expect(response.headers().location, path).toBe(`https://peanutsplit.com${path}`)
+        // Next may serialize a redirect back to the request's own configured origin as a relative
+        // Location. Resolve it as a browser would; the destination still must be the configured
+        // origin, never the attacker-controlled forwarded host.
+        expect(new URL(response.headers().location, configuredOrigin).href, path).toBe(
+            new URL(path, configuredOrigin).href
+        )
     }
 })
 

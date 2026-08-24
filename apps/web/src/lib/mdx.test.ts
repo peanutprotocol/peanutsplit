@@ -1,6 +1,7 @@
+import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { renderArticle } from './mdx'
-import { listAllTranslations } from './content'
+import { getAuthoredDoc, listAllTranslations } from './content'
 
 /**
  * The deploy gate is `typecheck && test && format` and a push to main goes straight to
@@ -32,5 +33,20 @@ describe('article compilation', () => {
 
     it('fails loudly on MDX a regex tag-count would pass', async () => {
         await expect(renderArticle('See <https://example.com/> for details.\n')).rejects.toThrow()
+    })
+
+    it('emits no public-source copy from the progressive comparison before release', async () => {
+        const prior = process.env.NEXT_PUBLIC_FOSS_RELEASED
+        try {
+            delete process.env.NEXT_PUBLIC_FOSS_RELEASED
+            const doc = getAuthoredDoc('alternatives', 'splitwise-alternative')!
+            const html = renderToStaticMarkup(await renderArticle(doc.body, doc.locale))
+
+            expect(html).toContain('A free Splitwise alternative with no signup')
+            expect(html).not.toMatch(/AGPL|open[- ]source|self[- ]host|Squirrel Labs|href="\/source"/i)
+        } finally {
+            if (prior === undefined) delete process.env.NEXT_PUBLIC_FOSS_RELEASED
+            else process.env.NEXT_PUBLIC_FOSS_RELEASED = prior
+        }
     })
 })

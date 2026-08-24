@@ -132,10 +132,9 @@ export function ReadMore() {
         { key: 'home', doodle: 'phone' },
         { key: 'transfers', doodle: 'swap' },
     ]
-    const methods: Array<{ key: 'cash' | 'bank' | 'peanut'; doodle: DoodleName }> = [
+    const methods: Array<{ key: 'cash' | 'bank'; doodle: DoodleName }> = [
         { key: 'cash', doodle: 'cash' },
         { key: 'bank', doodle: 'bank' },
-        { key: 'peanut', doodle: 'peanut' },
     ]
     const team = [
         { key: 'konrad', persona: LANDING_CAST.konrad },
@@ -247,7 +246,7 @@ export function ReadMore() {
                     </Fold>
 
                     <Fold title={t('settle.title')} onToggle={onToggle} motionAllowed={motionAllowed}>
-                        <motion.ul className="grid grid-cols-3 gap-2" variants={sceneVariants} data-motion-surface>
+                        <motion.ul className="grid grid-cols-2 gap-2" variants={sceneVariants} data-motion-surface>
                             {methods.map(({ key, doodle }) => (
                                 <motion.li
                                     key={key}

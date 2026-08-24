@@ -4,10 +4,10 @@ description: "What Splitwise does when a group spends in more than one currency:
 slug: splitwise-currency-conversion
 type: guide
 lang: en
-author: Peanut
+author: Squirrel Labs
 date: 2026-08-12
 tags: [currencies, splitwise]
-claims: [automatic-currency-conversion, netting-is-bounded-exact, free-forever]
+claims: [automatic-currency-conversion, netting-is-bounded-exact, hosted-price]
 cast: []
 canonical: https://peanutsplit.com/guides/splitwise-currency-conversion
 schema_types: [BlogPosting]
@@ -28,7 +28,7 @@ generated_from:
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-14
+generated_at: 2026-08-24
 ---
 
 {/* Every Splitwise fact on this page comes from a Splitwise page opened on 2026-08-12:
@@ -39,7 +39,7 @@ not opened the page for, and do not add one that needs updating when they change
 
 Six people, one trip, receipts in pesos, euros and pounds; the group ends the week holding three
 balances that do not add up to a single number. The person who fronted most of it waits for somebody
-else to work it out, says nothing, and carries that long after everybody is home. Let Split by Peanut
+else to work it out, says nothing, and carries that long after everybody is home. Let Peanut Split
 do the conversion instead. The room holds the group's expenses, and each one converts into the room's
 currency at the moment it is added.
 
@@ -140,10 +140,10 @@ step that picks who pays whom. The room does that later, from the balances those
 [Why you owe someone you never paid](/guides/why-do-i-owe-someone-i-never-paid) walks through that
 step.
 
-## Why Split does not put this behind a tier
+## The hosted price
 
-Split is free forever, with nothing to upgrade to. Peanut makes Split to introduce people to Peanut,
-and that is how Split gets paid for.
+The official Split service is free to use and has no paid tier. That describes the service
+today; it is not a promise about its price or availability for its entire lifetime.
 
 ## When Splitwise is the better tool
 

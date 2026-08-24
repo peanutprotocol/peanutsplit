@@ -4,10 +4,10 @@ description: "A head-to-head of Splitwise and Settle Up quoted from their own pa
 slug: splitwise-vs-settle-up
 type: guide
 lang: en
-author: Peanut
+author: Squirrel Labs
 date: 2026-08-12
 tags: [splitwise, settling up]
-claims: [link-is-the-key, no-app, settle-is-a-record, free-forever]
+claims: [link-is-the-key, no-app, settle-is-a-record, hosted-price]
 cast: []
 canonical: https://peanutsplit.com/guides/splitwise-vs-settle-up
 schema_types: [BlogPosting]
@@ -28,7 +28,7 @@ generated_from:
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-17
+generated_at: 2026-08-24
 ---
 
 {/* Every statement about Splitwise or Settle Up on this page is a verbatim quote from a page opened
@@ -216,7 +216,7 @@ migration is paid for by the people who did not ask for it.
 
 ## A third option, when nobody in the group wants an account
 
-The account is the part neither of them will drop. Let Split by Peanut do the same job without one.
+The account is the part neither of them will drop. Let Peanut Split do the same job without one.
 
 <Callout type="info">
 **What Split asks of the group.** There are no accounts. The link is the key: whoever holds it can
@@ -226,11 +226,11 @@ is also no login and no password recovery, so if nobody keeps the link, no login
 </Callout>
 
 On the money, Split stops exactly where the other two stop. Split records the payment, it does not
-make it. Settle however you like, in cash, by bank transfer or through Peanut, and record it in the
+make it. Settle however you like, in cash, by bank transfer or through another payment app, and record it in the
 room; Split does not verify with any bank and cannot.
 
-Split is free forever, with nothing to upgrade to. Peanut makes Split to introduce people to Peanut,
-and that is how Split gets paid for.
+The official Split service is free to use and has no paid tier. That describes the service
+today; it is not a promise about its price or availability for its entire lifetime.
 
 <CTA text="Start a split" subtitle="Send the room link to the group and add the receipts as they arrive." href="https://peanutsplit.com/new?locale=en&utm_medium=content&utm_source=split-guide&utm_campaign=splitwise-vs-settle-up&utm_content=final-cta" variant="card" />
 

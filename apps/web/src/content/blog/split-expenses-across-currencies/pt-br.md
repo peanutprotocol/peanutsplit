@@ -6,7 +6,7 @@ type: guide
 tags: [moedas, viagens]
 claims:
     - automatic-currency-conversion
-    - free-forever
+    - hosted-price
 cast: []
 faqs:
     - question: Que câmbio o grupo deve usar?
@@ -14,7 +14,7 @@ faqs:
     - question: Lanço o que paguei ou o que me custou?
       answer: Lance o que você pagou, na moeda em que pagou. É o número do recibo e o único que dá para provar.
     - question: O Split cobra para converter moedas?
-      answer: Não. Salas em várias moedas são grátis para sempre, e não existe plano pago para assinar.
+      answer: Não. Salas em várias moedas são de uso grátis, e não existe plano pago para assinar.
 ---
 
 <Hero
@@ -22,7 +22,7 @@ faqs:
   title="Dividir entre moedas sem perder dinheiro no caminho"
   subtitle="Três câmbios diferentes podem valer para o mesmo jantar. Só um deveria entrar na conta do grupo."
   cta="Criar um split"
-  ctaHint="Salas em várias moedas são grátis para sempre. Sem plano pago." />
+  ctaHint="Salas em várias moedas são de uso grátis. Sem plano pago." />
 
 Um jantar em Bangkok, pago por uma pessoa, dividido entre quatro.
 
@@ -63,7 +63,7 @@ A única solução é outro cartão, ou ser a pessoa que paga em dinheiro.
 
 Grupos que compartilham moeda têm opções mais fáceis. Os grupos que realmente precisam de um divisor são os espalhados por países, e cobrar deles justamente pela conversão é cobrar pela única parte que os trouxe até aqui.
 
-Então é grátis para sempre, e não existe plano acima.
+Então é de uso grátis, e não existe plano acima.
 
 <CTA
   title="Escolha a moeda uma vez e esqueça"
@@ -73,7 +73,7 @@ Então é grátis para sempre, e não existe plano acima.
 <FAQ title="Perguntas">
 <FAQItem question="Que câmbio o grupo deve usar?">Combinem a moeda da sala uma vez e deixem o Split converter cada despesa no momento do lançamento. As taxas são de referência, não as do seu banco, então trate os totais como exatos e a conversão como perto o bastante para dividir.</FAQItem>
 <FAQItem question="Lanço o que paguei ou o que me custou?">Lance o que você pagou, na moeda em que pagou. É o número do recibo e o único que dá para provar.</FAQItem>
-<FAQItem question="O Split cobra para converter moedas?">Não. Salas em várias moedas são grátis para sempre, e não existe plano pago para assinar.</FAQItem>
+<FAQItem question="O Split cobra para converter moedas?">Não. Salas em várias moedas são de uso grátis, e não existe plano pago para assinar.</FAQItem>
 </FAQ>
 
 <RelatedPages title="Continue lendo">

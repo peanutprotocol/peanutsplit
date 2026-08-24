@@ -4,6 +4,7 @@ import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE_SECONDS } from '@/i18n/locales'
 import { LOCALE_HEADER } from '@/i18n/paths'
 import { SPLIT_ASSET_PREFIX } from '@/lib/domains'
 import { MARKETING_CACHE_CONTROL } from '@/lib/marketing-cache'
+import { siteUrl } from '@/lib/site'
 import { splitGuidePaths } from '@/lib/split-content/artifact'
 import { SPLIT_CONTENT_INDEX_RELEASED_PATHS } from '@/lib/split-content/index-release'
 import { config, proxy } from './proxy'
@@ -25,7 +26,7 @@ describe('proxy /new locale handoff', () => {
         const response = proxy(new NextRequest('http://localhost/blog/?utm_source=chat'))
 
         expect(response.status).toBe(308)
-        expect(response.headers.get('location')).toBe('http://localhost/blog?utm_source=chat')
+        expect(response.headers.get('location')).toBe(`${siteUrl}/blog?utm_source=chat`)
     })
 
     it('leaves the root and doubled slashes alone, like the built-in strip it replaces', () => {
@@ -54,14 +55,14 @@ describe('proxy /new locale handoff', () => {
                 })
             )
             expect(response.status, path).toBe(308)
-            expect(response.headers.get('location'), path).toBe(`https://peanutsplit.com${path}?from=chat`)
+            expect(response.headers.get('location'), path).toBe(`${siteUrl}${path}?from=chat`)
         }
     })
 
     it('passes canonical APIs through without rewriting request headers', () => {
         const response = proxy(
             new NextRequest('https://renderer.internal/api/rooms', {
-                headers: { 'x-forwarded-host': 'peanutsplit.com', cookie: 'ps-locale=pt-br' },
+                headers: { 'x-forwarded-host': new URL(siteUrl).host, cookie: 'ps-locale=pt-br' },
             })
         )
 

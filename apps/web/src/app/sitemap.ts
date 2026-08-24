@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { STATIC_PAGES } from '@/data/static-pages'
+import { STATIC_PAGES, staticPageIsSitemapped } from '@/data/static-pages'
 import { TEMPLATES, templatePath } from '@/templates/registry'
 import { TOOLS, toolLocales, toolPath } from '@/tools/registry'
 import { MILEAGE_COUNTRY_PAGES } from '@/tools/mileage-split-calculator.countries'
@@ -46,7 +46,7 @@ const PRIORITY: Record<Collection, number> = {
 
 export default function sitemap(): MetadataRoute.Sitemap {
     const staticEntries: MetadataRoute.Sitemap = STATIC_PAGES.filter(
-        (page) => page.inSitemap !== false && (!page.v2Only || splitV2Enabled())
+        (page) => staticPageIsSitemapped(page) && (!page.v2Only || splitV2Enabled())
     ).flatMap((page) => {
         const locales = page.locales ?? [DEFAULT_LOCALE]
         const languages = absolutise(hreflangAlternates(page.href, [...locales]))

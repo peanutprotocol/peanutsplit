@@ -8,10 +8,13 @@ import {
     ARTICLE_IMAGE_URL,
     breadcrumbSchema,
     OG_LOCALE,
+    ORGANIZATION_ID,
     ORGANIZATION_NODE,
     type Breadcrumb,
 } from '@/lib/seo'
 import type { SplitGuide } from './artifact'
+
+export const SQUIRREL_LABS_ORGANIZATION_ID = ORGANIZATION_ID
 
 export function splitGuideMetadata(
     guide: SplitGuide,
@@ -25,7 +28,7 @@ export function splitGuideMetadata(
 
     return {
         // Kept byte-aligned with mono's effective-title gate in A7.
-        title: `${guide.title} | Peanut`,
+        title: `${guide.title} | Split`,
         description: guide.description,
         metadataBase: new URL(CANONICAL_ORIGIN),
         alternates: { canonical, languages, types: { 'application/rss+xml': `${CANONICAL_ORIGIN}/rss.xml` } },
@@ -92,9 +95,8 @@ export function splitGuideSchemas(guide: SplitGuide) {
             datePublished: guide.date,
             dateModified: guide.generatedAt,
             inLanguage: HREFLANG[guide.locale],
-            // The site's one Organization, inline: a guide emits no site `@graph`, so a bare `@id`
-            // reference would dangle. Each guide used to declare a second Organization for the
-            // same URL under a different name.
+            // A guide emits no site `@graph`, so inline the legal steward instead of leaving a
+            // dangling @id reference. Squirrel Labs authors and publishes the guide.
             author: ORGANIZATION_NODE,
             publisher: ORGANIZATION_NODE,
             // Google lists `image` as required for an Article rich result. The stable file, for the

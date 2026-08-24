@@ -120,7 +120,7 @@ verbatim**; the rest are Split terms with no mono equivalent.
 | settle up (verb)                        | **acertar**                                | **passar a régua** (banned, stylebook §9.3), quitar (formal)         |
 | settled                                 | acertado / acertadas                       | liquidado                                                            |
 | who owes who                            | **quem deve a quem**                       | quem deve o quê                                                      |
-| free forever                            | **grátis para sempre**                     | gratuito, sem custo, versão grátis                                   |
+| free to use, with no paid tier          | **uso grátis, sem plano pago**             | grátis para sempre, versão grátis                                    |
 | automatic conversion for 156 currencies | conversão automática para 156 moedas       | doze moedas, multimoeda, qualquer moeda, 150+ (stylebook §6.7)       |
 | converted at the day's rate             | pela taxa do dia                           | taxa ao vivo / em tempo real (stylebook §6.6)                        |
 | the split (the operation)               | **o rateio**                               | a divisão (vague), o acerto                                          |
@@ -325,7 +325,7 @@ Split's full list:
    `date`, `canonical`. Claim IDs and cast keys are identifiers, not words. **`tags` is the
    exception — facet labels are reader-facing and do translate** (`tags: [alternativas, moedas]` is
    live and correct).
-3. **Brand names:** Split · Peanut · Peanut Split · Split by Peanut · Splitwise · **Settle Up** ·
+3. **Brand names:** Split · Peanut · Peanut Split · Splitwise · **Settle Up** ·
    Tricount · Splid · Spliit · Kittysplit · bunq · WhatsApp · Pix · Visa · Apple Pay · Google Pay.
    (`Visa`/`Apple Pay`/`Google Pay` is mono's own card guardrail, carried.)
 4. **Cast persona labels and the friend-group names** — decision 4, §7.

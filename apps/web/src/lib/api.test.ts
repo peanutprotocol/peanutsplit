@@ -360,6 +360,18 @@ describe('api requests', () => {
         })
     })
 
+    it('scopes expense restore to encoded room and expense capabilities', async () => {
+        const fetchMock = respondWith(200, {})
+        vi.stubGlobal('fetch', fetchMock)
+
+        await api.restoreExpense('ski/trip', 'expense/1', 'tok_abc')
+
+        const [url, init] = fetchMock.mock.calls[0]
+        expect(url).toBe('/api/rooms/ski%2Ftrip/expenses/expense%2F1/restore')
+        expect(init.method).toBe('POST')
+        expect(init.headers['X-Member-Token']).toBe('tok_abc')
+    })
+
     it('omits the token header when this device has no token', async () => {
         const fetchMock = respondWith(200, {})
         vi.stubGlobal('fetch', fetchMock)

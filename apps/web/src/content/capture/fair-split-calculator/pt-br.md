@@ -10,7 +10,7 @@ claims:
     - link-is-the-key
     - netting-is-bounded-exact
     - settle-is-a-record
-    - free-forever
+    - hosted-price
     - room-size-20
     - automatic-currency-conversion
 cast: []
@@ -28,7 +28,7 @@ draft: true
 
 Justo é uma palavra que faz vários papéis, e a conta que você quer depende do que está desigual. Um quarto maior é uma pergunta; uma viagem de carro mais longa é outra; e um jantar em que uma pessoa pediu o menu degustação e outra só uma sopa é a terceira.
 
-Errar nisso raramente é dramático. É a pessoa que fez a conta virando a pessoa que tem que defendê-la, três semanas depois, no grupo do WhatsApp, com os cálculos no celular e em nenhum outro lugar. O Split by Peanut guarda o número para ninguém precisar ser essa pessoa.
+Errar nisso raramente é dramático. É a pessoa que fez a conta virando a pessoa que tem que defendê-la, três semanas depois, no grupo do WhatsApp, com os cálculos no celular e em nenhum outro lugar. O Split guarda o número para ninguém precisar ser essa pessoa.
 
 ## Qual conta você realmente quer
 
@@ -50,7 +50,7 @@ Isso acerta mais vezes do que os resultados de busca sugerem: quando a diferenç
 
 ## Bom saber
 
-O Split é grátis para sempre, sem nada para contratar depois. A Peanut faz o Split para apresentar pessoas à Peanut, e é assim que o Split se paga: não existe plano pago, e não há nada para esconder atrás de um mais tarde.
+O serviço oficial é de uso grátis e não tem plano pago.
 
 As calculadoras fazem a ponderação e a sala mantém o saldo. Ela converte automaticamente 156 moedas pela taxa indicativa do dia e comporta até vinte pessoas. O Split registra um pagamento, não faz o pagamento. Ele não confere com nenhum banco, e não tem como.
 

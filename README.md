@@ -1,135 +1,108 @@
 # Peanut Split
 
-A link-based expense splitter. A room **is** its link: share it into a group chat, everyone picks a name, add expenses in any currency, settle up with a short payment plan. No accounts, no sign-up, no KYC.
+Peanut Split is an accountless expense splitter. A room is its link: send it to a group, choose a
+name, add expenses in any supported currency, and record settlements made with cash, a bank, or any
+payment app.
 
-Split makes the debts. Peanut settles them.
+## Publication status
 
-## Why this is a separate repo
+This repository is still private and is **not yet an open-source release**. The recommended code
+license is `AGPL-3.0-or-later`, but Squirrel Labs has not approved or applied that grant. Licensing
+and publication are gated on the rights, asset, history, and release checks in
+[the public-release plan](docs/current/PUBLIC-RELEASE.md). Do not change this repository's visibility
+or describe it as FOSS until that gate is complete.
 
-Split is top-of-funnel for Peanut, not a feature inside it. It stays standalone so that:
+The durable promise we are preparing is about released software: recipients of an AGPL release keep
+the license permissions to run, inspect, modify, and share that version, subject to the AGPL terms.
+That would not guarantee that Squirrel Labs will operate `peanutsplit.com` forever, or that every
+future release or hosted feature will have the same terms.
 
-- the sign-up wall never touches the viral loop (the whole point is that a stranger in a group chat can use it),
-- its anonymous, unauthenticated routes never live inside the money API,
-- it can be killed by deleting a deploy, with nothing in the core app entangled.
+## Stewardship
 
-The only integration point in the public web app is the settle screen: “Settle
-with Peanut” opens the existing Peanut payment-request flow, then the person
-records what happened in the trust-based room. A pasted receipt link is
-documentation, never provider verification. No new money-path endpoints.
+[Squirrel Labs](https://squirrellabs.dev/) is currently the sole upstream maintainer. Squirrel
+Labs pays the project's costs, including infrastructure, domains, third-party services, and the work
+hours spent building and maintaining the official service.
 
-**Everything we don't yet know about Peanut's API lives in one file**, `apps/api/src/peanut/index.ts` — the pay-URL shape, the webhook payload and the signature scheme are all documented guesses. When the real docs arrive, that file's exported surface stays and its bodies change; nothing else needs to move.
+The official service may contain a bounded set of contextual Peanut references. They are an
+official-host editorial choice, not a software-license condition: they must never block a task,
+force a click, recur as nags, behave like spam, or make non-Peanut settlement worse. A downstream
+operator will not owe Peanut promotion. The precise surface budget remains unpublished until final
+maintainer approval; see [STEWARDSHIP.md](STEWARDSHIP.md).
 
-## Layout
+This is a maintainer-led project, not a contributor-recruitment program. Bug and private security
+reports are useful; unsolicited feature pull requests are not solicited and have no response,
+review, or merge promise. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Current implementation
+
+`apps/web` is the only request path proven to serve the current product. It is a Next.js application
+whose route handlers talk directly to PostgreSQL schema `split` through its own Prisma client.
+
+`apps/api` is a separate Fastify implementation with a different Prisma schema, `app`. The current
+web application has no rewrite or request edge to it. Whether that component should be archived,
+published separately, or developed again is an open maintainer decision; it is not part of the
+documented self-host path.
+
+```text
+browser -> apps/web (Next pages + /api handlers) -> PostgreSQL schema split
+                         |-> optional FX, push, analytics, error, and receipt-model services
+
+apps/api (Fastify, schema app)                 no current request edge from apps/web
 ```
-apps/api   Fastify + Prisma + its own Postgres, port 5051
-  src/split/       pure money math — splits, balances, settlement transfers, FX
-  src/db/split.ts  every write. Two settlement paths, deliberately (see below)
-  src/peanut/      the entire Peanut integration, mocked and documented
-  src/routes/      /split/* (anonymous, proxied) and /webhooks/* (signed, not proxied)
-apps/web   Next — the live product at peanutsplit.com (PWA, per-room previews)
-```
 
-### The one thing to understand before changing the settle code
+## Run the current product locally
 
-There are **two** ways a settlement gets written, and they are not interchangeable:
-
-- `recordSettlement` — someone _asking_ to record a payment ("I paid another way"). A debt ceiling refuses more than the pair actually owes.
-- `confirmPeanutSettlement` — money Peanut says has _already moved_. **No ceiling.** Balances routinely shift between a payment starting and confirming, and refusing there would mean real money moved while the ledger denies it. An overpayment is recorded and reported instead.
-
-`changelog-july-25.md` has the full reasoning under "Design choices".
-
-## Running locally
+Prerequisites: Node 22, pnpm 10.17.1, Docker, and Docker Compose. From the repository root:
 
 ```bash
-pnpm bootstrap                           # both apps — see note below
-cp apps/api/.env.example apps/api/.env   # point DATABASE_URL at a local Postgres
-pnpm --filter @peanut-split/api db:migrate:dev
-pnpm dev                                  # API :5051 + web :3000 (or dev:api / dev:web)
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env
+pnpm bootstrap
+docker compose -f apps/web/docker-compose.yml up -d db
+pnpm --dir apps/web exec prisma migrate dev
+pnpm dev:web
 ```
 
-Open http://localhost:3000 for the product; the API answers on :5051.
+The API environment copy is needed only because the root dependency bootstrap generates both Prisma
+clients; it does not put `apps/api` on the current web request path or connect to that database.
 
-**Prefix Prisma commands with `env -u DATABASE_URL`** if you have mono's QA harness env loaded — it exports a `DATABASE_URL` pointing at the shared `peanut_dev`, and Prisma prefers the process env over `apps/api/.env`.
+Open <http://localhost:3000>. The supplied Compose file is a development baseline, not a hardened or
+turnkey production deployment. Read [SELF-HOSTING.md](docs/current/SELF-HOSTING.md) before exposing it
+to a network.
 
-### See it with something in it
+## Official documentation
+
+- [Documentation index](docs/README.md)
+- [Architecture](docs/current/ARCHITECTURE.md)
+- [Data model](docs/current/DATA-MODEL.md)
+- [HTTP surface](docs/current/API.md)
+- [Security and data lifecycle](docs/current/SECURITY-MODEL.md)
+- [Self-hosting](docs/current/SELF-HOSTING.md)
+- [Testing](docs/current/TESTING.md)
+- [Licensing decision and rights gate](docs/current/LICENSING.md)
+- [Public-release plan](docs/current/PUBLIC-RELEASE.md)
+
+Current schema and route inventories are generated from source. Run:
 
 ```bash
-./scripts/demo.sh
+# From the repository root, after `pnpm bootstrap`.
+pnpm docs:generate
+pnpm docs:check
 ```
 
-Starts both apps and seeds a room that looks like a real trip — four people, two currencies, five expenses, and one settle-up already paid — then prints the URL. You arrive as a stranger and pick a name, same as anyone following a shared link.
+Historical design documents remain useful context, but they are not current contracts. The docs
+index labels that boundary explicitly.
 
-### Checking it works
+## Verification
 
 ```bash
-pnpm typecheck && pnpm test    # both apps; the API suite includes 15 against a real Postgres
-pnpm verify                    # 41 assertions against a running API + database
+# From the repository root, after `pnpm bootstrap`.
+pnpm typecheck
+pnpm format:check
+pnpm docs:check
+pnpm test
 ```
 
-`pnpm verify` needs the app up and `PEANUT_WEBHOOK_SECRET` set. There are two more checks that drive a real browser and need playwright, so they live as scripts rather than in `pnpm test`: `apps/api/scripts/verify-settle-ui.cjs` (the settle flow, asserting backend state) and `apps/api/scripts/verify-funnel.cjs` (every analytics event). Run them from a directory that has playwright installed, e.g. `mono/engineering/qa`.
-
-To exercise the settle loop without Peanut:
-
-```bash
-pnpm --filter @peanut-split/api simulate:webhook <reference> <amountMinor> <currency>
-```
-
-That signs a real payload and posts it at the real route — there is deliberately no "simulate" endpoint in the app, since one that skips signature checks is a ledger-write primitive one missing env var away from production.
-
-The browser always talks to the API through a same-origin rewrite rather than a second host, so a devcontainer or preview only ever needs one forwarded port.
-
-## Design
-
-Peanut's design system, with `primary-1` swapped off Peanut pink so Split reads as its own product. Tokens live in `apps/web/tailwind.config.js`; pink is reserved for the "powered by Peanut" mark.
-
-## Where the decisions live
-
-- `changelog-july-25.md` — what was built, and **why each design call went the way it did**. Read "Design choices" before changing the settle path or the analytics.
-- `CLAUDE.md` — working rules for this repo (it ships straight to main; money code still needs a test).
-- `docs-split-rooms-spike.md` — the original spike design doc and the 2026-07-06 review.
-- `docs/release-states.md` — the exact difference between code-complete,
-  deployed dark, user-visible and production-verified.
-- `docs/ROSTER-IDENTITY.md` — roster names are ledger participants, with no
-  claimed/unclaimed lifecycle.
-- `docs/SHARE-SUCCESS.md` — a completed share is the key business success
-  moment: strongly encouraged, never required.
-- `docs/PWA-INSTALL-FUNNEL.md` — the room guidance priority behind automatic
-  install promotion, its device-local suppression rules, and the narrow iOS first-launch handoff.
-
-## Provenance
-
-Extracted from the `feat/split-rooms` spike branches in `peanut-ui` and `peanut-api-ts`. The original design doc and the 2026-07-06 review findings are kept in [`docs-split-rooms-spike.md`](docs-split-rooms-spike.md) — read it before touching the money math. Known issues carried over from the spike are tracked as open work; the ledger-integrity set (idempotency on settlements, edit/exclusion, poll-vs-mutation race, member-id validation, fetch timeout) is the pre-launch bar.
-
-## Deployment
-
-Live at **https://peanutsplit.com**, on a Hetzner box via Dokploy: `split-org-web`
-(public, serves `apps/web`) → `split-org-api` (never published) → Postgres.
-**Pushing to `main` deploys within ~5 minutes**, with no CI gate in between —
-the tradeoff this repo already chose by shipping straight to main.
-
-The deploy assumes **the code in this repo is untrusted**, so containment is the
-network, not the review:
-
-- The containers sit on `split-net`, an overlay created `--internal`. They get
-  one interface and **no default route** — nothing outside that network is
-  reachable. Only the proxy reaches in, and only the public app is routable.
-- They run as a non-root user with no docker socket and no host mounts, capped at
-  1 CPU, and 512MB–1GB of memory.
-- The only secret either holds is its own `DATABASE_URL`. No Peanut credentials.
-
-Two consequences worth knowing before changing anything:
-
-- **Egress is default-deny, with one pinhole.** The app network has no route
-  out; every runtime fetch goes through the `split-egress` squid proxy, one
-  `*_PROXY_URL` env var per consumer (`SPLIT_PUSH_PROXY_URL`,
-  `SPLIT_SCAN_PROXY_URL`, `SPLIT_FX_PROXY_URL`), against a CONNECT-443
-  allowlist for browser push gateways, configured model providers, and
-  `api.peanut.me`. A scan or push that 502s with the proxy env unset is this,
-  not the provider; an FX refresh in that state fails quietly and leaves the
-  table on the twelve static rates.
-- **Every `NEXT_PUBLIC_*` value is a build arg**, because Next inlines them into
-  the client bundle at build time. Setting one only at runtime silently does
-  nothing — the bundle already has the old value baked in. They are passed as
-  Docker build args (`buildArgs` in the Dokploy app settings), which is why each
-  one needs an `ARG`/`ENV` pair in `apps/web/Dockerfile`.
+Database integration and browser suites have additional prerequisites in
+[TESTING.md](docs/current/TESTING.md). A green check does not itself clear copyright, asset,
+privacy, or publication rights.

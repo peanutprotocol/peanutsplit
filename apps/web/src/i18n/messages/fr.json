@@ -76,7 +76,7 @@
                 "paymentTwo": "Tu paies Jules · 40 €"
             },
             "rail": {
-                "free": "GRATUIT POUR TOUJOURS",
+                "free": "UTILISATION GRATUITE",
                 "noSignup": "SANS INSCRIPTION",
                 "oneLink": "UN SEUL LIEN",
                 "anyCurrency": "162 DEVISES",
@@ -110,7 +110,7 @@
         "honesty": {
             "title": "En toute transparence",
             "item1": {
-                "title": "Gratuit pour toujours"
+                "title": "Utilisation gratuite"
             },
             "item2": {
                 "title": "Aucun compte nécessaire"
@@ -120,20 +120,14 @@
             }
         },
         "footer": {
-            "logoAlt": "Peanut",
-            "logoLinkLabel": "Visiter Peanut",
             "colSplit": "Split",
             "createSplit": "Créer un groupe",
             "toolsLink": "Outils de calcul",
             "importLink": "Importer depuis Splitwise",
+            "sourceStewardship": "Code source et maintenance",
             "colCompare": "Comparer",
             "colGuides": "Guides",
             "allGuides": "Tous les guides",
-            "colPeanut": "Peanut",
-            "peanutHome": "Envoyer de l’argent",
-            "peanutHelp": "Aide",
-            "peanutTerms": "Conditions d’utilisation",
-            "peanutPrivacy": "Confidentialité",
             "madeByPrefix": "créé avec amour par",
             "madeByBrand": "Squirrel Labs"
         },
@@ -228,7 +222,7 @@
         },
         "readMore": {
             "toggle": "ENVIE D’EN SAVOIR PLUS ?",
-            "toggleHint": "Qui a créé Split, pourquoi c’est gratuit pour toujours et comment fonctionnent les liens de groupe.",
+            "toggleHint": "Qui maintient Split, pourquoi le service officiel est gratuit et comment fonctionnent les liens de groupe.",
             "join": {
                 "title": "Ce que voient tes amis",
                 "roomName": "Séjour au ski",
@@ -271,8 +265,7 @@
             "settle": {
                 "title": "Comment régler",
                 "cash": "Espèces",
-                "bank": "Virement bancaire",
-                "peanut": "Envoyer avec Peanut"
+                "bank": "Virement bancaire"
             },
             "team": {
                 "title": "Les personnes qui l’ont créé",
@@ -289,14 +282,14 @@
                 }
             },
             "who": {
-                "title": "Qui a créé ça, et pourquoi c’est gratuit pour toujours",
+                "title": "Qui maintient Split, et pourquoi le service officiel est gratuit",
                 "built": {
-                    "title": "Peanut a créé Split",
-                    "body": "Peanut est une application de paiement proposée par une entreprise bien réelle, avec un vrai produit — pas un projet de week-end voué à disparaître."
+                    "title": "Squirrel Labs maintient Split",
+                    "body": "Pour l’instant, Squirrel Labs assure seul la maintenance et prend en charge tous les coûts, y compris le temps de travail."
                 },
                 "free": {
-                    "title": "Split est gratuit pour toujours parce qu’il fait découvrir Peanut",
-                    "body": "Pas de formule premium, pas d’offre payante à venir, rien à acheter."
+                    "title": "Les mentions restent facultatives, jamais obligatoires",
+                    "body": "C’est l’accord : quelques mentions discrètes, jamais de clic forcé, de relance ni de fonction bloquée."
                 },
                 "data": {
                     "title": "Très peu de données peuvent fuiter",
@@ -400,7 +393,7 @@
             "reportProblemHint": "Envoyer les détails en privé",
             "sound": "Son",
             "haptics": "Vibrations",
-            "privacyNote": "Gratuit pour toujours, sans inscription. Toute personne ayant le lien d’un groupe peut l’ouvrir."
+            "privacyNote": "Utilisation gratuite, sans inscription. Toute personne ayant le lien d’un groupe peut l’ouvrir."
         },
         "feedback": {
             "title": "Signaler un problème",
@@ -411,7 +404,7 @@
             "messagePlaceholder": "Qu’as-tu fait, que s’est-il passé et qu’attendais-tu ?",
             "messageHint": "Obligatoire · au moins {minimum} caractères. Les liens de groupe présents dans ton texte sont supprimés avant l’enregistrement.",
             "attachmentsTitle": "Choisis les éléments à joindre",
-            "attachmentsIntro": "Aucune pièce jointe n’est sélectionnée au départ. Active uniquement ce que tu veux envoyer au support Peanut.",
+            "attachmentsIntro": "Aucune pièce jointe n’est sélectionnée au départ. Active uniquement ce que tu veux joindre pour l’équipe de maintenance de Split chez Squirrel Labs.",
             "deviceTitle": "Détails de l’appareil",
             "deviceHint": "Navigateur et système, taille d’affichage, fuseau horaire, mode de l’application et état du réseau.",
             "exactDeviceData": "Voir les données exactes de l’appareil",
@@ -438,12 +431,12 @@
             "imageTooLarge": "Cette image est trop volumineuse. Choisis une capture de moins de 20 Mo.",
             "imageUnreadable": "Cette image n’a pas pu être lue. Choisis une capture JPEG, PNG ou WebP.",
             "consentTitle": "J’accepte d’envoyer ce signalement",
-            "consentHint": "Le support Peanut peut lire ton message et uniquement les pièces jointes sélectionnées ci-dessus. Les signalements ne sont pas envoyés aux outils d’analyse ni affichés dans le groupe, et leur suppression est prévue après 90 jours.",
+            "consentHint": "L’équipe de maintenance de Split chez Squirrel Labs peut lire ton message et uniquement les pièces jointes sélectionnées ci-dessus. Les signalements ne sont pas envoyés aux outils d’analyse ni affichés dans le groupe, et leur suppression est prévue après 90 jours.",
             "send": "Envoyer le signalement",
             "cancel": "Annuler",
             "sendFailed": "Impossible d’envoyer le signalement — ton texte et ta capture sont toujours là.",
             "successTitle": "Signalement envoyé",
-            "successBody": "Merci. Le support Peanut a reçu le message et les pièces jointes que tu as sélectionnées.",
+            "successBody": "Merci. Le signalement et les pièces jointes sélectionnées ont été enregistrés pour l’équipe de maintenance de Split chez Squirrel Labs.",
             "done": "Terminé"
         },
         "export": {
@@ -1219,7 +1212,7 @@
         "hubDescription": "Comment partager des dépenses sans compte, sans installer d’application ni souscrire d’abonnement.",
         "empty": "Rien de publié pour le moment.",
         "startRoom": "Créer un groupe",
-        "startRoomHint": "Sans inscription. Sans installation. Gratuit pour toujours.",
+        "startRoomHint": "Sans inscription. Sans installation. Utilisation gratuite.",
         "published": "Publié le {date}",
         "updated": "mis à jour le {date}",
         "otherLanguages": "Également en"
@@ -1393,7 +1386,7 @@
         "peopleOne": "1 personne",
         "peopleMany": "{count} personnes",
         "emptyRoster": "Personne n’a encore rejoint",
-        "tagline": "sans inscription · gratuit pour toujours"
+        "tagline": "sans inscription · utilisation gratuite"
     },
     "shareTarget": {
         "pick": "Pour quel groupe est ce reçu ?",

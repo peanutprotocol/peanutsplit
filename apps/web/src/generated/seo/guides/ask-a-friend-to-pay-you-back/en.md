@@ -4,10 +4,10 @@ description: "Three messages to send when a friend owes you for a shared expense
 slug: ask-a-friend-to-pay-you-back
 type: guide
 lang: en
-author: Peanut
+author: Squirrel Labs
 date: 2026-08-12
 tags: [getting paid back, shared expenses]
-claims: [link-is-the-key, no-app, settle-is-a-record, free-forever]
+claims: [link-is-the-key, no-app, settle-is-a-record]
 cast: []
 canonical: https://peanutsplit.com/guides/ask-a-friend-to-pay-you-back
 schema_types: [BlogPosting]
@@ -30,12 +30,12 @@ generated_from:
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-14
+generated_at: 2026-08-24
 ---
 
 You covered the table on Saturday, and a week later the money has not come back; you have counted it
 twice and said nothing, and if nobody says anything the friendship quietly takes the difference. Let
-Split by Peanut hold the number instead. It keeps the expense and the amount in one shared room, so
+Peanut Split hold the number instead. It keeps the expense and the amount in one shared room, so
 the figure sits where both of you can read it and nobody has to send a message about it.
 
 Every message below is about a shared expense: one bill, one night, a receipt behind it. None of
@@ -106,15 +106,11 @@ it.
 
 ## Marking it paid is a record, not a payment
 
-Settle however you like: cash, a bank transfer, Peanut. Then record it in the room. Split records
+Settle however you like: cash, a bank transfer, or another payment app. Then record it in the room. Split records
 the payment, it does not make it. It does not verify with any bank and cannot. The tap is one person
 saying the money moved, and the room takes their word for it in the way you would have taken it over
 the table.
 
-## Good to know
-
-Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut,
-which is how Split gets paid for.
 
 ## When a plain message is the better tool
 

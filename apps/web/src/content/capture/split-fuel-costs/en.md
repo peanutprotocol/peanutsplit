@@ -11,7 +11,7 @@ claims:
     - offline-creates-only
     - netting-is-bounded-exact
     - settle-is-a-record
-    - free-forever
+    - hosted-price
 cast:
     - ana
 faqs:

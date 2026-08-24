@@ -10,7 +10,7 @@ claims:
     - link-is-the-key
     - settle-is-a-record
     - netting-is-bounded-exact
-    - free-forever
+    - hosted-price
     - room-size-20
 cast:
     - bea

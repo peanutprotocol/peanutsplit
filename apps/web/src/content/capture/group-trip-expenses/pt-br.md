@@ -13,7 +13,7 @@ claims:
     - netting-is-bounded-exact
     - settle-is-a-record
     - offline-creates-only
-    - free-forever
+    - hosted-price
 cast:
     - mo
 faqs:
@@ -30,7 +30,7 @@ draft: true
 
 "Me manda a foto que eu lanço hoje à noite", dizem. Ninguém lança hoje à noite. Sua planilha estava linda no primeiro dia — abas coloridas, uma coluna para a moeda, um total que calculava a cota de cada um sozinho. No terceiro dia você é o único que abriu, os recibos são fotos em três celulares diferentes, e você já lançou 19 delas numa espreguiçadeira, o que é contabilidade não paga de sunga para uma empresa que não existe. Chega disso!
 
-Se a planilha vai ser terminada ou não importa mais do que parece. Quando não é, alguém sai no prejuízo e não fala nada, e tem gente que nunca toca no assunto e carrega uma mágoa silenciosa que dura mais que a amizade. Deixe o Split by Peanut fazer essa parte. Um link no grupo do WhatsApp, cada um lança o que pagou, na moeda em que pagou, sem conta e sem baixar nada; a sala soma tudo e reduz a uma lista curta de quem paga a quem. Só mandar o link e voltar pro mar.
+Se a planilha vai ser terminada ou não importa mais do que parece. Quando não é, alguém sai no prejuízo e não fala nada, e tem gente que nunca toca no assunto e carrega uma mágoa silenciosa que dura mais que a amizade. Deixe o Split fazer essa parte. Um link no grupo do WhatsApp, cada um lança o que pagou, na moeda em que pagou, sem conta e sem baixar nada; a sala soma tudo e reduz a uma lista curta de quem paga a quem. Só mandar o link e voltar pro mar.
 
 ## Quando a planilha ainda ganha
 
@@ -46,7 +46,7 @@ A sala não faz nada disso. Ela conta o que cada um pagou, reduz o total a quem 
 
 ## Bom saber
 
-O Split é grátis para sempre, sem nada para desbloquear. A Peanut criou o Split para apresentar as pessoas à Peanut, e é assim que o Split se paga — não existe versão paga, nem nada para esconder atrás de uma depois.
+O serviço oficial é de uso grátis e não tem plano pago.
 
 Ele converte automaticamente 156 moedas pela taxa indicativa do dia, não a do seu banco. O Split não confere com banco nenhum, e não tem como: duas pessoas acertam do jeito que acertam, e uma delas toca para registrar. Registrar esse toque precisa de conexão, de propósito, porque um pagamento anotado duas vezes é pior do que um anotado com atraso.
 

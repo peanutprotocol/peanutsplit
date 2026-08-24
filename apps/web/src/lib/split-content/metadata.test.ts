@@ -6,7 +6,7 @@ import { INDEXED_LOCALES, type IndexedLocale } from '@/i18n/locales'
 import { CANONICAL_ORIGIN } from '@/lib/domains'
 import { ORGANIZATION_ID } from '@/lib/seo'
 import { getSplitGuide } from './artifact'
-import { splitGuideCrumbs, splitGuideSchemas } from './metadata'
+import { SQUIRREL_LABS_ORGANIZATION_ID, splitGuideCrumbs, splitGuideSchemas } from './metadata'
 
 /**
  * The guide trail is hardcoded because the layout must stay synchronous. That is only safe while
@@ -53,12 +53,17 @@ describe('Split guide breadcrumbs', () => {
 })
 
 describe('Split guide article schema', () => {
-    it('names the site organization once, for both author and publisher', () => {
+    it('names Squirrel Labs as author and the site organization as publisher', () => {
         const guide = getSplitGuide('en', SLUG)!
         const { article } = splitGuideSchemas(guide)
 
-        expect(article.author).toMatchObject({ '@id': ORGANIZATION_ID, name: 'Peanut Split' })
-        expect(article.publisher).toMatchObject({ '@id': ORGANIZATION_ID, name: 'Peanut Split' })
+        expect(article.author).toEqual({
+            '@type': 'Organization',
+            '@id': SQUIRREL_LABS_ORGANIZATION_ID,
+            name: 'Squirrel Labs',
+            url: 'https://squirrellabs.dev/',
+        })
+        expect(article.publisher).toMatchObject({ '@id': ORGANIZATION_ID, name: 'Squirrel Labs' })
         expect(article.image).toBe(`${CANONICAL_ORIGIN}/og-default.png`)
         // dateModified is the artifact's generated_at, not a copy of date: a regenerated body
         // moves one and not the other. Nothing upstream asserts generated_at >= date.

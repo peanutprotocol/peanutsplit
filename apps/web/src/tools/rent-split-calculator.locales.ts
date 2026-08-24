@@ -26,7 +26,7 @@ export const rentSplitEs419: ToolWords = {
         h1: 'Calculadora para dividir el alquiler por metros cuadrados',
         intro: [
             'Pon el alquiler y los metros cuadrados de cada cuarto privado. El alquiler sigue esa superficie, y las cifras se mueven mientras escribes.',
-            'El control al lado de cada nombre es la otra mitad de la discusión. Déjalos todos donde están y no pasa nada; sube uno y esa persona paga más mientras el resto paga menos. Split by Peanut tiene la misma aritmética en una página que todo el departamento puede abrir.',
+            'El control al lado de cada nombre es la otra mitad de la discusión. Déjalos todos donde están y no pasa nada; sube uno y esa persona paga más mientras el resto paga menos. Split tiene la misma aritmética en una página que todo el departamento puede abrir.',
         ],
         resultTitle: 'Lo que paga cada cuarto',
         resultHint: 'Pon el alquiler y cuántas personas están en él.',
@@ -48,7 +48,7 @@ export const rentSplitEs419: ToolWords = {
         goodToKnow: {
             title: 'Bueno saberlo',
             body: [
-                'Split es gratis para siempre y no hay nada a lo que subir.',
+                'El servicio oficial es de uso gratuito y no tiene plan pago.',
                 'Conversión automática para 156 monedas al tipo de cambio indicativo del día.',
                 'Una sala tiene hasta veinte personas.',
                 'Split registra un pago, no lo hace. No consulta con ningún banco, y no puede.',
@@ -120,7 +120,7 @@ export const rentSplitPtBr: ToolWords = {
         h1: 'Calculadora para dividir o aluguel por metro quadrado',
         intro: [
             'Coloque o aluguel e o tamanho de cada quarto individual. O aluguel segue essa metragem, e os números se movem enquanto você digita.',
-            'O controle ao lado de cada nome é a outra metade da discussão. Deixe todos onde estão e nada acontece; suba um e essa pessoa paga mais enquanto o resto paga menos. O Split by Peanut tem a mesma conta numa página que o apê inteiro pode abrir.',
+            'O controle ao lado de cada nome é a outra metade da discussão. Deixe todos onde estão e nada acontece; suba um e essa pessoa paga mais enquanto o resto paga menos. O Split tem a mesma conta numa página que o apê inteiro pode abrir.',
         ],
         resultTitle: 'O que cada quarto paga',
         resultHint: 'Coloque o aluguel e quantas pessoas estão nele.',
@@ -142,7 +142,7 @@ export const rentSplitPtBr: ToolWords = {
         goodToKnow: {
             title: 'Bom saber',
             body: [
-                'O Split é grátis para sempre e não existe nada para assinar depois.',
+                'O serviço oficial é de uso grátis e não tem plano pago.',
                 'Conversão automática para 156 moedas pela taxa indicativa do dia.',
                 'Uma sala comporta até vinte pessoas.',
                 'O Split registra um pagamento, não faz o pagamento. Ele não confere com banco nenhum, e não tem como conferir.',

@@ -39,11 +39,9 @@ export interface InstallHandoffPayload {
 
 const unavailable = () => new ApiError(404, 'INSTALL_HANDOFF_UNAVAILABLE', 'this install handoff is unavailable')
 
-/** The configured public origin is authoritative in a production container:
- * request.url is its internal `0.0.0.0:3000` address behind the proxy. Dev and
- * handler tests use the actual request origin so every local port keeps working. */
-const expectedOrigin = (request: Request): string =>
-    process.env.NODE_ENV === 'production' ? new URL(siteUrl).origin : new URL(request.url).origin
+/** The build-time product origin is authoritative. A renderer address or request Host must not
+ * redefine which site may prepare or redeem a handoff. */
+const expectedOrigin = (): string => siteUrl
 
 /** Prevent another site from planting its room as the one a victim's new app
  * opens. Every browser caller supplies Origin for these non-simple mutations. */
@@ -55,7 +53,7 @@ export function assertInstallHandoffSameOrigin(request: Request): void {
     } catch {
         origin = null
     }
-    if (origin !== expectedOrigin(request)) {
+    if (origin !== expectedOrigin()) {
         throw new ApiError(403, 'CROSS_SITE_REQUEST', 'install handoff requests must come from this site')
     }
 }

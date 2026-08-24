@@ -7,27 +7,31 @@ import { actorFromToken, appendRoomAuditEvent, expenseAuditSnapshot, lockRoomWri
 
 export const dynamic = 'force-dynamic'
 
-type Ctx = { params: Promise<{ id: string }> }
+type Ctx = { params: Promise<{ slug: string; id: string }> }
 
-/** Undo. Slug-free by design: the toast only has the expense id in hand. */
+/** Undo within the room capability already held by the expense drawer. */
 export const POST = (request: Request, ctx: Ctx) =>
     respond(async () => {
         enforceRateLimit(request, WRITE_LIMIT, 'write')
-        const { id } = await ctx.params
-        const initial = await prisma.expense.findUnique({ where: { id } })
-        if (!initial) throw notFound('expense not found', 'EXPENSE_NOT_FOUND')
+        const { slug, id } = await ctx.params
+        const initialRoom = await loadRoom(slug)
+        const initialExpense = await prisma.expense.findFirst({
+            where: { id, roomId: initialRoom.id },
+            select: { id: true },
+        })
+        if (!initialExpense) throw notFound('expense not found', 'EXPENSE_NOT_FOUND')
+
         const result = await prisma.$transaction(async (tx) => {
-            await lockRoomWrite(tx, initial.roomId)
-            const expense = await tx.expense.findUnique({
-                where: { id },
+            await lockRoomWrite(tx, initialRoom.id)
+            const room = await loadRoom(slug, tx)
+            const expense = await tx.expense.findFirst({
+                where: { id, roomId: room.id },
                 include: {
                     shares: { orderBy: { memberId: 'asc' } },
                     reactions: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] },
                 },
             })
             if (!expense) throw notFound('expense not found', 'EXPENSE_NOT_FOUND')
-            const roomRow = await tx.room.findUniqueOrThrow({ where: { id: expense.roomId }, select: { slug: true } })
-            const room = await loadRoom(roomRow.slug, tx)
             if (expense.deletedAt) {
                 await tx.expense.update({ where: { id }, data: { deletedAt: null } })
                 await appendRoomAuditEvent({
@@ -43,10 +47,10 @@ export const POST = (request: Request, ctx: Ctx) =>
                         after: expenseAuditSnapshot({ ...expense, deletedAt: null }),
                     },
                 })
-                return { changed: true, state: toRoomState(await loadRoom(roomRow.slug, tx)) }
+                return { changed: true, state: toRoomState(await loadRoom(slug, tx)) }
             }
             return { changed: false, state: toRoomState(room) }
         })
-        if (result.changed) publish(initial.roomId)
+        if (result.changed) publish(initialRoom.id)
         return result.state
     })

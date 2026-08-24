@@ -27,7 +27,7 @@ export const mileageSplitEs419: ToolWords = {
         h1: 'Calculadora para dividir un viaje en auto',
         intro: [
             'Di cuánto anduvo el auto y cuántas personas iban adentro. El viaje se calcula al valor oficial de reembolso del país que elijas, y abajo está lo que cada pasajero le debe a quien manejó.',
-            'Un valor justo por kilómetro nunca es solo el combustible. Cubre los neumáticos, el mantenimiento que se adelanta y el valor que el auto va perdiendo mientras lo disfrutas, y por eso una cifra oficial queda bastante arriba de lo que sugeriría el ticket del combustible. Cámbialo si conoces el auto mejor que el estado, o arma el tuyo con lo que consume. Deja que Split by Peanut se encargue de pedir después, para que quien manejó no tenga que sacar el tema en el chat del grupo.',
+            'Un valor justo por kilómetro nunca es solo el combustible. Cubre los neumáticos, el mantenimiento que se adelanta y el valor que el auto va perdiendo mientras lo disfrutas, y por eso una cifra oficial queda bastante arriba de lo que sugeriría el ticket del combustible. Cámbialo si conoces el auto mejor que el estado, o arma el tuyo con lo que consume. Deja que Split se encargue de pedir después, para que quien manejó no tenga que sacar el tema en el chat del grupo.',
         ],
         resultTitle: 'Quién le debe qué a quien manejó',
         resultHint: 'Di cuántas personas iban con quien manejó.',
@@ -49,7 +49,7 @@ export const mileageSplitEs419: ToolWords = {
         goodToKnow: {
             title: 'Bueno saberlo',
             body: [
-                'Split es gratis para siempre y no hay nada a lo que subir.',
+                'El servicio oficial es de uso gratuito y no tiene plan pago.',
                 'Conversión automática para 156 monedas al tipo de cambio indicativo del día.',
                 'Una sala tiene hasta veinte personas.',
                 'Split registra un pago, no lo hace. No consulta con ningún banco, y no puede.',
@@ -216,7 +216,7 @@ export const mileageSplitPtBr: ToolWords = {
         intro: [
             'Diga quanto o carro andou e quantas pessoas estavam dentro. A viagem é calculada pela taxa oficial de reembolso do país que você escolher, e embaixo está o que cada passageiro deve para quem dirigiu.',
             'No Brasil não existe taxa federal por quilômetro. A regra federal paga um teto por dia, sem nenhuma distância dentro dela, então aqui você digita a sua própria taxa, e o bloco no fim monta uma a partir do que o carro consome.',
-            'Uma taxa justa por quilômetro nunca é só o combustível. Ela está no lugar dos pneus, da revisão que chega antes da hora e do valor que o carro perde enquanto você aproveita, e por isso um número oficial fica bem acima do que o comprovante do posto sugere. Escreva por cima se você conhece o carro melhor que o estado. Deixe o Split by Peanut cobrar depois, para quem dirigiu não precisar levantar o assunto no grupo.',
+            'Uma taxa justa por quilômetro nunca é só o combustível. Ela está no lugar dos pneus, da revisão que chega antes da hora e do valor que o carro perde enquanto você aproveita, e por isso um número oficial fica bem acima do que o comprovante do posto sugere. Escreva por cima se você conhece o carro melhor que o estado. Deixe o Split cobrar depois, para quem dirigiu não precisar levantar o assunto no grupo.',
         ],
         resultTitle: 'Quem deve o quê para quem dirigiu',
         resultHint: 'Diga quantas pessoas foram com quem dirigiu.',
@@ -238,7 +238,7 @@ export const mileageSplitPtBr: ToolWords = {
         goodToKnow: {
             title: 'Bom saber',
             body: [
-                'O Split é grátis para sempre e não existe nada para assinar depois.',
+                'O serviço oficial é de uso grátis e não tem plano pago.',
                 'Conversão automática para 156 moedas pela taxa indicativa do dia.',
                 'Uma sala comporta até vinte pessoas.',
                 'O Split registra um pagamento, não faz o pagamento. Ele não confere com banco nenhum, e não tem como conferir.',

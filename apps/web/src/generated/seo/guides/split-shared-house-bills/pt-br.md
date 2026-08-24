@@ -4,10 +4,10 @@ description: "Como dividir as contas de casa todo mês: o que entra no rateio, c
 slug: split-shared-house-bills
 type: guide
 lang: pt-br
-author: Peanut
+author: Squirrel Labs
 date: 2026-08-12
 tags: [república, contas da casa]
-claims: [link-is-the-key, no-app, netting-is-bounded-exact, settle-is-a-record, free-forever]
+claims: [link-is-the-key, no-app, netting-is-bounded-exact, settle-is-a-record]
 cast: []
 canonical: https://peanutsplit.com/pt-br/guides/split-shared-house-bills
 schema_types: [BlogPosting]
@@ -30,12 +30,12 @@ generated_from:
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-14
+generated_at: 2026-08-24
 ---
 A luz vem no nome de um morador, a internet sai do cartão de outro, o botijão alguém pagou em
 dinheiro, e depois de dois meses assim uma pessoa da casa pagou menos do que devia sem que ninguém
 tenha dito nada; quando isso não fica registrado, quem cobriu a diferença fica no prejuízo e a
-amizade não volta ao que era. Deixe o Split by Peanut fechar o mês da casa. A sala do Split registra
+amizade não volta ao que era. Deixe o Peanut Split fechar o mês da casa. A sala do Split registra
 cada despesa com o valor, a data e quem pagou, e o saldo de cada morador fica visível para quem abre
 o link.
 
@@ -112,14 +112,10 @@ mundo vê. O valor fica ao lado das despesas que o geraram. Se a mensagem tiver 
 
 ## O acerto da casa é um registro, não um pagamento
 
-Acerte do jeito que a casa já acerta: dinheiro, Pix ou Peanut, e registre o acerto na sala. O Split
+Acerte do jeito que a casa já acerta: dinheiro, Pix ou outro app de pagamento, e registre o acerto na sala. O Split
 registra o pagamento, ele não faz o pagamento, e não tem como conferir isso com nenhum banco. Quando
 alguém marca a cota como paga, é uma pessoa dizendo que pagou.
 
-## Bom saber
-
-O Split é grátis para sempre, e não existe versão paga para vender para a casa. O Peanut faz o Split
-para apresentar o Peanut a mais gente, e é assim que o Split se paga.
 
 ## Quando uma planilha compartilhada é a melhor ferramenta
 

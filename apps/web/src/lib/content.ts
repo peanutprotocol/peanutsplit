@@ -4,7 +4,7 @@ import matter from 'gray-matter'
 import { staticPageSlugs } from '@/data/static-pages'
 import { DEFAULT_LOCALE, INDEXED_LOCALES, isIndexedLocale, type IndexedLocale, type Locale } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
-import { splitV2Enabled } from '@/lib/flags'
+import { publicFossReleased, splitV2Enabled } from '@/lib/flags'
 
 /**
  * Split's content engine. Same shape as the one on peanut.me — markdown + frontmatter on disk,
@@ -85,6 +85,13 @@ export interface Frontmatter {
     draft?: boolean
     /** Available only in builds that explicitly expose the v2 product surface. */
     v2Only?: boolean
+    /**
+     * A positive public-source claim prepared in private. A whole-page gate stays unroutable; a
+     * doc with a complete public-source upgrade keeps its safe base page and hides only the upgrade.
+     */
+    releaseGate?: 'public-source'
+    /** The doc has safe pre-release metadata/body plus gated public-source additions. */
+    publicSourceUpgrade?: boolean
     /** Overrides the derived canonical path. Only needed for pages that moved. */
     canonical?: string
     /**
@@ -218,8 +225,17 @@ function parseDoc(collection: Collection, slug: string, locale: Locale): Doc | n
         return null
     }
 
-    const title = typeof data.title === 'string' ? data.title.trim() : ''
-    const description = typeof data.description === 'string' ? data.description.trim() : ''
+    const baseTitle = typeof data.title === 'string' ? data.title.trim() : ''
+    const baseDescription = typeof data.description === 'string' ? data.description.trim() : ''
+    const publicSourceTitle = typeof data.publicSourceTitle === 'string' ? data.publicSourceTitle.trim() : ''
+    const publicSourceDescription =
+        typeof data.publicSourceDescription === 'string' ? data.publicSourceDescription.trim() : ''
+    const releaseGate = data.releaseGate === 'public-source' ? 'public-source' : undefined
+    if (Boolean(publicSourceTitle) !== Boolean(publicSourceDescription)) return null
+    const publicSourceUpgrade = releaseGate === 'public-source' && Boolean(publicSourceTitle)
+    const sourceReleased = publicFossReleased()
+    const title = sourceReleased && publicSourceUpgrade ? publicSourceTitle : baseTitle
+    const description = sourceReleased && publicSourceUpgrade ? publicSourceDescription : baseDescription
     const date = coerceDate(data.date)
     // A dateless article emits an empty datePublished into BlogPosting schema, which is worse
     // than not publishing it — so the date is required, not defaulted.
@@ -237,10 +253,15 @@ function parseDoc(collection: Collection, slug: string, locale: Locale): Doc | n
             updated: data.updated ? coerceDate(data.updated) : undefined,
             author: typeof data.author === 'string' ? data.author : undefined,
             tags: coerceStringArray(data.tags),
-            faqs: coerceFaqs(data.faqs),
+            faqs: [
+                ...(sourceReleased && publicSourceUpgrade ? (coerceFaqs(data.publicSourceFaqs) ?? []) : []),
+                ...(coerceFaqs(data.faqs) ?? []),
+            ],
             published: data.published !== false,
             draft: data.draft === true,
             v2Only: data.v2Only === true,
+            releaseGate,
+            publicSourceUpgrade,
             canonical: typeof data.canonical === 'string' ? data.canonical : undefined,
             intent: typeof data.intent === 'string' ? data.intent.trim() || undefined : undefined,
             headTerm: typeof data.headTerm === 'string' ? data.headTerm.trim() || undefined : undefined,
@@ -288,7 +309,9 @@ function isReleased(doc: Doc): boolean {
 
 /** Routable or not. Both reasons a valid page is withheld — unreviewed draft, unreleased version. */
 export function isDocAvailable(doc: Doc): boolean {
-    return doc.frontmatter.draft !== true && isReleased(doc)
+    const releaseGateOpen =
+        doc.frontmatter.releaseGate !== 'public-source' || doc.frontmatter.publicSourceUpgrade || publicFossReleased()
+    return doc.frontmatter.draft !== true && isReleased(doc) && releaseGateOpen
 }
 
 /**

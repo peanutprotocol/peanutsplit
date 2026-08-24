@@ -2,6 +2,7 @@ import { TEMPLATE_ROOT, TEMPLATES_PATH } from '@/templates/registry'
 import { TOOL_SLUGS } from '@/tools/registry'
 import { type Locale } from '@/i18n/locales'
 import { PREFIXED_LOCALES } from '@/i18n/paths'
+import { publicFossReleased } from '@/lib/flags'
 
 /**
  * The hand-built pages, registered so the sitemap and the /blog hub don't have to special-case
@@ -24,8 +25,8 @@ export interface StaticPage {
     priority: number
     /** Show on the /blog hub. The LP is registered for the sitemap but is not a "guide". */
     inHub: boolean
-    /** False for app-owned routes that remain reserved here but should not enter discovery. */
-    inSitemap?: boolean
+    /** False, or a live release predicate, for routes that should not enter discovery. */
+    inSitemap?: boolean | (() => boolean)
     /** Kept reserved and buildable, but omitted from v1 discovery. */
     v2Only?: boolean
     /** Locales with a real route. Omitted means the unprefixed English route only. */
@@ -39,6 +40,14 @@ export const STATIC_PAGES: StaticPage[] = [
         description: 'Accountless, link-based expense splitting.',
         priority: 1,
         inHub: false,
+    },
+    {
+        href: '/source',
+        title: 'Source & stewardship',
+        description: 'License, source, self-hosting documentation, and Squirrel Labs stewardship.',
+        priority: 0.4,
+        inHub: false,
+        inSitemap: publicFossReleased,
     },
     {
         // The calculators' one hub. It carries no calculator of its own, so it is a listing rather
@@ -71,6 +80,11 @@ export const STATIC_PAGES: StaticPage[] = [
         inSitemap: false,
     },
 ]
+
+/** Evaluate release predicates when the sitemap is requested, not when this registry is imported. */
+export function staticPageIsSitemapped(page: StaticPage): boolean {
+    return typeof page.inSitemap === 'function' ? page.inSitemap() : page.inSitemap !== false
+}
 
 /**
  * Every root-level path Next already owns. A markdown slug matching one of these would be

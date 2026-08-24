@@ -4,10 +4,10 @@ description: "Organise group-trip expenses across countries: choose a shared cur
 slug: split-a-group-trip-across-countries
 type: guide
 lang: en
-author: Peanut
+author: Squirrel Labs
 date: 2026-07-28
 tags: [trips, currencies, getting paid back]
-claims: [automatic-currency-conversion, netting-is-bounded-exact, settle-is-a-record, link-is-the-key, free-forever, no-app]
+claims: [automatic-currency-conversion, netting-is-bounded-exact, settle-is-a-record, link-is-the-key, no-app]
 cast: []
 canonical: https://peanutsplit.com/guides/split-a-group-trip-across-countries
 schema_types: [BlogPosting]
@@ -24,17 +24,18 @@ generated_from:
   workflow: split-content/_system/workflows/generate-guide.md
   context:
     - split-content/_system/context/messaging.md
+    - split-content/_system/context/valid-links.md
   guidelines:
     - split-content/_system/guidelines/seo.md
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-11
+generated_at: 2026-08-24
 ---
 
 One friend paid for the villa in euros, another covered the rental car in baht, and the receipts now
 sit across several phones; if the record stays muddled, somebody goes home out of pocket and the
-resentment can outlast the trip. Let Split by Peanut do that bit instead. It puts every expense in one
+resentment can outlast the trip. Let Peanut Split do that bit instead. It puts every expense in one
 room so the group can work from the same trip ledger.
 
 By then, the organiser is scrolling through old messages instead of unpacking. Leave that job
@@ -48,8 +49,7 @@ behind!
 <Step title="Agree what counts">Decide whether the shared total covers alcohol, tips and taxis, or only the large expenses. One clear boundary is enough.</Step>
 </Steps>
 
-Split opens in your browser; nobody has to install it before joining. It is free forever, with
-nothing to upgrade to.
+Split opens in your browser; nobody has to install it before joining.
 
 ## Log each expense while you have the receipt
 

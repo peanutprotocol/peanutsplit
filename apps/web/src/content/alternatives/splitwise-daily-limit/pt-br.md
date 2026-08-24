@@ -6,7 +6,7 @@ type: comparison
 headTerm: limite grátis splitwise
 tags: [alternativas]
 claims:
-    - free-forever
+    - hosted-price
     - link-is-the-key
     - no-app
     - automatic-currency-conversion
@@ -29,7 +29,7 @@ faqs:
     - question: Quanto custa o Splitwise Pro?
       answer: O Splitwise não publica preço no site deles. Os termos dizem que o preço pode variar por data de assinatura, país, impostos e regulação locais e promoções. O seu valor aparece no checkout depois que você entra na conta, e é por isso que dois textos na internet nunca batem.
     - question: Uma sala do Split tem limite diário?
-      answer: 'Não. Sem limite de despesas, sem anúncio e sem plano pago para assinar. Nada conta o que você lança, então uma semana de recibos de uma vez funciona igual a um jantar.'
+      answer: 'Não. Não há limite de despesas nem plano pago. Nada conta o que você lança, então uma semana de recibos de uma vez funciona igual a um jantar.'
     - question: Dá para mudar o grupo no meio da viagem?
       answer: Dá. Exporte o grupo do Splitwise como planilha, importe o CSV em uma sala nova do Split, confira os avisos e os saldos e mande o link novo para o grupo. Deixe o grupo antigo aberto até todo mundo confirmar que os saldos batem.
 ---
@@ -107,8 +107,8 @@ As páginas deles dizem três coisas sobre anúncios. A página do Pro vende "A 
 |                  | Peanut Split                            | Splitwise grátis                                      |
 | ---------------- | --------------------------------------- | ----------------------------------------------------- |
 | Despesas por dia | Sem limite                              | Um limite diário, tirado por uma assinatura Pro       |
-| Anúncios         | Nenhum                                  | O Pro é vendido como experiência sem anúncios         |
-| Preço            | Grátis para sempre, sem plano pago      | Preço do Pro não publicado; varia por país e por data |
+| Anúncios         | Sem anúncios de terceiros               | O Pro é vendido como experiência sem anúncios         |
+| Preço            | De uso grátis, sem plano pago           | Preço do Pro não publicado; varia por país e por data |
 | Conta            | Nenhuma. Uma sala é um link             | Uma conta                                             |
 | Moedas           | 156 moedas, pela taxa indicativa do dia | A conversão de moeda fica no Pro                      |
 
@@ -135,7 +135,8 @@ O Splitwise também tem coisas de que o Split não tem versão: leitura de recib
 
 ## Bom saber
 
-O Split é grátis para sempre e não existe nada para assinar depois. A Peanut faz o Split para apresentar a Peanut às pessoas, e é daí que sai o dinheiro. Não tem plano pago, então não tem número para limitar.
+O serviço oficial é de uso grátis e não tem plano pago. Sem plano pago, não há número para
+limitar.
 
 O Split não movimenta dinheiro e não consegue conferir se alguém pagou. Ele reduz as dívidas a um plano de pagamento curto, e depois duas pessoas acertam do jeito que elas acertam, em dinheiro, por transferência local ou pelo que as duas realmente conseguem usar, e uma delas toca para registrar. Não tem banco atrás confirmando isso.
 
@@ -147,7 +148,7 @@ O Split não movimenta dinheiro e não consegue conferir se alguém pagou. Ele r
 <FAQ title="Perguntas">
 <FAQItem question="Quantas despesas dá para lançar de graça no Splitwise?">Quatro por dia. O centro de ajuda do Splitwise diz que quem usa o plano grátis lança até 4 despesas por dia, e essa é a única página do Splitwise que dá algum número.</FAQItem>
 <FAQItem question="Quanto custa o Splitwise Pro?">O Splitwise não publica preço no site deles. Os termos dizem que o preço pode variar por data de assinatura, país, impostos e regulação locais e promoções. O seu valor aparece no checkout depois que você entra na conta, e é por isso que dois textos na internet nunca batem.</FAQItem>
-<FAQItem question="Uma sala do Split tem limite diário?">Não. Sem limite de despesas, sem anúncio e sem plano pago para assinar. Nada conta o que você lança, então uma semana de recibos de uma vez funciona igual a um jantar.</FAQItem>
+<FAQItem question="Uma sala do Split tem limite diário?">Não. Não há limite de despesas nem plano pago. Nada conta o que você lança, então uma semana de recibos de uma vez funciona igual a um jantar.</FAQItem>
 <FAQItem question="Dá para mudar o grupo no meio da viagem?">Dá. Exporte o grupo do Splitwise como planilha, importe o CSV em uma sala nova do Split, confira os avisos e os saldos e mande o link novo para o grupo. Deixe o grupo antigo aberto até todo mundo confirmar que os saldos batem.</FAQItem>
 </FAQ>
 

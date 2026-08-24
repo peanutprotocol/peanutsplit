@@ -4,10 +4,10 @@ description: "Someone dropped out of a booked holiday and the money is already s
 slug: someone-drops-out-of-a-group-trip
 type: guide
 lang: en
-author: Peanut
+author: Squirrel Labs
 date: 2026-08-12
 tags: [trips, getting paid back]
-claims: [link-is-the-key, netting-is-bounded-exact, settle-is-a-record, free-forever]
+claims: [link-is-the-key, netting-is-bounded-exact, settle-is-a-record]
 cast: []
 canonical: https://peanutsplit.com/guides/someone-drops-out-of-a-group-trip
 schema_types: [BlogPosting]
@@ -28,12 +28,12 @@ generated_from:
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-14
+generated_at: 2026-08-24
 ---
 
 Someone drops out of the holiday five weeks before it starts, the house in Pembrokeshire is paid
 for, and the group is now five people holding a bill written for six. If nobody settles on a number,
-one person carries the difference in silence and never brings it up again. Let Split by Peanut take
+one person carries the difference in silence and never brings it up again. Let Peanut Split take
 the arithmetic off the group chat. It keeps the trip's expenses in one shared room, so the
 recalculation happens once and everybody reads the same version of it.
 
@@ -130,15 +130,11 @@ or three transfers rather than working through every pair. That netting is
 
 ## Recording the money once it moves
 
-Settle however you like: cash, a bank transfer, Peanut. Then somebody records it in the room.
+Settle however you like: cash, a bank transfer, or another payment app. Then somebody records it in the room.
 Split records the payment, it does not make it. It does not verify with any bank and cannot.
 Nothing in the room collects anything from anybody; it holds the figure and the people do the
 rest.
 
-## Good to know
-
-Split is free forever, with nothing to upgrade to and no paid tier to sell you. Peanut makes it to
-introduce people to Peanut, which is how Split gets paid for.
 
 ## When a group chat is the better tool
 

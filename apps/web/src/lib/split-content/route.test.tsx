@@ -19,7 +19,7 @@ describe('Split guide route contract', () => {
 
     it('derives canonical metadata from the public route and stays noindex while the gate is shut', async () => {
         const metadata = await splitGuideMetadataFor('pt-br', 'synthetic-guide', FIXTURE)
-        expect(metadata.title).toBe('Guia sintética em português | Peanut')
+        expect(metadata.title).toBe('Guia sintética em português | Split')
         expect(metadata.alternates).toEqual({
             canonical: 'https://peanutsplit.com/pt-br/guides/synthetic-guide',
             languages: undefined,

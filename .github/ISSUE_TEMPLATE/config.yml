@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a vulnerability privately
+    url: https://github.com/peanutprotocol/peanutsplit/security/advisories/new
+    about: Never disclose a vulnerability or live room capability in a public issue.

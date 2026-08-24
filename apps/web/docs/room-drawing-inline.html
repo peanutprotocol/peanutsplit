@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Peanut Split — draw your room</title>
+        <style>
+            @font-face {
+                font-family: Sniglet;
+                src: url('../public/fonts/sniglet-regular.ttf') format('truetype');
+                font-weight: 400;
+            }
+            @font-face {
+                font-family: Sniglet;
+                src: url('../public/fonts/sniglet-extrabold.ttf') format('truetype');
+                font-weight: 800;
+            }
+            :root {
+                color-scheme: light;
+                --ink: #211c17;
+                --muted: #5f646d;
+                --cream: #faf4f0;
+                --white: #fff;
+                --yellow: #ffc900;
+                --pink: #ff90e8;
+                --blue: #90a8ed;
+                --green: #98e9ab;
+                --line: 1.5px solid var(--ink);
+                --shadow: 4px 4px 0 var(--ink);
+            }
+            * { box-sizing: border-box; }
+            body {
+                margin: 0;
+                background:
+                    radial-gradient(circle at 8% 5%, #fff3bd 0, transparent 28rem),
+                    var(--cream);
+                color: var(--ink);
+                font-family: Inter, ui-rounded, system-ui, sans-serif;
+            }
+            button, input { color: inherit; font: inherit; }
+            button { -webkit-tap-highlight-color: transparent; }
+            button:focus-visible, input:focus-visible, canvas:focus-visible {
+                outline: 4px solid var(--pink);
+                outline-offset: 3px;
+            }
+            h1, h2, h3, p { margin: 0; }
+            h1, h2, h3, .display { font-family: Sniglet, ui-rounded, system-ui, sans-serif; font-weight: 800; }
+            .shell { width: min(100%, 1120px); margin: auto; padding: 28px 24px 72px; }
+            .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+            .brand { display: flex; align-items: center; gap: 9px; font: 800 16px Sniglet, sans-serif; }
+            .brand-mark {
+                display: grid; width: 34px; height: 34px; place-items: center;
+                border: var(--line); border-radius: 50%; background: var(--yellow);
+                box-shadow: 2px 2px 0 var(--ink);
+            }
+            .tag {
+                border: var(--line); border-radius: 99px; background: var(--white);
+                padding: 7px 11px; font-size: 11px; font-weight: 900;
+                letter-spacing: .08em; text-transform: uppercase;
+            }
+            .intro { max-width: 700px; margin-top: 52px; }
+            h1 { font-size: clamp(38px, 7vw, 72px); letter-spacing: -.045em; line-height: .95; }
+            .intro p { max-width: 610px; margin-top: 18px; color: var(--muted); font-size: 17px; line-height: 1.5; }
+            .stage { display: grid; grid-template-columns: minmax(310px, 430px) 1fr; gap: 64px; align-items: start; margin-top: 48px; }
+            .phone-wrap { position: relative; }
+            .phone-note {
+                position: absolute; z-index: 3; top: 290px; left: calc(100% + 14px);
+                width: 170px; transform: rotate(-2deg); color: var(--muted);
+                font: 800 14px/1.25 Sniglet, sans-serif;
+            }
+            .phone-note::before {
+                position: absolute; right: calc(100% + 6px); top: 18px; width: 46px;
+                border-top: 2px solid var(--ink); content: ''; transform: rotate(-12deg);
+            }
+            .phone {
+                min-height: 700px; overflow: hidden; border: 2px solid var(--ink);
+                border-radius: 28px; background: var(--cream); box-shadow: 8px 8px 0 var(--ink);
+            }
+            .phone-head { display: flex; align-items: end; justify-content: space-between; padding: 24px 18px 12px; }
+            .phone-head h2 { font-size: 21px; }
+            .close {
+                display: grid; width: 42px; height: 42px; place-items: center; border: 0;
+                background: transparent; font-size: 28px; line-height: 1; cursor: pointer;
+            }
+            .content { display: grid; gap: 12px; padding: 8px 18px 28px; }
+            .composer { overflow: hidden; border: 2px solid var(--ink); border-radius: 16px; background: var(--white); box-shadow: var(--shadow); }
+            .composer-row { display: flex; align-items: center; gap: 10px; padding: 9px 13px; }
+            .room-name { width: 100%; height: 52px; border: 0; outline: 0; font: 800 20px Sniglet, sans-serif; }
+            .currency { flex: 0 0 auto; border: var(--line); border-radius: 12px; background: var(--white); padding: 12px 10px; font-weight: 800; }
+            .person { width: 100%; height: 48px; border: 0; border-top: 1px dashed #9ca3af; padding: 0 14px; outline: 0; font-weight: 700; }
+            .summary {
+                display: flex; width: 100%; min-height: 62px; align-items: center; gap: 11px;
+                border: 0; border-top: 1px dashed #9ca3af; background: var(--white);
+                padding: 8px 14px; text-align: left; cursor: pointer;
+            }
+            .summary-art { display: grid; width: 36px; height: 36px; place-items: center; flex: 0 0 auto; }
+            .summary-art img { width: 36px; height: 36px; object-fit: contain; }
+            .summary-copy { flex: 1; }
+            .summary-copy strong { display: block; font: 800 14px Sniglet, sans-serif; }
+            .summary-copy small { color: var(--muted); }
+            .chevron { transition: transform 180ms ease; }
+            .summary[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+            .hint { padding: 0 4px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+            .picker {
+                overflow: hidden; border: 2px solid var(--ink); border-radius: 16px;
+                background: var(--white); box-shadow: var(--shadow);
+            }
+            .picker[hidden] { display: none; }
+            .picker-head { display: flex; min-height: 52px; align-items: center; justify-content: space-between; border-bottom: 1px dashed #9ca3af; padding: 6px 10px 6px 13px; }
+            .picker-head h3 { font-size: 14px; }
+            .text-button {
+                min-height: 40px; border: 0; background: transparent; padding: 0 8px;
+                font-size: 13px; font-weight: 900; cursor: pointer;
+            }
+            .grid { display: grid; grid-template-columns: repeat(6, 44px); gap: 8px; padding: 13px; }
+            .tile {
+                position: relative; display: grid; width: 44px; height: 44px; place-items: center;
+                border: var(--line); border-radius: 12px; background: var(--white); cursor: pointer;
+                transition: transform 100ms ease, box-shadow 100ms ease;
+            }
+            .tile:hover { transform: translateY(-2px); }
+            .tile:active { transform: translateY(2px); }
+            .tile[aria-checked="true"] { background: var(--yellow); box-shadow: 3px 3px 0 var(--ink); }
+            .tile svg { width: 27px; height: 27px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+            .tile.custom { border-style: dashed; background: #ffe2f7; }
+            .tile.custom[aria-checked="true"] { border-style: solid; background: var(--yellow); }
+            .tile.custom img { width: 34px; height: 34px; object-fit: contain; }
+            .custom-plus {
+                position: absolute; right: -4px; bottom: -4px; display: grid; width: 17px; height: 17px;
+                place-items: center; border: 1px solid var(--ink); border-radius: 50%;
+                background: var(--pink); font-size: 14px; font-weight: 900; line-height: 1;
+            }
+            .draw-body { padding: 12px; }
+            .canvas-wrap {
+                position: relative; overflow: hidden; aspect-ratio: 1; width: min(100%, 310px);
+                margin: auto; border: 2px solid var(--ink); border-radius: 14px; background: #fffdf8;
+            }
+            .canvas-wrap::before {
+                position: absolute; inset: 0; background-image: radial-gradient(#d7d2cc 1px, transparent 1px);
+                background-size: 16px 16px; content: ''; opacity: .42; pointer-events: none;
+            }
+            canvas { position: relative; display: block; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
+            .canvas-empty {
+                position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none;
+                color: #9b958e; font: 800 20px Sniglet, sans-serif; transform: rotate(-3deg);
+            }
+            .canvas-empty[hidden] { display: none; }
+            .tools { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
+            .swatches { display: flex; gap: 7px; }
+            .swatch {
+                width: 35px; height: 35px; border: var(--line); border-radius: 50%;
+                background: var(--swatch); cursor: pointer;
+            }
+            .swatch[aria-pressed="true"] { outline: 3px solid var(--yellow); outline-offset: 2px; }
+            .eraser {
+                display: flex; min-height: 40px; align-items: center; gap: 6px; border: var(--line);
+                border-radius: 12px; background: var(--white); padding: 0 10px; font-size: 12px; font-weight: 900; cursor: pointer;
+            }
+            .eraser[aria-pressed="true"] { background: #ffe2f7; box-shadow: 2px 2px 0 var(--ink); }
+            .actions { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 8px; margin-top: 12px; }
+            .action {
+                min-height: 46px; border: var(--line); border-radius: 12px; background: var(--white);
+                font-weight: 900; cursor: pointer;
+            }
+            .action.primary { background: var(--yellow); box-shadow: 3px 3px 0 var(--ink); }
+            .action:disabled { color: #9ca3af; background: #e7e8e9; box-shadow: none; cursor: not-allowed; }
+            .create { min-height: 52px; border: var(--line); border-radius: 12px; background: var(--yellow); box-shadow: var(--shadow); font: 800 18px Sniglet, sans-serif; }
+            .aside { margin-left: 130px; padding-top: 68px; }
+            .aside h2 { max-width: 430px; font-size: clamp(26px, 4vw, 42px); line-height: 1.02; letter-spacing: -.025em; }
+            .aside > p { max-width: 470px; margin-top: 16px; color: var(--muted); line-height: 1.55; }
+            .steps { display: grid; gap: 10px; max-width: 480px; margin-top: 28px; }
+            .step { display: grid; grid-template-columns: 42px 1fr; gap: 12px; align-items: center; border: var(--line); border-radius: 14px; background: var(--white); padding: 12px; }
+            .step-number { display: grid; width: 38px; height: 38px; place-items: center; border: var(--line); border-radius: 50%; background: var(--yellow); font: 800 16px Sniglet, sans-serif; }
+            .step strong { display: block; font-family: Sniglet, sans-serif; }
+            .step small { color: var(--muted); line-height: 1.35; }
+            .decision { max-width: 480px; margin-top: 24px; border-left: 5px solid var(--pink); padding: 5px 0 5px 16px; font-size: 13px; line-height: 1.5; }
+            .toast {
+                position: fixed; z-index: 10; left: 50%; bottom: 24px; transform: translate(-50%, 20px);
+                border: var(--line); border-radius: 99px; background: var(--ink); color: var(--white);
+                padding: 10px 16px; font-weight: 800; opacity: 0; pointer-events: none; transition: .2s ease;
+            }
+            .toast.show { transform: translate(-50%, 0); opacity: 1; }
+            .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+            @media (max-width: 900px) {
+                .stage { grid-template-columns: minmax(0, 430px); justify-content: center; gap: 38px; }
+                .aside { order: -1; margin: 0; padding: 0; }
+                .phone-note { display: none; }
+            }
+            @media (max-width: 480px) {
+                .shell { padding: 18px 12px 56px; }
+                .tag { display: none; }
+                .intro { margin-top: 38px; }
+                .intro p { font-size: 15px; }
+                .stage { margin-top: 32px; }
+                .phone { min-height: 0; border-radius: 22px; box-shadow: 5px 5px 0 var(--ink); }
+                .phone-head { padding-inline: 14px; }
+                .content { padding-inline: 14px; }
+                .grid { grid-template-columns: repeat(5, 44px); justify-content: space-between; gap: 8px 4px; }
+                .actions { grid-template-columns: 1fr 1fr; }
+                .action.primary { grid-column: 1 / -1; grid-row: 2; }
+            }
+            @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
+        </style>
+    </head>
+    <body>
+        <main class="shell">
+            <header class="topbar">
+                <div class="brand"><span class="brand-mark" aria-hidden="true">🥜</span> Peanut Split</div>
+                <span class="tag">Interactive prototype · inline canvas</span>
+            </header>
+            <section class="intro">
+                <h1>Make the room<br />look like <em>your room.</em></h1>
+                <p>The custom option lives exactly where people expect another room drawing: at the end of the picker. Tap the pink tile below, draw, and use it.</p>
+            </section>
+            <section class="stage">
+                <div class="phone-wrap">
+                    <div class="phone-note" aria-hidden="true">The only new choice is the last one.</div>
+                    <div class="phone" aria-label="Create a room prototype">
+                        <div class="phone-head"><h2>Create a room</h2><button class="close" type="button" aria-label="Close">×</button></div>
+                        <div class="content">
+                            <div class="composer">
+                                <div class="composer-row">
+                                    <input class="room-name" value="Lisbon weekend" aria-label="Room name" />
+                                    <button class="currency" type="button" aria-label="Currency, EUR">EUR⌄</button>
+                                </div>
+                                <input class="person" value="Alex" aria-label="Your name" />
+                                <button class="summary" id="summary" type="button" aria-expanded="true" aria-controls="picker">
+                                    <span class="summary-art" id="summaryArt" aria-hidden="true">
+                                        <svg viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 24c3-5 5-7 8-7 2 0 3 2 5 2 3 0 5-5 9-8M5 24h22M19 9c1-3 4-4 7-3-1 3-3 5-7 3Z"/></svg>
+                                    </span>
+                                    <span class="summary-copy"><strong>Room drawing</strong><small id="summaryText">Choose a doodle</small></span>
+                                    <span class="chevron" aria-hidden="true">⌄</span>
+                                </button>
+                            </div>
+                            <p class="hint">Everyone adds expenses in EUR. Your room drawing appears on the room and shared links.</p>
+                            <section class="picker" id="picker" aria-label="Room drawing picker">
+                                <div class="picker-head">
+                                    <h3 id="panelTitle">Pick a drawing</h3>
+                                    <button class="text-button" id="panelControl" type="button">Close</button>
+                                </div>
+                                <div class="grid" id="doodleGrid" role="radiogroup" aria-label="Room drawings"></div>
+                                <div class="draw-body" id="drawBody" hidden>
+                                    <div class="canvas-wrap">
+                                        <canvas id="canvas" width="620" height="620" tabindex="0" role="img" aria-label="Drawing area. Draw with a pointer or touch."></canvas>
+                                        <span class="canvas-empty" id="canvasEmpty">Draw here!</span>
+                                    </div>
+                                    <div class="tools" aria-label="Drawing tools">
+                                        <div class="swatches" id="swatches">
+                                            <button class="swatch" style="--swatch:#211c17" data-color="#211c17" type="button" aria-label="Black ink" aria-pressed="true"></button>
+                                            <button class="swatch" style="--swatch:#ff90e8" data-color="#ff90e8" type="button" aria-label="Pink ink" aria-pressed="false"></button>
+                                            <button class="swatch" style="--swatch:#90a8ed" data-color="#90a8ed" type="button" aria-label="Blue ink" aria-pressed="false"></button>
+                                            <button class="swatch" style="--swatch:#ffc900" data-color="#ffc900" type="button" aria-label="Yellow ink" aria-pressed="false"></button>
+                                        </div>
+                                        <button class="eraser" id="eraser" type="button" aria-pressed="false" aria-label="Eraser"><span aria-hidden="true">◇</span> Erase</button>
+                                    </div>
+                                    <div class="actions">
+                                        <button class="action" id="undo" type="button" disabled>Undo</button>
+                                        <button class="action" id="clear" type="button" disabled>Clear</button>
+                                        <button class="action primary" id="useDrawing" type="button" disabled>Use drawing</button>
+                                    </div>
+                                </div>
+                            </section>
+                            <button class="create" type="button">Create room</button>
+                        </div>
+                    </div>
+                </div>
+                <aside class="aside">
+                    <h2>A tiny side door into something personal.</h2>
+                    <p>The canvas borrows the picker’s existing card instead of becoming a full-screen feature. The room form stays visible, so drawing still feels like one optional field.</p>
+                    <div class="steps">
+                        <div class="step"><span class="step-number">1</span><span><strong>Tap the final tile</strong><small>Pink, dashed, and clearly additive—never mistaken for a preset.</small></span></div>
+                        <div class="step"><span class="step-number">2</span><span><strong>Sketch with one finger</strong><small>Four brand inks plus an eraser; undo protects playful mistakes.</small></span></div>
+                        <div class="step"><span class="step-number">3</span><span><strong>Use it and return</strong><small>The sketch becomes the last tile and the room’s current thumbnail.</small></span></div>
+                    </div>
+                    <p class="decision"><strong>Why inline?</strong> This is a room image choice, not a separate creative workflow. Keeping the form around it makes “draw yours” feel lightweight and reversible.</p>
+                </aside>
+            </section>
+        </main>
+        <div class="toast" id="toast" role="status" aria-live="polite">Your drawing is ready</div>
+        <script>
+            const icons = [
+                ['peanut','M25 7c4 5 0 9-4 11-4 2-2 9-8 10-5 1-10-3-9-8 1-4 4-5 8-5 4 0 2-5 5-8 3-3 7-2 8-1Z M7 21l7 1M18 10l7 1'],
+                ['mountain','M3 27 13 8l5 9 3-5 8 15H3Z M10 14l4 3 3-2'],
+                ['island','M3 25c7-3 18-3 26 0M16 22c0-6-1-10-5-14M12 12c-4-2-7-1-8 2 4 1 6 0 8-2Zm1-2c1-4 5-5 8-3-1 3-4 4-8 3Z'],
+                ['pizza','M6 26 16 5l11 22L6 26ZM13 12c4 2 8 2 11 0M15 18h.1M21 22h.1'],
+                ['beer','M6 8h15v19H6V8Zm15 4h4c3 0 3 9-4 9M9 12v10M14 12v10'],
+                ['house','M4 15 16 5l12 10v13H4V15Zm8 13v-8h8v8'],
+                ['van','M4 12h17l6 6v8H4V12Zm17 0v7h6M9 26a2 2 0 1 0 0 .1M23 26a2 2 0 1 0 0 .1'],
+                ['ski','M8 5l11 22M17 5 8 27M5 9l21 15M24 7 7 24'],
+                ['party','M8 28 13 9l14-5-5 14-14 10Zm5-17 9 7M5 7h.1M25 25h.1M20 8l2-4'],
+                ['cart','M4 6h4l3 14h13l4-10H10M13 26a2 2 0 1 0 0 .1M23 26a2 2 0 1 0 0 .1'],
+                ['plane','M3 18l25-12-8 21-4-8-8-1-5 0Zm13 1L28 6'],
+                ['guitar','M20 5l7 7-5 5-3-3-5 5c-5 5-12 5-13 1-1-3 2-7 7-7l5-5-3-3 5-5Zm2 3 3 3'],
+                ['tent','M3 27 16 5l13 22H3Zm13-22v22M10 27l6-10 6 10'],
+                ['noodles','M5 14h22c0 8-4 13-11 13S5 22 5 14Zm5-4c-2-3 2-4 0-7m6 7c-2-3 2-4 0-7m6 7c-2-3 2-4 0-7'],
+                ['boat','M4 18h24l-5 8H9l-5-8Zm7 0V8h9l5 10M11 8l9 10'],
+                ['cake','M6 14h20v13H6V14Zm0 6c3 3 6-3 10 0s7-3 10 0M16 14V8m-2-2c0-2 2-3 2-4 2 2 3 3 2 5-1 1-3 1-4-1Z']
+            ];
+            const grid = document.querySelector('#doodleGrid');
+            const picker = document.querySelector('#picker');
+            const summary = document.querySelector('#summary');
+            const summaryArt = document.querySelector('#summaryArt');
+            const summaryText = document.querySelector('#summaryText');
+            const drawBody = document.querySelector('#drawBody');
+            const panelTitle = document.querySelector('#panelTitle');
+            const panelControl = document.querySelector('#panelControl');
+            let customURL = '';
+            let selected = 'island';
+
+            function iconSVG(path) {
+                return `<svg viewBox="0 0 32 32" aria-hidden="true"><path d="${path}"/></svg>`;
+            }
+            function renderGrid() {
+                grid.innerHTML = icons.map(([name,path]) => `<button class="tile" type="button" role="radio" aria-checked="${selected === name}" aria-label="${name}" data-name="${name}">${iconSVG(path)}</button>`).join('') +
+                    `<button class="tile custom" type="button" role="radio" aria-checked="${selected === 'custom'}" aria-label="${customURL ? 'Edit your drawing' : 'Draw your own'}" data-name="custom">${customURL ? `<img src="${customURL}" alt="" />` : '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="m8 24 2-7L23 4l5 5-13 13-7 2Zm3-7 4 5M21 6l5 5"/></svg>'}<span class="custom-plus" aria-hidden="true">+</span></button>`;
+                grid.querySelectorAll('.tile').forEach(button => button.addEventListener('click', () => {
+                    if (button.dataset.name === 'custom') return openCanvas();
+                    selected = button.dataset.name;
+                    summaryArt.innerHTML = button.innerHTML;
+                    summaryArt.querySelector('.custom-plus')?.remove();
+                    summaryText.textContent = button.dataset.name[0].toUpperCase() + button.dataset.name.slice(1);
+                    renderGrid();
+                    closePicker();
+                }));
+            }
+            function openCanvas() {
+                grid.hidden = true;
+                drawBody.hidden = false;
+                panelTitle.textContent = customURL ? 'Edit your drawing' : 'Draw your room';
+                panelControl.textContent = 'Back';
+                requestAnimationFrame(() => canvas.focus());
+            }
+            function showGrid() {
+                grid.hidden = false;
+                drawBody.hidden = true;
+                panelTitle.textContent = 'Pick a drawing';
+                panelControl.textContent = 'Close';
+            }
+            function closePicker() {
+                picker.hidden = true;
+                summary.setAttribute('aria-expanded','false');
+                showGrid();
+                summary.focus();
+            }
+            summary.addEventListener('click', () => {
+                picker.hidden = !picker.hidden;
+                summary.setAttribute('aria-expanded', String(!picker.hidden));
+            });
+            panelControl.addEventListener('click', () => drawBody.hidden ? closePicker() : showGrid());
+
+            const canvas = document.querySelector('#canvas');
+            const ctx = canvas.getContext('2d');
+            const strokes = [];
+            let current = null;
+            let ink = '#211c17';
+            let erasing = false;
+            function point(event) {
+                const r = canvas.getBoundingClientRect();
+                return { x:(event.clientX-r.left)/r.width*canvas.width, y:(event.clientY-r.top)/r.height*canvas.height };
+            }
+            function redraw() {
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+                strokes.forEach(stroke => {
+                    if (!stroke.points.length) return;
+                    ctx.save();
+                    ctx.globalCompositeOperation = stroke.erase ? 'destination-out' : 'source-over';
+                    ctx.strokeStyle = stroke.color;
+                    ctx.lineWidth = stroke.erase ? 42 : 13;
+                    ctx.beginPath(); ctx.moveTo(stroke.points[0].x,stroke.points[0].y);
+                    if (stroke.points.length === 1) ctx.lineTo(stroke.points[0].x+.1,stroke.points[0].y+.1);
+                    stroke.points.slice(1).forEach(p => ctx.lineTo(p.x,p.y));
+                    ctx.stroke(); ctx.restore();
+                });
+                const hasInk = strokes.some(s => !s.erase);
+                document.querySelector('#canvasEmpty').hidden = strokes.length > 0;
+                document.querySelector('#undo').disabled = strokes.length === 0;
+                document.querySelector('#clear').disabled = strokes.length === 0;
+                document.querySelector('#useDrawing').disabled = !hasInk;
+            }
+            canvas.addEventListener('pointerdown', event => {
+                canvas.setPointerCapture(event.pointerId);
+                current = { color:ink, erase:erasing, points:[point(event)] };
+                strokes.push(current); redraw();
+            });
+            canvas.addEventListener('pointermove', event => {
+                if (!current) return;
+                current.points.push(point(event)); redraw();
+            });
+            ['pointerup','pointercancel'].forEach(type => canvas.addEventListener(type, () => { current = null; }));
+            document.querySelectorAll('.swatch').forEach(button => button.addEventListener('click', () => {
+                ink = button.dataset.color; erasing = false;
+                document.querySelectorAll('.swatch').forEach(b => b.setAttribute('aria-pressed',String(b === button)));
+                document.querySelector('#eraser').setAttribute('aria-pressed','false');
+            }));
+            document.querySelector('#eraser').addEventListener('click', event => {
+                erasing = !erasing;
+                event.currentTarget.setAttribute('aria-pressed',String(erasing));
+                document.querySelectorAll('.swatch').forEach(b => b.setAttribute('aria-pressed','false'));
+            });
+            document.querySelector('#undo').addEventListener('click', () => { strokes.pop(); redraw(); });
+            document.querySelector('#clear').addEventListener('click', () => { strokes.length = 0; redraw(); });
+            document.querySelector('#useDrawing').addEventListener('click', () => {
+                customURL = canvas.toDataURL('image/png'); selected = 'custom';
+                summaryArt.innerHTML = `<img src="${customURL}" alt="" />`;
+                summaryText.textContent = 'Your drawing';
+                renderGrid(); showGrid();
+                const toast = document.querySelector('#toast');
+                toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'),1800);
+            });
+            renderGrid(); redraw();
+        </script>
+    </body>
+</html>

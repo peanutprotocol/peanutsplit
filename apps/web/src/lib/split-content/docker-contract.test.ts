@@ -21,7 +21,9 @@ describe('Split content container release contract', () => {
         const workflow = fs.readFileSync(path.join(process.cwd(), '../../.github/workflows/ci.yml'), 'utf8')
 
         expect(compose).not.toContain('SPLIT_CONTENT_EDGE_MARKER')
-        expect(compose).not.toContain('SEO_INDEXABLE')
+        expect(compose).toContain('SEO_INDEXABLE: ${SEO_INDEXABLE:-false}')
+        expect(compose).toContain('SPLIT_FX_MODE: ${SPLIT_FX_MODE:-static}')
+        expect(compose).toContain('SPLIT_FX_ENDPOINT: ${SPLIT_FX_ENDPOINT:-}')
         expect(workflow).toContain("SEO_INDEXABLE: 'false'")
         expect(workflow).toContain('--build-arg NEXT_PUBLIC_BASE_URL=https://peanutsplit.com')
         expect(workflow).not.toContain('--build-arg SEO_INDEXABLE')

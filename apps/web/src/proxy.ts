@@ -4,12 +4,13 @@ import { LOCALE_HEADER, localeFromPathname } from '@/i18n/paths'
 import { canonicalRedirect } from '@/lib/canonical-redirect'
 import { localeFromNewRoomHandoff } from '@/lib/locale-handoff'
 import { MARKETING_CACHE_CONTROL, marketingCacheable } from '@/lib/marketing-cache'
+import { siteUrl } from '@/lib/site'
 import { splitContentIndexable } from '@/lib/split-content/indexability'
 import { splitGuideLocale } from '@/lib/split-content/urls'
 
 /**
  * Tells the server what language a URL is in. It does not route or rewrite anything.
- * (The canonical-host redirect runs first, and `/new?locale=…` persists a guide CTA's locale.)
+ * (The configured-origin redirect runs first, and `/new?locale=…` persists a guide CTA's locale.)
  *
  * The indexed pages live under `/es-419/…`, `/pt-br/…`, and the English originals they translate. Every
  * server component on them — the footer, the locale switcher, anything on `useTranslations` —
@@ -32,13 +33,13 @@ export function proxy(request: NextRequest) {
     // doubled slash never matched the built-in either, so it still falls through to 404.
     const { pathname } = request.nextUrl
     if (pathname !== '/' && pathname.endsWith('/') && !pathname.endsWith('//')) {
-        return NextResponse.redirect(new URL(pathname.slice(0, -1) + request.nextUrl.search, request.url), 308)
+        return NextResponse.redirect(new URL(pathname.slice(0, -1) + request.nextUrl.search, siteUrl), 308)
     }
 
     // Every public alias is compatibility-only. Canonicalise it first, so app, PWA and SEO
     // have one public origin.
     const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? ''
-    const redirect = canonicalRedirect(host, request.nextUrl.pathname, request.nextUrl.search)
+    const redirect = canonicalRedirect(host, request.nextUrl.pathname, request.nextUrl.search, siteUrl)
     if (redirect) return NextResponse.redirect(redirect.target, redirect.status)
 
     // Generated guides render like any other public page, but stay out of every index until a
@@ -47,7 +48,7 @@ export function proxy(request: NextRequest) {
     const isGuide = splitGuideLocale(request.nextUrl.pathname) !== null
 
     // API requests are matched only so requests to an alias can be canonicalised above.
-    // On the canonical host they must remain untouched: creation locale and request-origin
+    // On the configured host they must remain untouched: creation locale and request-origin
     // checks belong to the API handlers themselves.
     if (request.nextUrl.pathname.startsWith('/api/')) return NextResponse.next()
 
@@ -85,7 +86,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-    // App pages plus the identity-bearing files and API routes. Canonical-host APIs pass
+    // App pages plus the identity-bearing files and API routes. Configured-host APIs pass
     // through unchanged; matching them only lets the compatibility alias redirect safely.
     matcher: [
         '/api/:path*',
