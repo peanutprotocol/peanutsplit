@@ -4,10 +4,10 @@ description: "Três frases prontas para cobrar um amigo por uma despesa comparti
 slug: ask-a-friend-to-pay-you-back
 type: guide
 lang: pt-br
-author: Peanut
+author: Squirrel Labs
 date: 2026-08-12
 tags: [cobrar, despesas compartilhadas]
-claims: [link-is-the-key, no-app, settle-is-a-record, free-forever]
+claims: [link-is-the-key, no-app, settle-is-a-record]
 cast: []
 canonical: https://peanutsplit.com/pt-br/guides/ask-a-friend-to-pay-you-back
 schema_types: [BlogPosting]
@@ -32,12 +32,12 @@ generated_from:
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-14
+generated_at: 2026-08-24
 ---
 
 Você pagou o churrasco de sábado e, uma semana depois, o dinheiro ainda não voltou; o valor é pequeno
 demais para virar assunto e grande o bastante para você já ter contado duas vezes, e, se ninguém
-falar nada, quem fica com a conta é a amizade. Deixe o Split by Peanut guardar o número por você. A
+falar nada, quem fica com a conta é a amizade. Deixe o Peanut Split guardar o número por você. A
 sala guarda a despesa e o valor no mesmo lugar, e a cifra fica à vista sem ninguém precisar mandar
 uma mensagem para lembrar dela.
 
@@ -104,15 +104,11 @@ está errado discute com uma linha da sala, e não com você.
 
 ## Marcar como pago é um registro, não um pagamento
 
-Acerte do jeito que vocês preferirem: dinheiro, transferência, Pix ou Peanut. Depois registre o acerto
+Acerte do jeito que vocês preferirem: dinheiro, transferência, Pix ou outro app de pagamento. Depois registre o acerto
 na sala. O Split registra o pagamento, ele não faz o pagamento, e não confere nada com nenhum banco,
 nem teria como. O registro é uma pessoa dizendo que o dinheiro saiu, e a sala acredita nela do mesmo
 jeito que você acreditaria na mesa.
 
-## Bom saber
-
-O Split é grátis para sempre e não existe versão paga para vender para você. O Peanut faz o Split para
-que mais gente conheça o Peanut, e é assim que o Split se paga.
 
 ## Quando uma mensagem direta é a melhor ferramenta
 

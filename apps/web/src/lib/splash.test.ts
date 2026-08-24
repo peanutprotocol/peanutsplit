@@ -36,14 +36,15 @@ describe('iOS launch screens', () => {
      * include list stops covering a folder that did not exist when it was written, and the symptom
      * — an asset silently missing offline — is invisible until someone is on a train. So the shape
      * of `public/` is pinned here: add a folder, and this fails until it is either added to the
-     * patterns or deliberately recorded as online-only. `dev/` is the latter: an internal static
-     * quiz is not part of the installable app shell.
+     * patterns or deliberately recorded as online-only. `dev/` and `press/` are the latter: an
+     * internal static quiz and downloadable distribution assets are not part of the installable
+     * app shell.
      */
     it('keeps every public folder either precached or explicitly online-only', () => {
         const folders = readdirSync(path.join(WEB, 'public'), { withFileTypes: true })
             .filter((entry) => entry.isDirectory())
             .map((entry) => entry.name)
             .sort()
-        expect(folders).toEqual(['dev', 'doodles', 'fonts', 'icons'])
+        expect(folders).toEqual(['dev', 'doodles', 'fonts', 'icons', 'press'])
     })
 })

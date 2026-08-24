@@ -72,7 +72,7 @@ function countryPage(row: MileageRate, rate: number): MileageCountryPage {
                 // bodies and half are statutes, and no one article fits both. The method note cites it.
                 intro: [
                     `Say how far the car went and how many people were in it. The drive is costed at the official rate, ${rateWords}, and underneath is what each passenger owes whoever drove.`,
-                    'Type over it if you know the car better than the state does, or build your own from what it drinks. The picker keeps every other country a tap away, and Split by Peanut can do the asking afterwards, so the driver never has to raise it in the group chat.',
+                    'Type over it if you know the car better than the state does, or build your own from what it drinks. The picker keeps every other country a tap away, and Split can do the asking afterwards, so the driver never has to raise it in the group chat.',
                 ],
                 // The row's own words, promoted out of the picker caption into prose. This is the
                 // only paragraph on the page the other eight do not also carry, so it replaces the

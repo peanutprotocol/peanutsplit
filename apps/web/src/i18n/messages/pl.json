@@ -76,7 +76,7 @@
                 "paymentTwo": "Płacisz Julesowi · 40 €"
             },
             "rail": {
-                "free": "ZA DARMO NA ZAWSZE",
+                "free": "KORZYSTANIE ZA DARMO",
                 "noSignup": "BEZ REJESTRACJI",
                 "oneLink": "JEDEN LINK",
                 "anyCurrency": "DOWOLNA WALUTA",
@@ -140,7 +140,7 @@
         "honesty": {
             "title": "Warto wiedzieć",
             "item1": {
-                "title": "Za darmo na zawsze"
+                "title": "Korzystanie za darmo"
             },
             "item2": {
                 "title": "Bez konta"
@@ -150,20 +150,14 @@
             }
         },
         "footer": {
-            "logoAlt": "Peanut",
-            "logoLinkLabel": "Odwiedź Peanut",
             "colSplit": "Split",
             "createSplit": "Zacznij rozliczenie",
             "toolsLink": "Kalkulatory",
             "importLink": "Import ze Splitwise",
+            "sourceStewardship": "Kod źródłowy i opieka",
             "colCompare": "Porównaj",
             "colGuides": "Poradniki",
             "allGuides": "Wszystkie poradniki",
-            "colPeanut": "Peanut",
-            "peanutHome": "Wyślij pieniądze",
-            "peanutHelp": "Pomoc",
-            "peanutTerms": "Regulamin",
-            "peanutPrivacy": "Prywatność",
             "madeByPrefix": "stworzone z miłością przez",
             "madeByBrand": "Squirrel Labs"
         },
@@ -258,7 +252,7 @@
         },
         "readMore": {
             "toggle": "CHCESZ WIEDZIEĆ WIĘCEJ?",
-            "toggleHint": "Kto stworzył Split, dlaczego zawsze będzie darmowy i jak działają linki do pokoi.",
+            "toggleHint": "Kto utrzymuje Split, dlaczego oficjalna usługa jest darmowa i jak działają linki do pokoi.",
             "join": {
                 "title": "Co widzą znajomi",
                 "roomName": "Wyjazd na narty",
@@ -301,8 +295,7 @@
             "settle": {
                 "title": "Jak się rozliczyć",
                 "cash": "Gotówka",
-                "bank": "Przelew bankowy",
-                "peanut": "Wyślij przez Peanut"
+                "bank": "Przelew bankowy"
             },
             "team": {
                 "title": "Kto to zbudował",
@@ -319,14 +312,14 @@
                 }
             },
             "who": {
-                "title": "Kto to stworzył i dlaczego zawsze będzie za darmo",
+                "title": "Kto utrzymuje Split i dlaczego oficjalna usługa jest darmowa",
                 "built": {
-                    "title": "Peanut stworzył Split",
-                    "body": "Peanut to działająca aplikacja płatnicza i firma z realnym produktem — nie weekendowy projekt, który za chwilę zniknie."
+                    "title": "Squirrel Labs utrzymuje Split",
+                    "body": "Obecnie Squirrel Labs jest jedynym opiekunem projektu i pokrywa wszystkie koszty, w tym czas pracy."
                 },
                 "free": {
-                    "title": "Jest za darmo na zawsze, bo pomaga poznać Peanut",
-                    "body": "Nie będzie wersji premium ani namawiania do płatnych dodatków — nie ma tu nic do kupienia."
+                    "title": "Wzmianki pozostają opcjonalne, nigdy obowiązkowe",
+                    "body": "To uczciwy układ: kilka dyskretnych wzmianek, bez wymuszonych kliknięć, natrętnych przypomnień ani blokowania funkcji."
                 },
                 "data": {
                     "title": "Nie ma tu zbyt wielu danych, które mogłyby wyciec",
@@ -441,7 +434,7 @@
             "messagePlaceholder": "Opisz wykonane kroki, ich rezultat i oczekiwany efekt.",
             "messageHint": "Wymagane · co najmniej {minimum} znaków. Linki do pokoi w tekście są usuwane przed zapisem.",
             "attachmentsTitle": "Wybierz załączniki",
-            "attachmentsIntro": "Początkowo wszystkie załączniki są wyłączone. Włącz tylko te, które chcesz wysłać zespołowi pomocy Peanut.",
+            "attachmentsIntro": "Początkowo wszystkie załączniki są wyłączone. Włącz tylko te, które chcesz dołączyć dla opiekunów Split w Squirrel Labs.",
             "deviceTitle": "Dane urządzenia",
             "deviceHint": "Przeglądarka i system operacyjny, rozmiar widoku, strefa czasowa, tryb aplikacji oraz stan sieci.",
             "exactDeviceData": "Pokaż dokładne dane urządzenia",
@@ -468,12 +461,12 @@
             "imageTooLarge": "Ten obraz jest za duży. Wybierz zrzut ekranu mniejszy niż 20 MB.",
             "imageUnreadable": "Nie udało się odczytać obrazu. Wybierz zrzut ekranu JPEG, PNG lub WebP.",
             "consentTitle": "Zgadzam się na wysłanie tego zgłoszenia",
-            "consentHint": "Zespół pomocy Peanut może przeczytać twoją wiadomość oraz tylko wybrane powyżej załączniki. Zgłoszenia nie trafiają do analityki ani nie są wyświetlane w pokoju; ich usunięcie jest planowane po 90 dniach.",
+            "consentHint": "Opiekunowie Split w Squirrel Labs mogą przeczytać twoją wiadomość oraz tylko wybrane powyżej załączniki. Zgłoszenia nie trafiają do analityki ani nie są wyświetlane w pokoju; ich usunięcie jest planowane po 90 dniach.",
             "send": "Wyślij zgłoszenie",
             "cancel": "Anuluj",
             "sendFailed": "Nie udało się wysłać zgłoszenia — tekst i zrzut ekranu nadal tu są.",
             "successTitle": "Wysłano zgłoszenie",
-            "successBody": "Dziękujemy. Zespół pomocy Peanut otrzymał wiadomość i wybrane załączniki.",
+            "successBody": "Dziękujemy. Zgłoszenie i wybrane załączniki zapisano dla opiekunów Split w Squirrel Labs.",
             "done": "Gotowe"
         },
         "export": {
@@ -1249,7 +1242,7 @@
         "hubDescription": "Jak dzielić wydatki bez konta, instalowania aplikacji i subskrypcji.",
         "empty": "Jeszcze nic nie opublikowano.",
         "startRoom": "Utwórz pokój",
-        "startRoomHint": "Bez rejestracji. Bez instalacji. Za darmo na zawsze.",
+        "startRoomHint": "Bez rejestracji. Bez instalacji. Korzystanie za darmo.",
         "published": "Opublikowano {date}",
         "updated": "aktualizacja {date}",
         "otherLanguages": "Inne wersje językowe"
@@ -1422,7 +1415,7 @@
         "peopleOne": "1 osoba",
         "peopleMany": "{count, plural, one {# osoba} few {# osoby} many {# osób} other {# osoby}}",
         "emptyRoster": "Nikt jeszcze nie dołączył",
-        "tagline": "bez rejestracji · za darmo na zawsze"
+        "tagline": "bez rejestracji · korzystanie za darmo"
     },
     "shareTarget": {
         "pick": "Którego pokoju dotyczy ten rachunek?",

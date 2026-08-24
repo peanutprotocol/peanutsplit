@@ -121,9 +121,10 @@ flat declarative, then the fact.
   §7.3 words, with no wink at all. §3.10 wins over §3.7 everywhere they meet.
 - **§3.7.2 Every wink pays rent.** A checkable fact — a number, a named limit, a mechanism — follows
   inside two sentences. No fact to put there means no wink.
-  → Trust answer: "Free forever, with nothing to upgrade to, and the reason is boring rather than
-  noble: Peanut makes it to introduce people to Peanut, which is how Split gets paid for. Split is the
-  advert." (The §7.3 string appears intact; the kicker adds nothing to the claim.)
+  → Trust answer: "The official service is free to use and has no paid tier. Squirrel Labs maintains
+  Split and pays every cost, including the work hours. It may mention Peanut in a few approved
+  places; never as a forced click, nag or feature gate." (The §7.3 facts appear without inventing a
+  Peanut ownership or funding claim or promising the host's lifetime.)
   → Genre slot: "This is where a bill-splitting website usually explains what makes it different. It is
   a website with a link on it."
   Both examples are burnt on sight — write the page's own. Check the callout against §11.1 first: the
@@ -309,17 +310,17 @@ carry a `claims:` / `competitorClaims:` ID (§7.5), and are never rounded, drama
 
 After the pain beat, the product enters **by name, doing the thing**, in an imperative. Once per page.
 
-→ _Let Split by Peanut do that bit instead._ Then the mechanics, flat, in their own sentences.
+→ _Let Peanut Split do that bit instead._ Then the mechanics, flat, in their own sentences.
 
 - **Order is fixed:** pain beat → imperative naming the product → mechanics. Never the product first,
   never mechanics before the reader knows why.
 - **This is not the setup-and-reveal §6.16 bans.** "And that is where Split comes in" points at the
-  product's arrival; "Let Split by Peanut do that bit instead" _is_ the arrival. No transition
+  product's arrival; "Let Peanut Split do that bit instead" _is_ the arrival. No transition
   sentence before it, no "the good news is", no colon.
-- **Full name once, at the point of entry.** Which full name is §10.1's call: "Peanut Split" or
-  "Split by Peanut" on a page that does not name Peanut, and **"Split by Peanut" or plain "Split" on
-  a page that carries the trust answer** — which is most capture pages (§10.2). Every other mention on
-  the page is "Split".
+- **Full name once, at the point of entry.** Use "Peanut Split" on a page that does not name Peanut
+  separately, and plain "Split" on a page that carries the trust answer — which is most capture
+  pages (§10.2). Never use “Split by Peanut”; it implies the wrong maintainer/funder. Every other
+  mention on the page is "Split".
 - **Once per page in this form.** Later mentions are ordinary sentences about what Split does, not
   second entrances.
 - Editorial (§2.2) keeps its own limit: Split is mentioned at most twice and never enters on an
@@ -355,7 +356,7 @@ it into a draft.
 >
 > Whether the sheet gets finished matters more than it sounds. When it doesn't, somebody is ninety
 > euros down and says nothing about it, and some people never bring it up at all and carry a quiet
-> resentment that outlasts the friendship. Let Split by Peanut do that bit instead. One link in the group
+> resentment that outlasts the friendship. Let Peanut Split do that bit instead. One link in the group
 > chat, everyone adds what they paid themselves, in the currency they paid it in, no accounts and
 > nothing to download; the room adds it up and nets it to a short list of who pays whom. Just send the
 > link and get back in the sea.
@@ -506,7 +507,7 @@ owns the repetition — cross-referenced here, not restated.
 | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Rhetorical-question transition — a question asked so the page can answer it | "The result? Two transfers instead of twenty." / "The catch?" / "Sound familiar?"                                                                  | Delete the question, keep the answer. An FAQ question is the reader's and the §3.12 quoted opening is somebody speaking, so neither is this; a question the page asks in its own voice is capped at one per page by §11.2, and that one is the §8.1 pre-emption |
 | Fake-chummy opener                                                          | "Let's be honest, nobody enjoys chasing a flatmate." / "Here's the thing about deposits." / "Here's where it gets interesting." / "The best part?" | Open on the fact: "Nobody enjoys chasing a flatmate." Warmth is §3.1's concrete thing, not an arm round the shoulder                                                                                                                                            |
-| Setup → reveal                                                              | "And that's where Split comes in."                                                                                                                 | Introduce it plainly — the §3.17 entrance ("Let Split by Peanut do that bit instead") is the approved plain introduction, and it needs no sentence in front of it                                                                                               |
+| Setup → reveal                                                              | "And that's where Split comes in."                                                                                                                 | Introduce it plainly — the §3.17 entrance ("Let Peanut Split do that bit instead") is the approved plain introduction, and it needs no sentence in front of it                                                                                                  |
 | Section transition                                                          | "Now that we've covered the cap, let's look at…"                                                                                                   | Delete the sentence                                                                                                                                                                                                                                             |
 | Meta-commentary on the page                                                 | "This page is not going to argue." / "The useful thing here is not…"                                                                               | Delete. Do the thing                                                                                                                                                                                                                                            |
 | Conclusion tell                                                             | "At the end of the day, the deposit still left your account in March." / "In short," / "The bottom line" / "When all is said and done"             | Cut the opener and keep the sentence. A last paragraph is already last, and the reader can see it                                                                                                                                                               |
@@ -523,18 +524,18 @@ owns the repetition — cross-referenced here, not restated.
 
 **§6.16.3 Shapes that repeat until they are a template**
 
-| Pattern                                                                                     | Kill                                                                             | Fix                                                                                                                                                                                      |
-| ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| "Not just X, it's Y" / "It's not about X, it's about Y"                                     | "The cap isn't just annoying, it's expensive."                                   | Pick one claim, state it                                                                                                                                                                 |
-| "Whether you're X or Y"                                                                     | "Whether you're on a trip or splitting rent…"                                    | Address this page's one audience                                                                                                                                                         |
-| "Imagine" / "Picture this"                                                                  | "Imagine arriving in Lisbon…"                                                    | Start with the fact. (The §3.12 quoted opening is not this: it reports a line someone actually says and falsifies it, it does not invite the reader to imagine anything)                 |
-| Rule-of-three adjective string                                                              | "fast, simple and free"                                                          | Keep the one that matters and drop the other two — "free forever" outranks all three. This is the tricolon row applied to adjectives; §6.4 governs which adjectives are available at all |
-| Tricolon abuse                                                                              | three three-part lists on one page                                               | Once per page maximum                                                                                                                                                                    |
-| Staccato fragments as punctuation                                                           | "Simple. Done. Sorted."                                                          | One fragment-landing per page, counted as §6.17's echo landing — a fragment that restates the sentence above it is an echo, not a landing                                                |
-| Uniform rhythm — every paragraph three sentences, every sentence fifteen words              | a page where nothing is shorter than twelve words or longer than twenty          | Variance is the fix, and it is deliberate: one sentence per page is allowed to sprawl, and one is allowed to stop early                                                                  |
-| Listicle structure creep — a heading over every paragraph, bullets where prose should argue | four H2s over four paragraphs; a bulleted list of things that needed an argument | Headings are navigation, not decoration. A section that is one paragraph is a paragraph                                                                                                  |
-| Restated proof point                                                                        | the four-a-day cap in hero, table and FAQ                                        | State a number once, prominently                                                                                                                                                         |
-| Em-dash spray                                                                               | —                                                                                | Maximum 3 per page                                                                                                                                                                       |
+| Pattern                                                                                     | Kill                                                                             | Fix                                                                                                                                                                        |
+| ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "Not just X, it's Y" / "It's not about X, it's about Y"                                     | "The cap isn't just annoying, it's expensive."                                   | Pick one claim, state it                                                                                                                                                   |
+| "Whether you're X or Y"                                                                     | "Whether you're on a trip or splitting rent…"                                    | Address this page's one audience                                                                                                                                           |
+| "Imagine" / "Picture this"                                                                  | "Imagine arriving in Lisbon…"                                                    | Start with the fact. (The §3.12 quoted opening is not this: it reports a line someone actually says and falsifies it, it does not invite the reader to imagine anything)   |
+| Rule-of-three adjective string                                                              | "fast, simple and free"                                                          | Keep the one that matters and drop the other two—usually "free to use". This is the tricolon row applied to adjectives; §6.4 governs which adjectives are available at all |
+| Tricolon abuse                                                                              | three three-part lists on one page                                               | Once per page maximum                                                                                                                                                      |
+| Staccato fragments as punctuation                                                           | "Simple. Done. Sorted."                                                          | One fragment-landing per page, counted as §6.17's echo landing — a fragment that restates the sentence above it is an echo, not a landing                                  |
+| Uniform rhythm — every paragraph three sentences, every sentence fifteen words              | a page where nothing is shorter than twelve words or longer than twenty          | Variance is the fix, and it is deliberate: one sentence per page is allowed to sprawl, and one is allowed to stop early                                                    |
+| Listicle structure creep — a heading over every paragraph, bullets where prose should argue | four H2s over four paragraphs; a bulleted list of things that needed an argument | Headings are navigation, not decoration. A section that is one paragraph is a paragraph                                                                                    |
+| Restated proof point                                                                        | the four-a-day cap in hero, table and FAQ                                        | State a number once, prominently                                                                                                                                           |
+| Em-dash spray                                                                               | —                                                                                | Maximum 3 per page                                                                                                                                                         |
 
 ### §6.17 Repetition and re-emphasis (Konrad ruling, 30 Jul)
 
@@ -586,18 +587,20 @@ the reader's behalf is the trust-builder for the migration audience.
 | Group size    | "up to twenty people"                                                                                                                                                                                      | unlimited, any size group                                                      |
 | Netting       | "two or three transfers instead of twenty"; "a short payment plan"                                                                                                                                         | fewest/minimum transfers, optimal                                              |
 | Offline       | "expenses typed with no signal wait on your phone and go when it comes back"; "recording a settle-up waits for a connection on purpose — a payment written down twice is worse than one written down late" | "works offline" as a category claim; anything implying settle-up works offline |
-| Price         | "free forever, with nothing to upgrade to"                                                                                                                                                                 | "free" alone, "free tier", "no cost today"                                     |
-| Why free      | "Peanut makes it to introduce people to Peanut, which is how Split gets paid for"                                                                                                                          | any promise of a repo, open source or a licence                                |
+| Hosted price  | "the official service is free to use and has no paid tier"                                                                                                                                                 | "free forever"; any promise about host lifetime or future pricing              |
+| Stewardship   | "Squirrel Labs maintains Split and pays every cost, including the work hours"; "Peanut stays an option, never a requirement"                                                                               | Peanut built/makes/funds Split; any forced-reference or licence-rider claim    |
+| Public source | after the release gate only: "AGPL-3.0-or-later", "open source", "FOSS", "self-hostable"                                                                                                                   | using software freedom as a synonym for hosted price; claiming future releases |
 | Settling      | "two people settle however they settle, and one of them taps to record it"; "Split does not check with a bank and cannot"                                                                                  | "we settle it for you", "verified payments", "instant settlement"              |
 | Account       | "the link is the key — if the group loses it, the room is gone"                                                                                                                                            | "your data is safe", "secure account"                                          |
 | Splitwise cap | "the free limit is four expenses a day"                                                                                                                                                                    | "three a day"; any Pro price                                                   |
 
-**§7.4 The trust answer goes on the page, in plain words — in "Good to know" (§4.4), or as an FAQ
-answer.** Wherever the Splitwise-migration audience lands, state the never-monetise commitment and
-why it is credible (§7.3, _why free_). Two open-source competitors published that promise because the
-audience asks out loud. Do not bury it in a footer; do not answer with an open-source promise we
-cannot keep. **It is a positive fact, not a confession** — it never opens a section that reads as an
-apology, and it never carries a hedge in front of it.
+**§7.4 Hosted price, stewardship, and software freedom remain separate.** A price-intent page states
+that the official service is free to use and has no paid tier, without a lifetime promise. The full
+maintainer/funder and Peanut-reference answer belongs on the dedicated source/stewardship surface;
+ordinary guides do not repeat it. Positive open-source, FOSS, AGPL, public-repository, and
+self-hosting-availability claims publish only after every release gate in the matching product-truth
+block passes. **Each is a positive fact, not a confession** — none opens as an apology or carries a
+hedge in front of it.
 
 **§7.5 Every product number cites a `claims:` ID; every competitor fact a `competitorClaims:` ID.** A
 claim with no ID does not ship. **§7.6 Check dates are visible** — tables say the month, file
@@ -780,13 +783,13 @@ and invent no others.
 | room · link · all square                               | group · invite / invite code · balanced                 |
 | the link is the key / the link is the room             | your access token                                       |
 | alter ego, cast, recast                                | avatar, profile                                         |
-| free forever, with nothing to upgrade to               | free · free tier · freemium                             |
+| free to use, with no paid tier                         | free forever · free tier · freemium                     |
 | reconciles to the cent                                 | 100% accurate                                           |
 | Start a split                                          | Get started · Try it free · Sign up                     |
 | a website                                              | the app (Split is not an app and says so)               |
 | 156 currencies, converted at the day's indicative rate | multi-currency · twelve currencies as the product limit |
 
-### §10.1 Naming — "Split", "Peanut Split", "Split by Peanut"
+### §10.1 Naming — "Split" and "Peanut Split"
 
 Two products share one page more often than you expect, and the compound name is the thing that
 breaks. Ruling, Konrad 30 Jul:
@@ -794,19 +797,17 @@ breaks. Ruling, Konrad 30 Jul:
 | Situation                                                         | Use                                                                                                   |
 | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | **Split and the Peanut product appear together on a page**        | **"Split"** for us and **"Peanut (peanut.me)"** for them. **Never "Peanut Split" alongside "Peanut"** |
-| The product entrance (§3.17), on a page that does not name Peanut | **"Peanut Split"** or **"Split by Peanut"** — both approved, drafter's choice                         |
-| A comparison-table header, in the column next to the competitors  | **"Peanut Split"** or **"Split by Peanut"**                                                           |
+| The product entrance (§3.17), on a page that does not name Peanut | **"Peanut Split"**. Never "Split by Peanut": Squirrel Labs, not Peanut, maintains and funds it        |
+| A comparison-table header, in the column next to the competitors  | **"Peanut Split"**                                                                                    |
 | First mention on a page that does not name Peanut                 | either full name, once                                                                                |
 | Everywhere else, every page                                       | **"Split"**                                                                                           |
 
-**§10.2 The trap this rule exists for.** The trust answer (§7.3, _why free_) is "Peanut makes it to
-introduce people to Peanut, which is how Split gets paid for" — correct as written, and it puts
-Peanut on the page twice as a product. **Any page carrying that sentence is a page where Peanut and
-Split appear together, so "Peanut Split" cannot appear on it.** On such a page the §3.17 entrance
-uses **"Split by Peanut"** or plain **"Split"**, by judgement: the full form where the page still
-needs to say whose product this is, plain "Split" where it does not. The one exemption is the
-comparison-table header, which sits beside "Tricount" and "Splitwise" and needs the full product name
-to read as one thing.
+**§10.2 The trap this rule exists for.** The trust answer (§7.3, _why free_) can mention Squirrel Labs
+and the bounded Peanut-reference arrangement. A page that uses Peanut as a separate product name
+uses plain **"Split"** for us so the two names do not collide. Never infer “made by Peanut” from the
+compound product name; Squirrel Labs is the maintained/funded-by entity. The one naming exemption is
+the comparison-table header, which sits beside "Tricount" and "Splitwise" and needs the full product
+name to read as one thing.
 
 ---
 
@@ -910,7 +911,7 @@ exception and stays on the list above.
 | `Just` cap                 | sentence-initial `Just ` ≤ **1** per page; any non-sentence-initial `just` = hard fail (§11.1)                                                                                                                                                                                                                                                                                                                                |
 | Quoted opening             | ≤ **1** paragraph-initial `"…," they say`-shaped line per page, and only in the first paragraph (§3.12); 0 on `type: editorial` and on the §3.10 flat-family slugs                                                                                                                                                                                                                                                            |
 | Questions in our own voice | ≤ **1** per page and per tool (§6.16.1). Counted after removing the `<FAQ>` block, every component attribute value (`title=`, `question=`, `cta=` — those are headings, not prose) and every span inside quotation marks (§3.12, and any line of dialogue). The one allowance is the §8.1 pre-emption                                                                                                                         |
-| Product entrance           | An approved full name (`Peanut Split` or `Split by Peanut`) appears ≤ **1×** per page; every other mention is `Split` (§3.17, §10.1)                                                                                                                                                                                                                                                                                          |
+| Product entrance           | The full name `Peanut Split` appears ≤ **1×** per page; every other mention is `Split` (§3.17, §10.1). `Split by Peanut` is a hard fail                                                                                                                                                                                                                                                                                       |
 | Co-presentation            | `Peanut Split` on a page that also names `Peanut` on its own = hard fail, except inside a comparison-table header row (§10.2). Grep: the page contains the §7.3 _why free_ string and `Peanut Split`                                                                                                                                                                                                                          |
 | Emoji                      | 0 in `title`, `description`, any `#`/`##`/`###`, any `<FAQItem question>`, any `cta`/`text` prop                                                                                                                                                                                                                                                                                                                              |
 | Em-dashes                  | `—` ≤ **3** per page                                                                                                                                                                                                                                                                                                                                                                                                          |

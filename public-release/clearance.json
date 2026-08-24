@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "candidate_scope": "apps/web",
+  "private_origin_commit": null,
+  "profile_sha256": null,
+  "input_tree_sha256": null,
+  "gates": {
+    "squirrel_labs_authority": {
+      "status": "pending",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence": []
+    },
+    "assets": {
+      "status": "pending",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence": []
+    },
+    "content": {
+      "status": "pending",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence": []
+    },
+    "third_party_notices": {
+      "status": "pending",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence": []
+    },
+    "peanut_reference_budget": {
+      "status": "pending",
+      "approved_by": null,
+      "approved_at": null,
+      "evidence": []
+    }
+  }
+}

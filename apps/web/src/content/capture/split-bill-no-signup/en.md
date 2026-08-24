@@ -11,7 +11,7 @@ claims:
     - no-app
     - netting-is-bounded-exact
     - settle-is-a-record
-    - free-forever
+    - hosted-price
     - room-size-20
 cast:
     - ana
@@ -30,7 +30,7 @@ faqs:
 
 The arithmetic was never the problem. You fronted the villa deposit and then the airport taxi, and dividing that by five is not going to get anybody a PhD. What is left is the message that starts with "sorry to be annoying", written five times, once each. No more!
 
-Most people put it off for a week. Some never send it at all, and live with a quiet resentment that kills the friendship. Hand the asking to Split by Peanut. The link goes in the group chat and the numbers sit on a page nobody has to argue with.
+Most people put it off for a week. Some never send it at all, and live with a quiet resentment that kills the friendship. Hand the asking to Split. The link goes in the group chat and the numbers sit on a page nobody has to argue with.
 
 <Steps title="What everyone else has to do">
 <Step title="Open the link">It opens in the browser already on the phone. There is no app store page in the way.</Step>
@@ -42,7 +42,7 @@ At the end the room nets the debts down, so the group makes two or three transfe
 
 ## Good to know
 
-Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut, which is how Split gets paid for, so there is no paid tier here and nothing to move behind one later.
+The official service is free to use and has no paid tier.
 
 Split does not check with a bank and cannot, so a settled row means somebody tapped to say they paid. It is built for a group rather than a crowd, up to twenty people.
 

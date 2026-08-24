@@ -11,7 +11,7 @@ claims:
     - netting-is-bounded-exact
     - settle-is-a-record
     - room-size-20
-    - free-forever
+    - hosted-price
     - no-app
     - recap-card
 cast:
@@ -38,7 +38,7 @@ draft: true
 
 Se esse dinheiro volta importa mais do que o valor em si. Quando não volta, quem bancou costuma não falar nada, para de ser quem organiza as coisas, e as viagens acabam sem ninguém decidir acabar com elas.
 
-Deixe o Split by Peanut cuidar do controle desde a primeira reserva. A sala abre em uns dez segundos, não tem conta para criar nem nada para baixar, e o que qualquer um lança aparece na tela de todo mundo na hora em que é lançado. Em agosto o total já é história velha, e a última mensagem no grupo é um plano de pagamento, não um pedido.
+Deixe o Split cuidar do controle desde a primeira reserva. A sala abre em uns dez segundos, não tem conta para criar nem nada para baixar, e o que qualquer um lança aparece na tela de todo mundo na hora em que é lançado. Em agosto o total já é história velha, e a última mensagem no grupo é um plano de pagamento, não um pedido.
 
 ## A sala entra antes do depósito
 
@@ -94,14 +94,14 @@ No fim também tem um cartão — quanto a viagem custou e quem bancou mais. Se 
 <Checklist title="Como é receber de volta quando a sala esteve aberta o tempo todo">
 <ChecklistItem title="Um só controle, de março a agosto">O depósito e a rodada de quinta são o mesmo tipo de linha, ambas com data, e nenhuma precisa de explicação.</ChecklistItem>
 <ChecklistItem title="Ninguém é apontado">A sala mostra saldos, não culpa. Nunca tem motivo para postar uma lista de quem ainda não pagou, e fazer isso é como uma viagem terminada vira mágoa.</ChecklistItem>
-<ChecklistItem title="Registrar é um toque">Acertem como vocês acertam, com dinheiro no aeroporto, uma transferência bancária ou um link do Peanut, e um de vocês toca para dizer que aconteceu. O Split registra o pagamento, não faz o pagamento.</ChecklistItem>
+<ChecklistItem title="Registrar é um toque">Acertem como vocês acertam, com dinheiro no aeroporto, uma transferência bancária ou outro app de pagamento, e um de vocês toca para dizer que aconteceu. O Split registra o pagamento, não faz o pagamento.</ChecklistItem>
 </Checklist>
 
 ## Bom saber
 
 Quatro fatos sobre a sala, que vale a pena ter em março, e não em agosto.
 
-- **É grátis para sempre, e não há nada a mais para contratar.** A Peanut faz isso para apresentar as pessoas à Peanut, e é assim que o Split se paga, então não tem plano pago esperando para te empurrar no meio de uma viagem.
+- **O serviço oficial é de uso grátis e não tem plano pago.**
 - **Ele não movimenta o dinheiro.** Uma linha acertada quer dizer que alguém tocou para dizer que pagou, não que um pagamento caiu. O Split não confere com nenhum banco e não tem como, o que é tranquilo entre amigos e vale saber sobre o seu próprio controle.
 - **Ele não vai cobrar ninguém.** Sem e-mails de lembrete, sem cutucadas no grupo. Se alguém some, essa parte ainda é sua, e tudo que dá para te oferecer é [o que escrever na primeira vez e o que escrever quando precisa repetir](/pt-br/guides/ask-a-friend-to-pay-you-back).
 - **Ele comporta até vinte pessoas.** Um grupo, não um congresso.

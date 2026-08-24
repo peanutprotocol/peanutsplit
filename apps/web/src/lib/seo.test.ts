@@ -187,7 +187,7 @@ describe('title suffix policy', () => {
 
     it('lets a generated guide keep the short suffix, and nothing else', () => {
         expect(guides.length).toBeGreaterThan(0)
-        for (const [page, title] of guides) expect(title, page).toMatch(/ \| Peanut( Split)?$/)
+        for (const [page, title] of guides) expect(title, page).toMatch(/ \| Split$/)
     })
 
     it('keeps every indexable title inside what Google renders', () => {

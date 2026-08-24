@@ -10,7 +10,7 @@ claims:
     - link-is-the-key
     - netting-is-bounded-exact
     - settle-is-a-record
-    - hosted-price-and-software-freedom
+    - hosted-price
     - room-size-20
 cast: []
 faqs:

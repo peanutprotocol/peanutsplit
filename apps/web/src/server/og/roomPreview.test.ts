@@ -112,7 +112,7 @@ describe('the card a chat preview draws', () => {
         // pinned, so the day somebody does it, this test is where it surfaces.
         expect(card?.stat).toBe('1 gasto · €128.50 hasta ahora')
         expect(card?.people).toBe('1 persona')
-        expect(card?.tagline).toBe('sin registro · gratis para siempre')
+        expect(card?.tagline).toBe('sin registro · uso gratis')
     })
 
     it('is English for a room that never said', async () => {

@@ -1,0 +1,249 @@
+{
+  "schema_version": 1,
+  "target": "peanutprotocol/peanutsplit",
+  "target_commit": "c2ff861f013e8c3f16063ee5c41033f2c0098432",
+  "audited_at": "2026-08-24",
+  "kill_list": "/workspaces/sandbox/_temp/peanutsplit-foss-audit/kill-list.md",
+  "method": "three read-only finders, refute-first cross-verification, main-loop hand reproduction, creative refinement, completeness critic",
+  "stats": {
+    "found": 37,
+    "confirmed": 29,
+    "refuted": 5,
+    "killed_by_kill_list": 3,
+    "overturned_by_hand": 0,
+    "refute_rate_percent": 13.5
+  },
+  "verdicts": [
+    { "id": "L01", "verdict": "CONFIRMED", "merged_into": "C01", "claim": "No effective open-source license" },
+    {
+      "id": "L02",
+      "verdict": "CONFIRMED",
+      "merged_into": "C02",
+      "claim": "Whole-tree licensing authority is not established by audited evidence"
+    },
+    {
+      "id": "L03",
+      "verdict": "CONFIRMED",
+      "merged_into": "C03",
+      "claim": "Required Knerd fonts have no redistribution grant in the tree"
+    },
+    {
+      "id": "L04",
+      "verdict": "CONFIRMED",
+      "merged_into": "C04",
+      "claim": "Marks, mascots, and portraits lack a public rights boundary"
+    },
+    {
+      "id": "L05",
+      "verdict": "CONFIRMED",
+      "merged_into": "C05",
+      "claim": "A visibility flip exposes private operational material"
+    },
+    {
+      "id": "L06",
+      "verdict": "CONFIRMED",
+      "merged_into": "C06",
+      "claim": "Cleaning main does not sanitize reachable history and refs"
+    },
+    {
+      "id": "L07",
+      "verdict": "CONFIRMED",
+      "merged_into": "C01",
+      "claim": "Package metadata would contradict a license-only change"
+    },
+    {
+      "id": "L08",
+      "verdict": "CONFIRMED",
+      "merged_into": "C07",
+      "claim": "Required font/icon notice propagation is incomplete"
+    },
+    {
+      "id": "L09",
+      "verdict": "CONFIRMED",
+      "merged_into": "C08",
+      "claim": "AGPL best matches network-source reciprocity and sole maintenance"
+    },
+    {
+      "id": "L10",
+      "verdict": "CONFIRMED",
+      "merged_into": "C09",
+      "claim": "Mandatory Peanut promotion would be a non-FOSS further restriction"
+    },
+
+    {
+      "id": "T01",
+      "verdict": "CONFIRMED",
+      "merged_into": "C10",
+      "claim": "README directs maintainers toward a backend outside the current web path"
+    },
+    {
+      "id": "T02",
+      "verdict": "CONFIRMED",
+      "merged_into": "C10",
+      "claim": "Root quickstart migrates only the incompatible API schema"
+    },
+    {
+      "id": "T03",
+      "verdict": "CONFIRMED",
+      "merged_into": "C11",
+      "claim": "Web README advertises a historical spec as current"
+    },
+    {
+      "id": "T04",
+      "verdict": "CONFIRMED",
+      "merged_into": "C10",
+      "claim": "Documented topology contradicts the direct Next/Postgres path"
+    },
+    {
+      "id": "T05",
+      "verdict": "CONFIRMED",
+      "merged_into": "C12",
+      "claim": "Compose lacks official-host containment described in README"
+    },
+    {
+      "id": "T06",
+      "verdict": "CONFIRMED",
+      "merged_into": "C13",
+      "claim": "DATABASE_URL is not the only configured secret"
+    },
+    {
+      "id": "T07",
+      "verdict": "CONFIRMED",
+      "merged_into": "C14",
+      "claim": "Compose misconfigures client build-time telemetry values"
+    },
+    {
+      "id": "T08",
+      "verdict": "CONFIRMED",
+      "merged_into": "C15",
+      "claim": "Custom production hosts lose the PWA manifest"
+    },
+    {
+      "id": "T09",
+      "verdict": "REFUTED",
+      "merged_into": null,
+      "claim": "FX connected/static behavior is wholly undocumented"
+    },
+    {
+      "id": "T10",
+      "verdict": "CONFIRMED",
+      "merged_into": "C11",
+      "claim": "Current schema/API prose is obsolete and schemas lack a clear lifecycle"
+    },
+    {
+      "id": "T11",
+      "verdict": "REFUTED",
+      "merged_into": null,
+      "claim": "Deletion and retention semantics are wholly undocumented"
+    },
+    {
+      "id": "T12",
+      "verdict": "CONFIRMED",
+      "merged_into": "C16",
+      "claim": "Single-replica constraints are missing from operator docs"
+    },
+
+    {
+      "id": "P01",
+      "verdict": "CONFIRMED",
+      "merged_into": "C17",
+      "claim": "Current maker/funder explanation conflicts with Squirrel Labs ruling"
+    },
+    {
+      "id": "P02",
+      "verdict": "REFUTED",
+      "merged_into": null,
+      "claim": "Current footer provably exceeds an undefined small-number budget"
+    },
+    {
+      "id": "P03",
+      "verdict": "REFUTED",
+      "merged_into": null,
+      "claim": "Historical exact-two Peanut rule is a current ruling"
+    },
+    {
+      "id": "P04",
+      "verdict": "CONFIRMED",
+      "merged_into": "C18",
+      "claim": "Running service has no source/license discovery path"
+    },
+    {
+      "id": "P05",
+      "verdict": "REFUTED",
+      "merged_into": null,
+      "claim": "Missing structured-data fields are a reproduced correctness defect"
+    },
+    {
+      "id": "P06",
+      "verdict": "KILLED-BY-DECISION",
+      "merged_into": "D01",
+      "claim": "FOSS can guarantee hosted-service lifetime and price"
+    },
+    {
+      "id": "P07",
+      "verdict": "KILLED-BY-DECISION",
+      "merged_into": "D02",
+      "claim": "FOSS posture requires contributor-growth surfaces"
+    },
+
+    {
+      "id": "G01",
+      "verdict": "CONFIRMED",
+      "merged_into": "C19",
+      "claim": "Unprotected main automatically deploys without a required artifact gate"
+    },
+    {
+      "id": "G02",
+      "verdict": "CONFIRMED",
+      "merged_into": "C20",
+      "claim": "Security reporting and repository security controls are incomplete"
+    },
+    {
+      "id": "G03",
+      "verdict": "CONFIRMED",
+      "merged_into": "C21",
+      "claim": "No immutable supported self-host release channel exists"
+    },
+    {
+      "id": "G04",
+      "verdict": "CONFIRMED",
+      "merged_into": "C22",
+      "claim": "Repository Actions defaults are broader than current workflows need"
+    },
+    {
+      "id": "G05",
+      "verdict": "CONFIRMED",
+      "merged_into": "C23",
+      "claim": "Tracked bytecode leaks local paths into source archives"
+    },
+    { "id": "G06", "verdict": "CONFIRMED", "merged_into": "C24", "claim": "Docker v2 opt-out contract is ineffective" },
+    {
+      "id": "G07",
+      "verdict": "CONFIRMED",
+      "merged_into": "C18",
+      "claim": "AGPL source offer must map to the deployed version"
+    },
+    {
+      "id": "G08",
+      "verdict": "KILLED-BY-DECISION",
+      "merged_into": "D02",
+      "claim": "Public project needs Discussions, boards, or contributor labels"
+    }
+  ],
+  "post_implementation_verification": {
+    "included_in_original_stats": false,
+    "verdict": "PRIVATE_PREPARATION_ONLY_PUBLIC_AND_DEPLOY_NO_GO",
+    "entity": "Squirrel Labs",
+    "confirmed": [
+      "source-checked architecture, schema, HTTP, security, self-host, testing, licensing, rights and release docs pass their drift gate",
+      "private mono source corrections regenerated 16 artifacts and the complete authored/generated copy audit is clean",
+      "one substantive EN/ES/PT-BR comparison carries gated FOSS intent without a doorway cluster",
+      "source, comparison, sitemap and footer surfaces fail closed without a complete corresponding-source receipt",
+      "room-scoped restore and capability-stripped JSON/CSV/history exports pass adversarial regressions",
+      "strict configured-origin behavior covers metadata, shares, PWA, redirects and install handoff without Host reflection",
+      "the counted Peanut budget is one user-initiated settlement destination plus one dedicated-page outbound link and none in the footer",
+      "history-free draft tooling has no publish operation and candidate licensing remains hard-blocked on rights, notices and clean-build attestation",
+      "the filtered draft currently has unresolved imports and is not a releasable or deployable source tree"
+    ]
+  }
+}

@@ -10,6 +10,7 @@ import {
     FAQ,
     FAQItem,
     Hero,
+    PublicSourceOnly,
     Quote,
     RelatedLink,
     RelatedPages,
@@ -42,6 +43,7 @@ function ProseLink({ href = '', ...props }: AnchorHTMLAttributes<HTMLAnchorEleme
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const mdxComponents: Record<string, React.ComponentType<any>> = {
     Hero,
+    PublicSourceOnly,
     CTA,
     Steps,
     Step,

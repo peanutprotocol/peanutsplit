@@ -347,9 +347,9 @@ export const api = {
     deleteExpense: (slug: string, id: string, token?: string | null) =>
         request<RoomState>(`/api/rooms/${encode(slug)}/expenses/${encode(id)}`, { method: 'DELETE', token }),
 
-    /** Undo. Slug-free: the toast only ever holds the expense id. */
-    restoreExpense: (id: string, token?: string | null) =>
-        request<RoomState>(`/api/expenses/${encode(id)}/restore`, { method: 'POST', token }),
+    /** Undo stays inside the room capability already held by the drawer. */
+    restoreExpense: (slug: string, id: string, token?: string | null) =>
+        request<RoomState>(`/api/rooms/${encode(slug)}/expenses/${encode(id)}/restore`, { method: 'POST', token }),
 
     addSettlement: (slug: string, input: SettlementInput, token?: string | null) =>
         request<RoomState>(`/api/rooms/${encode(slug)}/settlements`, { method: 'POST', body: input, token }),
@@ -422,8 +422,8 @@ export const api = {
             token,
         }),
 
-    /** Slug-free, like restore: the expense id is all a row ever holds. The
-     *  token is in the body because the server treats it as proof here. */
+    /** Slug-free behind token-proven identity. The token is in the body because
+     *  the server treats it as proof here; restore instead stays room-scoped. */
     reactions: {
         add: (expenseId: string, input: ReactionInput) =>
             request<RoomState>(`/api/expenses/${encode(expenseId)}/reactions`, { method: 'POST', body: input }),

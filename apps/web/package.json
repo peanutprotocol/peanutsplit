@@ -15,6 +15,7 @@
         "currencies:gen": "node scripts/gen-currency-catalog.mjs",
         "i18n:audit": "node scripts/i18n-audit.mjs",
         "marketing-copy:audit": "node scripts/marketing-copy-audit.mjs",
+        "marketing-copy:audit:all": "node scripts/marketing-copy-audit.mjs --include-generated",
         "ui-icons:audit": "node scripts/ui-icon-audit.mjs",
         "classes:audit": "node scripts/tailwind-class-audit.mjs",
         "test:watch": "vitest",

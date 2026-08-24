@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { BrandCard, OG_CONTENT_TYPE, OG_SIZE } from '@/server/og/card'
 import { BODY_CHARS, ogFonts } from '@/server/og/fonts'
-import { getDoc, listSlugs } from '@/lib/content'
+import { getDoc, isDocAvailable, listSlugs } from '@/lib/content'
 import { getSplitGuide, listSplitGuides } from '@/lib/split-content/artifact'
 import type { ParamName, RouteCollections } from '@/lib/content-routes'
 import type { Locale } from '@/i18n/locales'
@@ -105,6 +105,7 @@ export function contentOgImage(collections: RouteCollections, locale: Locale, pa
         // owns the slug is a question for the tree, not a constant.
         const slug = resolved[paramName]
         const doc = collections.map((collection) => getDoc(collection, slug, locale)).find((found) => found !== null)
+        if (doc && !isDocAvailable(doc)) notFound()
         const lines: readonly [string, string] = doc?.collection === 'blog' ? ['SPLIT', 'GUIDES'] : ['SPLIT', 'IT']
 
         return brandCardResponse(lines, doc?.frontmatter.title ?? 'Peanut Split')

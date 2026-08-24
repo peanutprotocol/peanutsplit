@@ -9,7 +9,7 @@ import { DELETE as deleteMember, PATCH as patchMember } from '@/app/api/rooms/[s
 import { POST as claimMember } from '@/app/api/rooms/[slug]/members/[memberId]/claim/route'
 import { POST as postExpense } from '@/app/api/rooms/[slug]/expenses/route'
 import { DELETE as deleteExpense, PATCH as patchExpense } from '@/app/api/rooms/[slug]/expenses/[id]/route'
-import { POST as restoreExpense } from '@/app/api/expenses/[id]/restore/route'
+import { POST as restoreExpense } from '@/app/api/rooms/[slug]/expenses/[id]/restore/route'
 import { DELETE as removeReaction, POST as addReaction } from '@/app/api/expenses/[id]/reactions/route'
 import { POST as postSettlement } from '@/app/api/rooms/[slug]/settlements/route'
 import { DELETE as deleteSettlement } from '@/app/api/rooms/[slug]/settlements/[id]/route'
@@ -288,9 +288,9 @@ describe('room history', () => {
         await removeExpense()
         const restore = () =>
             call<RoomState>(restoreExpense as Handler, {
-                path: `/api/expenses/${expenseId}/restore`,
+                path: `${roomPath}/expenses/${expenseId}/restore`,
                 method: 'POST',
-                params: { id: expenseId },
+                params: { slug, id: expenseId },
                 token: created.memberToken,
                 device,
             })

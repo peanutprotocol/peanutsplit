@@ -234,7 +234,7 @@ export function useDeleteExpense(slug: string, token?: string | null) {
 export function useRestoreExpense(slug: string, token?: string | null) {
     const queryClient = useQueryClient()
     return useMutation({
-        mutationFn: (id: string) => api.restoreExpense(id, token),
+        mutationFn: (id: string) => api.restoreExpense(slug, id, token),
         onSuccess: (state) => seedRoomState(queryClient, slug, state),
     })
 }

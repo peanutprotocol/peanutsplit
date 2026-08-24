@@ -21,6 +21,7 @@ import { asLocale, LOCALE_LABELS } from '@/i18n/locales'
 import { roomProps, track } from '@/lib/analytics'
 import type { ApiMember, ApiRoom, RoomState } from '@/lib/api-types'
 import { copyText } from '@/lib/clipboard'
+import { productUrl } from '@/lib/site'
 import { useErrorMessage } from '@/lib/error-messages'
 import type { MemberIdentity } from '@/lib/identity'
 import { noteRoomShareCompleted } from '@/lib/install-funnel'
@@ -203,7 +204,7 @@ export function SettingsSheet({
     }
 
     const copyLink = async () => {
-        const copied = await copyText(`${window.location.origin}/r/${room.slug}`)
+        const copied = await copyText(productUrl(`/r/${room.slug}`))
         if (copied) {
             // This is a bare-link settings action, not a presented share
             // package. Keep the package conversion denominator honest while

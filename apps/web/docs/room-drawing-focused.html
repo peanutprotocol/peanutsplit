@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Peanut Split — draw a room emblem</title>
+  <style>
+    @font-face{font-family:Sniglet;src:url('../public/fonts/sniglet-regular.ttf')}@font-face{font-family:Sniglet;src:url('../public/fonts/sniglet-extrabold.ttf');font-weight:800}
+    :root{--ink:#211c17;--muted:#5f646d;--bg:#faf4f0;--yellow:#ffc900;--pink:#ff90e8;--blue:#90a8ed;--line:1.5px solid var(--ink);--shadow:4px 4px 0 var(--ink)}
+    *{box-sizing:border-box}html,body{min-height:100%;margin:0}body{background:radial-gradient(circle at 50% -20%,#fff4cc 0 18rem,transparent 34rem),var(--bg);color:var(--ink);font-family:Arial,system-ui,sans-serif;padding:26px 12px 48px}button,input{color:inherit;font:inherit}button{cursor:pointer;-webkit-tap-highlight-color:transparent}button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--pink);outline-offset:2px}h1,h2,p{margin:0}.display{font-family:Sniglet,Arial,sans-serif;font-weight:800}
+    .prototype{width:min(100%,430px);margin:auto}.meta{display:flex;justify-content:space-between;align-items:center;margin:0 4px 12px;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.meta b{border:var(--line);border-radius:99px;background:white;color:var(--ink);padding:6px 9px;letter-spacing:0}
+    .app{position:relative;min-height:760px;overflow:hidden;border:var(--line);border-radius:24px;background:var(--bg);box-shadow:8px 8px 0 var(--ink)}.top{display:flex;align-items:flex-end;justify-content:space-between;padding:24px 16px 10px}.top h1{font-size:22px}.x{display:grid;width:44px;height:44px;place-items:center;border:0;background:transparent;font-size:27px}.content{padding:0 16px 34px}.receipt,.picker{overflow:hidden;border:2px solid var(--ink);border-radius:16px;background:white;box-shadow:var(--shadow)}.receipt-main{display:flex;align-items:center;gap:8px;padding:8px 12px}.receipt input{width:100%;height:62px;border:0;background:transparent;font-size:20px;font-weight:800;outline:0}.currency{flex:none;border:var(--line);border-radius:12px;background:#fff;padding:12px;font-weight:800}.room-image{display:flex;width:100%;min-height:58px;align-items:center;gap:12px;border:0;border-top:1px dashed #9ca3af;background:#fff;padding:8px 14px;text-align:left}.room-image strong{display:block;font-size:14px}.room-image small{display:block;margin-top:3px;color:var(--muted)}.emblem,.preview-emblem{display:grid;place-items:center;overflow:hidden;color:var(--ink)}.emblem{width:34px;height:34px;flex:none}.emblem canvas{width:30px;height:30px}.chev{margin-left:auto;font-size:20px;transition:.18s}.room-image[aria-expanded=true] .chev{transform:rotate(180deg)}
+    .hint{margin:12px 4px 14px;color:var(--muted);font-size:12px}.picker{padding:12px}.picker-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.picker-head h2{font-size:14px}.picker-head span{color:var(--muted);font-size:11px}.grid{display:grid;grid-template-columns:repeat(6,44px);gap:8px}.tile{position:relative;display:grid;width:44px;height:44px;place-items:center;border:var(--line);border-radius:12px;background:white;transition:.1s transform,.1s box-shadow}.tile:active{transform:translate(2px,2px)}.tile.selected{background:var(--yellow);box-shadow:var(--shadow)}.tile svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.tile.custom{border-style:dashed;background:#fff4cc}.tile.custom.selected{border-style:solid;background:var(--yellow)}.tile.custom .spark{position:absolute;right:3px;top:1px;font-size:10px}.tile canvas{width:29px;height:29px}.primary{display:flex;width:100%;height:54px;align-items:center;justify-content:center;margin-top:18px;border:var(--line);border-radius:12px;background:var(--yellow);box-shadow:var(--shadow);font-size:17px;font-weight:800}.primary:active,.sheet-actions button:active,.tool:active{transform:translate(3px,3px);box-shadow:none}
+    .backdrop{position:absolute;z-index:5;inset:0;display:none;align-items:flex-end;background:rgba(33,28,23,.42)}.backdrop.open{display:flex}.sheet{width:100%;max-height:94%;overflow:auto;border-top:2px solid var(--ink);border-radius:20px 20px 0 0;background:var(--bg);box-shadow:0 -5px 0 var(--ink);animation:up .2s ease-out}.handle{width:42px;height:5px;margin:9px auto 3px;border-radius:99px;background:#b4b0ac}.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:7px 16px 10px;border-bottom:1px dashed #9ca3af}.sheet-head h2{font-size:21px}.sheet-body{padding:14px 16px max(18px,env(safe-area-inset-bottom))}.coach{display:flex;align-items:center;gap:14px;margin-bottom:12px}.coach p{color:var(--muted);font-size:13px;line-height:1.35}.preview-emblem{width:68px;height:68px;flex:none;border:var(--line);border-radius:16px;background:var(--blue);box-shadow:3px 3px 0 var(--ink)}.preview-emblem canvas{width:51px;height:51px}.canvas-wrap{position:relative;overflow:hidden;aspect-ratio:1;border:2px solid var(--ink);border-radius:16px;background-color:#fff;background-image:radial-gradient(#e7e8e9 1px,transparent 1px);background-size:18px 18px;box-shadow:var(--shadow);touch-action:none}.canvas-wrap:after{position:absolute;inset:8%;border:1.5px dashed #d0cdca;border-radius:12px;content:"";pointer-events:none}.canvas-wrap canvas{position:absolute;z-index:1;width:100%;height:100%;touch-action:none}.empty{position:absolute;z-index:0;inset:0;display:grid;place-items:center;color:#9a9691;font-family:Sniglet,Arial,sans-serif;font-size:18px;pointer-events:none}.empty.hidden{display:none}.tools{display:flex;justify-content:space-between;gap:8px;margin-top:12px}.tool{display:flex;min-height:44px;align-items:center;gap:7px;border:var(--line);border-radius:12px;background:white;padding:8px 13px;font-weight:800;box-shadow:2px 2px 0 var(--ink)}.tool:disabled{cursor:not-allowed;opacity:.35}.sheet-actions{display:grid;grid-template-columns:1fr 1.35fr;gap:10px;margin-top:16px}.sheet-actions button{height:52px;border:var(--line);border-radius:12px;font-weight:800;box-shadow:var(--shadow)}.cancel{background:white}.use{background:var(--yellow)}.use:disabled{cursor:not-allowed;opacity:.38;box-shadow:none}.toast{position:absolute;z-index:8;right:16px;bottom:18px;left:16px;display:none;border:var(--line);border-radius:12px;background:var(--ink);color:white;padding:12px 14px;text-align:center;font-size:13px;font-weight:800}.toast.show{display:block;animation:pop .2s ease-out}
+    @keyframes up{from{transform:translateY(20px);opacity:.7}}@keyframes pop{50%{transform:scale(1.03)}}
+    @media(max-width:390px){body{padding:0}.prototype{width:100%}.meta{display:none}.app{min-height:100dvh;border:0;border-radius:0;box-shadow:none}.grid{grid-template-columns:repeat(6,44px)}}
+    @media(max-width:350px){.grid{grid-template-columns:repeat(5,44px)}.sheet-body{padding-inline:12px}}
+    @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <main class="prototype">
+    <div class="meta"><span>Focused interaction mockup</span><b>Try the last tile ↘</b></div>
+    <section class="app" aria-label="Create room prototype">
+      <header class="top"><h1 class="display">Create a room</h1><button class="x" aria-label="Close">×</button></header>
+      <div class="content">
+        <section class="receipt">
+          <div class="receipt-main"><input value="Lisbon weekend" aria-label="Room name"><button class="currency">EUR⌄</button></div>
+          <button class="room-image" id="pickerToggle" aria-expanded="true">
+            <span class="emblem" id="summaryEmblem"><svg viewBox="0 0 32 32"><path d="M4 26c3-8 7-12 12-12s9 4 12 12M16 14V5m0 2c-5 0-8 3-10 6m10-6c5 0 8 3 10 6"/></svg></span>
+            <span><strong>Room image</strong><small id="summaryLabel">Island — tap to change</small></span><span class="chev">⌄</span>
+          </button>
+        </section>
+        <p class="hint">This drawing appears in the room header and on your room list.</p>
+        <section class="picker" id="picker">
+          <div class="picker-head"><h2 class="display">Choose a drawing</h2><span>or make one</span></div>
+          <div class="grid" id="grid" role="radiogroup" aria-label="Room image"></div>
+        </section>
+        <button class="primary">Create room</button>
+      </div>
+
+      <div class="backdrop" id="backdrop" role="dialog" aria-modal="true" aria-labelledby="editorTitle">
+        <section class="sheet">
+          <div class="handle" aria-hidden="true"></div>
+          <header class="sheet-head"><h2 class="display" id="editorTitle">Draw your room</h2><button class="x" id="closeEditor" aria-label="Cancel drawing">×</button></header>
+          <div class="sheet-body">
+            <div class="coach"><div><p><strong>One simple thing works best.</strong><br>Try a suitcase, sunset, or very wonky fish.</p></div><div class="preview-emblem" aria-label="Live room emblem preview"><canvas id="livePreview"></canvas></div></div>
+            <div class="canvas-wrap" id="canvasWrap"><span class="empty" id="emptyPrompt">Draw here</span><canvas id="drawCanvas" aria-label="Drawing canvas" tabindex="0"></canvas></div>
+            <div class="tools"><button class="tool" id="undo" disabled>↶ Undo</button><button class="tool" id="clear" disabled>⌫ Clear</button></div>
+            <div class="sheet-actions"><button class="cancel" id="cancel">Cancel</button><button class="use" id="use" disabled>Use drawing</button></div>
+          </div>
+        </section>
+      </div>
+      <div class="toast" id="toast" role="status">Your drawing is now the room emblem</div>
+    </section>
+  </main>
+  <script>
+    const items=[
+      ['peanut','M25 7c3 4 2 8-2 10-4 3-5 1-6 7-1 5-8 6-12 2-4-4-2-10 3-12 3-2 6-1 9-3 2-2 0-6 3-8 4-2 8 0 10 2'],
+      ['mountain','M3 27 11 8l4 7 3-4 8 16M8 20l3 1 3-3 4 2'],['island','M3 26c4-8 10-8 14-5 5 0 9 1 12 5M16 20V7m0 1c-4 0-7 2-9 5m9-5c4 0 7 2 9 5'],
+      ['pizza','M5 9c6-6 15-6 22 0L16 28 5 9Zm3 4c5-3 11-3 16 1m-10 3h.1m6 1h.1'],['beer','M7 7h15l-1 20H8L7 7Zm15 4h3c4 0 4 10-1 10h-2M10 11h9'],
+      ['house','M3 16 16 5l13 11M7 14v13h18V14M13 27v-8h6v8'],['van','M4 11h19l5 7v7H4V11Zm20 3v6h4M9 25a2 2 0 1 0 4 0m9 0a2 2 0 1 0 4 0'],
+      ['ski','M4 27h24M9 26 18 7m4 19 4-17M17 8l4-3m4 5 3-2'],['party','M4 5l11 23M4 5l13 10-9 4M18 8l2-3m2 7 4-1m-7 6 2 3m4-15 2-2'],
+      ['cart','M3 6h4l4 14h13l4-10H9m5 16h.1m9 0h.1'],['plane','M16 3c3 2 3 6 3 11l10 5v3l-10-2v5l4 3v2l-7-2-7 2v-2l4-3v-5L3 22v-3l10-5c0-5 0-9 3-11Z'],
+      ['guitar','M14 14c-5-1-8 1-8 5s3 7 7 7c3 0 4-2 4-4 0-3 2-5 5-5l4-2-7-8-2 4c-1 2-2 3-3 3Zm8-7 4 4'],
+      ['tent','M16 4 4 27h24L16 4Zm0 8-5 15m5-15 6 15'],['noodles','M5 13h22l-3 14H8L5 13Zm3-4c0-3 4-3 4-6m4 6c0-3 4-3 4-6m4 6c0-3 3-3 3-6'],
+      ['boat','M4 18h24l-5 9H9l-5-9Zm12 0V5l8 9h-8'],['cake','M6 14h20v13H6V14Zm0 5c3 3 6-3 10 0 4 3 7-3 10 0M11 14V9m5 5V7m5 7V9']
+    ];
+    const grid=document.querySelector('#grid'),backdrop=document.querySelector('#backdrop'),drawCanvas=document.querySelector('#drawCanvas'),livePreview=document.querySelector('#livePreview'),summary=document.querySelector('#summaryEmblem'),summaryLabel=document.querySelector('#summaryLabel'),empty=document.querySelector('#emptyPrompt'),undo=document.querySelector('#undo'),clear=document.querySelector('#clear'),use=document.querySelector('#use'),toast=document.querySelector('#toast');
+    let saved=[],work=[],cleared=null,drawing=false,selected='island',toastTimer;
+    const svg=(path)=>`<svg viewBox="0 0 32 32" aria-hidden="true"><path d="${path}"/></svg>`;
+    items.forEach(([name,path])=>{const b=document.createElement('button');b.className='tile'+(name===selected?' selected':'');b.dataset.name=name;b.setAttribute('role','radio');b.setAttribute('aria-label',name);b.setAttribute('aria-checked',name===selected);b.innerHTML=svg(path);b.onclick=()=>selectPreset(name,path,b);grid.append(b)});
+    const custom=document.createElement('button');custom.className='tile custom';custom.dataset.name='custom';custom.setAttribute('role','radio');custom.setAttribute('aria-label','Draw your own room image');custom.setAttribute('aria-checked','false');custom.innerHTML='<span class="spark">✦</span><span class="pencil">✎</span><canvas aria-hidden="true"></canvas>';grid.append(custom);
+    function mark(name){document.querySelectorAll('.tile').forEach(b=>{const on=b.dataset.name===name;b.classList.toggle('selected',on);b.setAttribute('aria-checked',on)})}
+    function selectPreset(name,path){selected=name;mark(name);summary.innerHTML=svg(path);summaryLabel.textContent=name[0].toUpperCase()+name.slice(1)+' — tap to change'}
+    function openEditor(){work=saved.map(s=>s.map(p=>({...p})));cleared=null;backdrop.classList.add('open');document.body.style.overflow='hidden';requestAnimationFrame(()=>{renderAll();document.querySelector('#closeEditor').focus()})}
+    function closeEditor(){backdrop.classList.remove('open');document.body.style.overflow='';custom.focus()}
+    custom.onclick=openEditor;document.querySelector('#closeEditor').onclick=closeEditor;document.querySelector('#cancel').onclick=closeEditor;backdrop.onclick=e=>{if(e.target===backdrop)closeEditor()};
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&backdrop.classList.contains('open'))closeEditor()});
+    document.querySelector('#pickerToggle').onclick=e=>{const open=e.currentTarget.getAttribute('aria-expanded')==='true';e.currentTarget.setAttribute('aria-expanded',String(!open));document.querySelector('#picker').hidden=open};
+    function prep(c){const r=c.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);if(!r.width)return null;c.width=Math.round(r.width*d);c.height=Math.round(r.height*d);const x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,r.width,r.height);x.strokeStyle='#211c17';x.lineWidth=Math.max(1.8,r.width*.035);x.lineCap='round';x.lineJoin='round';return{x,w:r.width,h:r.height}}
+    function paint(c,strokes){const o=prep(c);if(!o)return;strokes.forEach(s=>{if(!s.length)return;o.x.beginPath();o.x.moveTo(s[0].x*o.w,s[0].y*o.h);s.slice(1).forEach(p=>o.x.lineTo(p.x*o.w,p.y*o.h));if(s.length===1)o.x.lineTo(s[0].x*o.w+.1,s[0].y*o.h+.1);o.x.stroke()})}
+    function renderAll(){paint(drawCanvas,work);paint(livePreview,work);empty.classList.toggle('hidden',work.length>0);undo.disabled=!work.length&&!cleared;clear.disabled=!work.length;use.disabled=!work.length}
+    function point(e){const r=drawCanvas.getBoundingClientRect();return{x:Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))}}
+    drawCanvas.onpointerdown=e=>{e.preventDefault();drawing=true;cleared=null;work.push([point(e)]);drawCanvas.setPointerCapture(e.pointerId);renderAll()};
+    drawCanvas.onpointermove=e=>{if(!drawing)return;e.preventDefault();const s=work.at(-1),p=point(e),last=s.at(-1);if(Math.hypot(p.x-last.x,p.y-last.y)>.004){s.push(p);renderAll()}};
+    const end=()=>{drawing=false};drawCanvas.onpointerup=end;drawCanvas.onpointercancel=end;
+    undo.onclick=()=>{if(work.length)work.pop();else if(cleared){work=cleared;cleared=null}renderAll()};
+    clear.onclick=()=>{cleared=work;work=[];renderAll()};
+    use.onclick=()=>{if(!work.length)return;saved=work.map(s=>s.map(p=>({...p})));selected='custom';mark('custom');summary.innerHTML='<canvas aria-hidden="true"></canvas>';summaryLabel.textContent='Your drawing — tap to change';paint(summary.querySelector('canvas'),saved);paint(custom.querySelector('canvas'),saved);closeEditor();clearTimeout(toastTimer);toast.classList.add('show');toastTimer=setTimeout(()=>toast.classList.remove('show'),2200)};
+    addEventListener('resize',()=>{if(backdrop.classList.contains('open'))renderAll();if(saved.length){paint(custom.querySelector('canvas'),saved);if(selected==='custom')paint(summary.querySelector('canvas'),saved)}});
+  </script>
+</body>
+</html>

@@ -96,7 +96,7 @@ export const rentSplitCalculator: Tool = {
         h1: 'Rent split calculator by room size',
         intro: [
             'Put in the rent and the size of each private room. The rent follows that floor area, and the numbers move while you type.',
-            'The slider beside each name is the other half of the argument. Leave them all where they are and nothing happens; move one up and that person pays more while everybody else pays less. Split by Peanut holds the same arithmetic in a page the whole flat can open.',
+            'The slider beside each name is the other half of the argument. Leave them all where they are and nothing happens; move one up and that person pays more while everybody else pays less. Split holds the same arithmetic in a page the whole flat can open.',
         ],
         resultTitle: 'What each room pays',
         resultHint: 'Put in the rent and how many people are on it.',
@@ -118,7 +118,7 @@ export const rentSplitCalculator: Tool = {
         goodToKnow: {
             title: 'Good to know',
             body: [
-                'Split is free forever, with nothing to upgrade to.',
+                'The official service is free to use and has no paid tier.',
                 'Automatic conversion for 156 currencies at the day’s indicative rate.',
                 'A room holds up to twenty people.',
                 'Split records a payment rather than making one. It does not check with a bank and cannot.',

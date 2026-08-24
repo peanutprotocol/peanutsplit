@@ -19,7 +19,7 @@ import { POST as restoreMember } from '@/app/api/rooms/[slug]/members/[memberId]
 import { POST as reactivateAndClaimMember } from '@/app/api/rooms/[slug]/members/[memberId]/reactivate/route'
 import { POST as postExpense } from '@/app/api/rooms/[slug]/expenses/route'
 import { DELETE as deleteExpense, PATCH as patchExpense } from '@/app/api/rooms/[slug]/expenses/[id]/route'
-import { POST as restoreExpense } from '@/app/api/expenses/[id]/restore/route'
+import { POST as restoreExpense } from '@/app/api/rooms/[slug]/expenses/[id]/restore/route'
 import { POST as postSettlement } from '@/app/api/rooms/[slug]/settlements/route'
 import { DELETE as deleteSettlement } from '@/app/api/rooms/[slug]/settlements/[id]/route'
 import { GET as readiness } from '@/app/readiness/route'
@@ -572,9 +572,9 @@ describe('rooms and members', () => {
         expect((await removeMember(created.room.slug, bea.memberId)).status).toBe(200)
 
         const restored = await call<RoomState>(restoreExpense as Handler, {
-            path: `/api/expenses/${expenseId}/restore`,
+            path: `/api/rooms/${created.room.slug}/expenses/${expenseId}/restore`,
             method: 'POST',
-            params: { id: expenseId },
+            params: { slug: created.room.slug, id: expenseId },
         })
 
         expect(restored.status).toBe(200)
@@ -1289,9 +1289,9 @@ describe('the full room lifecycle', () => {
         expect(secondDelete).toBe(200)
 
         const { status, body: afterRestore } = await call<RoomState>(restoreExpense as Handler, {
-            path: `/api/expenses/${expenseId}/restore`,
+            path: `/api/rooms/${slug}/expenses/${expenseId}/restore`,
             method: 'POST',
-            params: { id: expenseId },
+            params: { slug, id: expenseId },
         })
         expect(status).toBe(200)
         expect(afterRestore.expenses).toHaveLength(1)

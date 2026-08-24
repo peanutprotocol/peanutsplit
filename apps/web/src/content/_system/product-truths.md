@@ -134,21 +134,64 @@ claiming the link cannot be shared onward or guessed — we do not make claims a
 
 ---
 
-## free-forever
+## hosted-price
 
-**claim:** Split costs nothing and has no paid tier. It exists to introduce people to Peanut, which
-is how it is paid for. There are no ads.
+**claim:** The official Split service is free to use and has no paid tier. That is a statement about
+the service today, not a promise that the host will remain online or zero-price for its entire
+lifetime.
 
-**safe:** "free forever, with nothing to upgrade to" · "no paid tier to sell you" · "Peanut makes it
-to introduce people to Peanut, which is how Split gets paid for"
+**safe:** "the official service is free to use" · "there is no paid tier" · "free to use; no paid
+tier"
 
-**unsafe:** the bare word "free" (reads as a trial) · "free tier" · "free plan" · "currently free" ·
-any wording that implies a paid Split exists or could
+**unsafe:** "free forever" · "always free" · "lifetime free" · "free tier" · "free plan" · any
+host-lifetime or future-pricing promise · using "open source" or "FOSS" as a synonym for zero-price
 
-**source:** `apps/web/scripts/marketing-copy-audit.mjs` — this one is mechanically gated: every
-"free", "gratis" and "grátis" in the catalogs, the content tree and the marketing copy has to sit
-next to the forever commitment or the audit fails. `copy.ts` states the intent: "Free forever is a
-promise, not a growth line."
+**source:** The official product/catalog configuration exposes no paid Split plan. Wording is
+mechanically gated by `apps/web/scripts/marketing-copy-audit.mjs`, which rejects lifetime host
+promises in every shipped locale.
+
+---
+
+## squirrel-labs-stewardship
+
+**claim:** Squirrel Labs is currently the sole maintainer of Peanut Split and pays every project
+cost, including maintainer work hours and operation of the official service. That service may carry
+a few quiet, contextual Peanut references. They never require a click, nag the user, become
+preselected, or gate a feature. They are not a software-license condition, and forks and
+self-hosters are not required to promote Peanut or Squirrel Labs.
+
+**safe:** "Squirrel Labs maintains Split and pays every cost, including the work hours" · "Peanut
+stays an option, never a requirement" · "forks do not owe promotion"
+
+**unsafe:** "Peanut built/makes/funds/maintains Split" · "community-maintained" · "volunteer-run" ·
+any referral, logo, or promotion requirement attached to software rights · any promise that
+Squirrel Labs must remain the sole maintainer forever
+
+**source:** Project-owner ruling, 2026-08-24: Squirrel Labs is the correct entity, current sole
+maintainer and funder; it pays all costs including work hours; the official service may carry
+limited, non-intrusive, never-spammy or forced Peanut references.
+
+---
+
+## public-source-and-self-hosting
+
+**claim:** After the public-release gate, released Peanut Split source is distributed under
+`AGPL-3.0-or-later` and may be inspected, run, modified, shared, and self-hosted under that license.
+The repository documents its schema, migrations, HTTP surface, deployment topology, and operator
+responsibilities. These freedoms belong to released software; they do not promise that the official
+host stays online or free, or that every future release has identical scope.
+
+**safe after the release gate:** "free and open-source software" · "FOSS" · "licensed under
+AGPL-3.0-or-later" · "self-hostable" · "released versions keep their license rights"
+
+**unsafe:** any positive open-source, FOSS, AGPL, public-repository, or self-hosting-availability
+claim before the root license, clean public source, immutable release receipt, rights/notice review,
+security gates, and custom-origin smoke test all pass · "the hosted service is FOSS" · "open source
+means free of charge" · "all future versions will be open source"
+
+**source after release:** the exact immutable public source release and receipt, rooted at the
+deployed commit, plus `LICENSE`, `docs/current/DATA-MODEL.md`, `docs/current/API.md`, and
+`docs/current/SELF-HOSTING.md`. A mutable branch is not sufficient evidence.
 
 ---
 

@@ -115,7 +115,7 @@ describe('achievement cards', () => {
                 rosterLine: '5 people already in',
                 count: 5,
                 overflow: 2,
-                proof: 'no signup · free forever',
+                proof: 'no signup · free to use',
             },
         ],
         [
@@ -128,7 +128,7 @@ describe('achievement cards', () => {
                 rosterLine: '5 personas ya están',
                 count: 5,
                 overflow: 2,
-                proof: 'sin registro · gratis para siempre',
+                proof: 'sin registro · uso gratis',
             },
         ],
         [
@@ -141,7 +141,7 @@ describe('achievement cards', () => {
                 rosterLine: '5 pessoas já estão',
                 count: 5,
                 overflow: 2,
-                proof: 'sem cadastro · grátis para sempre',
+                proof: 'sem cadastro · uso grátis',
             },
         ],
     ])('makes the %s invite explain the product and the next action', async (locale, copy) => {
@@ -158,7 +158,7 @@ describe('achievement cards', () => {
             label: 'Wspólne wydatki grupy',
             line: 'Dołącz i dodaj swoje wydatki.',
             rosterLine: '5 osób już jest',
-            proof: 'bez rejestracji · za darmo na zawsze',
+            proof: 'bez rejestracji · korzystanie za darmo',
         })
 
         const alterEgo = (await buildFixtureCard('alterego', 'pl')) as Extract<
@@ -178,7 +178,7 @@ describe('achievement cards', () => {
             line: 'Приєднуйся й додай свої витрати.',
             rosterLabel: 'УЖЕ В РОЗПОДІЛІ',
             rosterLine: '5 людей уже тут',
-            proof: 'без реєстрації · безкоштовно назавжди',
+            proof: 'без реєстрації · користування безкоштовне',
         })
 
         const landing = (await buildFixtureCard('landing', 'uk')) as Extract<AchievementCardData, { kind: 'landing' }>
@@ -218,7 +218,7 @@ describe('achievement cards', () => {
                 'card.invite.personOne': '1 person already in',
                 'card.invite.peopleMany': `${String(params?.count)} people already in`,
                 'card.invite.emptyAction': 'Open the link and add what you paid',
-                'preview.tagline': 'no signup · free forever',
+                'preview.tagline': 'no signup · free to use',
             }
             return copy[key] ?? key
         }

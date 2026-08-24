@@ -6,7 +6,7 @@ type: comparison
 headTerm: alternativa tricount
 tags: [alternativas, moedas]
 claims:
-    - free-forever
+    - hosted-price
     - no-app
     - link-is-the-key
     - automatic-currency-conversion
@@ -18,8 +18,8 @@ competitorClaims:
     - tricount-bunq-card
     - tricount-100-free
 faqs:
-    - question: O Split é grátis para sempre?
-      answer: É. O Split é grátis para sempre e não existe nada para assinar depois. A Peanut faz o Split para apresentar a Peanut às pessoas, e é daí que sai o dinheiro.
+    - question: O Split é de uso grátis?
+      answer: Sim. O serviço oficial é de uso grátis e não tem plano pago.
     - question: Preciso baixar alguma coisa?
       answer: Não. Uma sala abre no navegador. Quem abre digita um nome e já lança o que pagou, sem loja de aplicativos e sem conta.
     - question: Dá para acertar por transferência ou em dinheiro?
@@ -73,7 +73,7 @@ Quatro pessoas em São Paulo se resolvem. Quatro pessoas em São Paulo, Lisboa, 
 
 |               | Peanut Split                                                                          | Tricount                                                    |
 | ------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Preço         | Grátis para sempre, sem plano pago                                                    | "100% free"                                                 |
+| Preço         | De uso grátis, sem plano pago                                                         | "100% free"                                                 |
 | Fazer a conta | Os saldos fecham no centavo                                                           | "tricount does the math for you"                            |
 | Acertar       | O que as duas pessoas realmente conseguem usar: dinheiro, transferência local ou link | "get paid directly to your bank account", ou um cartão bunq |
 | Melhor caso   | Grupo espalhado por países, bancos e moedas                                           | Grupo que compartilha os mesmos trilhos bancários           |
@@ -86,7 +86,7 @@ A linha que importa é a de acertar. O resto está perto o bastante para não de
 
 <Checklist title="Onde um split falha de verdade">
 <ChecklistItem title="Ninguém tem o mesmo app">"Me manda um Pix" desmorona quando uma pessoa mora fora e o Pix não chega até ela, outra tem um banco que fecha às quatro, e a terceira está num país que nenhum dos dois alcança. Então não exija um app específico.</ChecklistItem>
-<ChecklistItem title="Você pagou numa moeda e deve em outra">Escolha em que a sala conta, lance as despesas no que você gastou de verdade, e o Split converte. Grátis para sempre, e não atrás de um plano pago.</ChecklistItem>
+<ChecklistItem title="Você pagou numa moeda e deve em outra">Escolha em que a sala conta, lance as despesas no que você gastou de verdade, e o Split converte. De uso grátis, e não atrás de um plano pago.</ChecklistItem>
 </Checklist>
 
 ## Quando o Tricount é a ferramenta melhor
@@ -103,7 +103,7 @@ Em troca, uma sala não presume nada sobre onde cada um guarda o dinheiro.
   text="Criar um split" />
 
 <FAQ title="Perguntas">
-<FAQItem question="O Split é grátis para sempre?">É. O Split é grátis para sempre e não existe nada para assinar depois. A Peanut faz o Split para apresentar a Peanut às pessoas, e é daí que sai o dinheiro.</FAQItem>
+<FAQItem question="O Split é de uso grátis?">Sim. O serviço oficial é de uso grátis e não tem plano pago.</FAQItem>
 <FAQItem question="Preciso baixar alguma coisa?">Não. Uma sala abre no navegador. Quem abre digita um nome e já lança o que pagou, sem loja de aplicativos e sem conta.</FAQItem>
 <FAQItem question="Dá para acertar por transferência ou em dinheiro?">Dá. O Split reduz as dívidas para vocês fazerem duas ou três transferências em vez de vinte, e registra cada uma do jeito que ela aconteceu. Não exige nenhum banco nem app específico.</FAQItem>
 <FAQItem question="Como eu volto para uma sala?">Abra o link de novo. Não tem login para recuperar nem senha para redefinir, então o link é a chave. Deixe ele fixado no grupo do WhatsApp, onde qualquer um que precisar encontra.</FAQItem>

@@ -805,7 +805,11 @@ the one-month kill condition can't justify. The bunq/Tricount post-mortem in
   flat rooms are the design (see SPEC).
 - **Budgets, analytics dashboards, AI chat agent** — a second product inside
   Split.
-- **Native apps, monetization features** — out of scope for the bet.
+- **Native apps, monetization features** — out of scope for the bet. If native
+  is ever reopened, the migration cost is already mapped in
+  `docs/NATIVE-MIGRATION.md` (server schema unaffected; the room list in
+  `ps:recent` is the only unrecoverable state; a transfer code is a copy, not
+  a sync, and has no lost-device recovery). That document authorizes nothing.
 
 ## Known debt
 

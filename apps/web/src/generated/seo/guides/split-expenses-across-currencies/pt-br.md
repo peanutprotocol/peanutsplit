@@ -4,10 +4,10 @@ description: "Veja qual valor lançar ao dividir despesas em várias moedas, com
 slug: split-expenses-across-currencies
 type: guide
 lang: pt-br
-author: Peanut
+author: Squirrel Labs
 date: 2026-07-26
 tags: [moedas, viagens]
-claims: [automatic-currency-conversion, free-forever]
+claims: [automatic-currency-conversion, hosted-price]
 cast: []
 canonical: https://peanutsplit.com/pt-br/guides/split-expenses-across-currencies
 schema_types: [BlogPosting]
@@ -26,17 +26,18 @@ generated_from:
   context:
     - split-content/_system/context/messaging.md
     - split-content/_system/context/localization.pt-br.md
+    - split-content/_system/context/valid-links.md
   guidelines:
     - split-content/_system/guidelines/seo.md
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-11
+generated_at: 2026-08-24
 ---
 
 Um grupo de brasileiros em Bangkok termina o jantar com o recibo em bahts, o rateio em reais e uma
 fatura que chegará com outro valor; se esses registros se misturarem, alguém absorve a diferença, e o
-ressentimento volta no próximo rateio. Deixe o Split by Peanut cuidar dessa parte. O Split mantém a
+ressentimento volta no próximo rateio. Deixe o Peanut Split cuidar dessa parte. O Split mantém a
 moeda do recibo e aplica uma regra comum à despesa compartilhada.
 
 Nessa hora, quem organiza pula entre a foto, a calculadora e as mensagens. Vamos fechar essas abas!
@@ -72,10 +73,10 @@ viagem troca a regra para todo mundo.
 - Pergunte a quem pagou antes de corrigir um item.
 - Não leve cálculos feitos por fora para o registro compartilhado.
 
-## Por que a conversão é grátis para sempre
+## O preço do serviço oficial
 
-O Split é grátis para sempre, sem nenhuma versão paga. O Peanut o mantém para que mais pessoas
-conheçam o Peanut; é assim que o Split se financia.
+O serviço oficial do Split é de uso grátis e não tem plano pago. Isso descreve o serviço de
+hoje; não promete o preço nem a disponibilidade dele para sempre.
 
 ## Quando uma planilha é a melhor ferramenta
 

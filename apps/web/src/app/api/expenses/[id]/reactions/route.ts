@@ -12,9 +12,10 @@
  *    token the server minted at join time, and it travels in the body because
  *    here the token is proof rather than attribution.
  *
- * 2. Slug-free, like the restore endpoint: the expense id is an unguessable
- *    uuid, the room is looked up from it, and the row a reaction bar is sitting
- *    on only ever has that id in hand.
+ * 2. Slug-free behind token-proven identity: the expense id locates the room,
+ *    and the member token proves who may write the reaction. Expense restore
+ *    deliberately differs and also requires the room slug because attribution
+ *    tokens there are optional rather than authorization proof.
  *
  * Two deviations from the house shape, both deliberate. POST answers 200 rather
  * than the 201 every other create uses, because the verb here is a toggle and

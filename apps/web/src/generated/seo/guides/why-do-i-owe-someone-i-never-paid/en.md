@@ -4,10 +4,10 @@ description: "You never handed this person money, and the room says you owe them
 slug: why-do-i-owe-someone-i-never-paid
 type: guide
 lang: en
-author: Peanut
+author: Squirrel Labs
 date: 2026-08-12
 tags: [balances, settling up]
-claims: [netting-is-bounded-exact, settle-is-a-record, free-forever]
+claims: [netting-is-bounded-exact, settle-is-a-record]
 cast: []
 canonical: https://peanutsplit.com/guides/why-do-i-owe-someone-i-never-paid
 schema_types: [BlogPosting]
@@ -29,7 +29,7 @@ generated_from:
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-14
+generated_at: 2026-08-24
 ---
 
 {/* Every Splitwise sentence on this page is a verbatim quote from
@@ -40,7 +40,7 @@ keep the quotation marks around a sentence you have reworded. */}
 The room where the trip's expenses live says you owe Jules £30, and Jules is the one person there you
 have never paid for anything with; pay a number you cannot account for and you stop trusting every
 other number in the list. Some people say nothing about it at all, quietly stop adding their
-receipts, and let the trip finish that way. Let Split by Peanut show the working. It nets the debts
+receipts, and let the trip finish that way. Let Peanut Split show the working. It nets the debts
 down before it asks anybody to send anything.
 
 Nothing is broken. The debts the group already had were set against each other, and the name on your
@@ -99,13 +99,9 @@ Jules. Every leg needs somebody to remember it and somebody to chase it, which m
 writing [the message that asks for it back](/guides/ask-a-friend-to-pay-you-back). Spare yourself
 that!
 
-Settle it however you like: cash, a bank transfer, Peanut. Then record the payment in the room.
+Settle it however you like: cash, a bank transfer, or another payment app. Then record the payment in the room.
 Split records the payment, it does not make it. It does not verify with any bank and cannot.
 
-## Good to know
-
-Split is free forever, with nothing to upgrade to. Peanut makes it to introduce people to Peanut,
-which is how Split gets paid for.
 
 ## When paying each other directly is the better tool
 

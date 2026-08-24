@@ -7,7 +7,7 @@ headTerm: settle up alternative
 tags: [alternatives, no-account]
 claims:
     - link-is-the-key
-    - free-forever
+    - hosted-price
     - no-app
     - automatic-currency-conversion
     - netting-is-bounded-exact
@@ -23,8 +23,8 @@ competitorClaims:
 faqs:
     - question: Do I need an account for Split?
       answer: No. A room is a web link. Whoever opens it types a name and starts adding expenses. No app store, no account, no email, no password.
-    - question: Is Split free forever?
-      answer: Yes. Split is free forever, with nothing to upgrade to and no ads. Peanut makes it to introduce people to Peanut, which is how Split gets paid for.
+    - question: Is Split free to use?
+      answer: Yes. The official service is free to use and has no paid tier.
     - question: Can we bring our Settle Up balances across?
       answer: By typing them, not by importing them. Settle Up can export CSV, but Split does not accept that file yet or have a direct connection. Put in what each person is up or down today as one line each, and anything already settled in Settle Up stays settled there.
     - question: How do I get back into a room?
@@ -79,7 +79,7 @@ Friends can **view** the balance. Somebody who never signs up can watch the numb
 | ----------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------- |
 | Getting started               | Open a link, type a name                                            | An account, then invite by link or QR code                    |
 | What the group sees about you | The name you typed                                                  | Your name, your email address and your profile picture        |
-| Cost                          | Free forever, no paid tier, no ads                                  | Free to use, with parts of it behind a Premium plan           |
+| Cost                          | Free to use, no paid tier                                           | Free to use, with parts of it behind a Premium plan           |
 | Chasing people                | Nothing. Split will not remind anybody                              | Reminds group members and nudges them to settle               |
 | Netting debts                 | A short payment plan, always on                                     | Transfers debts to cut the number of transactions; can be off |
 | Currencies                    | 156 currencies, converted at the day's indicative rate              | Every currency, at a downloaded rate you can edit             |
@@ -134,7 +134,7 @@ That is the trade. Less product, and nothing asked of anyone who opens the link.
 
 <FAQ>
 <FAQItem question="Do I need an account for Split?">No. A room is a web link. Whoever opens it types a name and starts adding expenses. No app store, no account, no email, no password.</FAQItem>
-<FAQItem question="Is Split free forever?">Yes. Split is free forever, with nothing to upgrade to and no ads. Peanut makes it to introduce people to Peanut, which is how Split gets paid for.</FAQItem>
+<FAQItem question="Is Split free to use?">Yes. The official service is free to use and has no paid tier.</FAQItem>
 <FAQItem question="Can we bring our Settle Up balances across?">By typing them, not by importing them. Settle Up can export CSV, but Split does not accept that file yet or have a direct connection. Put in what each person is up or down today as one line each, and anything already settled in Settle Up stays settled there.</FAQItem>
 <FAQItem question="How do I get back into a room?">You reopen the link. Nothing to log in to, so the link is the key. Keep it in the group chat, and note that opening a room the first time needs a connection.</FAQItem>
 </FAQ>

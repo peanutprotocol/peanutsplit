@@ -20,7 +20,7 @@ const MAX_TITLE_NAME = 48
  */
 export const ROOM_DESCRIPTION = 'Join the split — see who owes what and add what you paid.'
 export const ROOM_FALLBACK_TITLE = 'Split room — Peanut Split'
-export const ROOM_FALLBACK_DESCRIPTION = 'Split expenses with one link. No signup, no app, free forever.'
+export const ROOM_FALLBACK_DESCRIPTION = 'Split expenses with one link. No signup, no app, free to use.'
 
 /**
  * The room's description, in the language the room was started in.

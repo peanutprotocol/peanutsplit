@@ -22,8 +22,9 @@ jobs:
   check:
     runs-on: ubuntu-latest
     env:
-      # apps/api's integration suite talks to this; apps/web's unit tests don't.
+      # apps/api and apps/web use separate PostgreSQL schemas in this database.
       DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
+      TEST_DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
       # Generated Split guides render but stay noindex until a human reviews them live.
       SEO_INDEXABLE: 'false'
     services:
@@ -78,6 +79,9 @@ jobs:
 
       - run: pnpm typecheck
 
+      # Current schema and HTTP inventories are generated from the live web source.
+      - run: pnpm docs:check
+
       # The gate CLAUDE.md sends every contributor to — enforced here so
       # "run it yourself" has a backstop.
       - run: pnpm format:check
@@ -87,8 +91,8 @@ jobs:
       # dotted path, which never throws and never fails a test.
       - run: pnpm i18n:audit
 
-      # "Free forever" is the product promise. Bare "free" is allowed only for
-      # recorded competitor quotes and competitor-tier descriptions.
+      # Reject hosted-lifetime promises, the old "Split by Peanut" name, and copy
+      # that incorrectly assigns Squirrel Labs' maintenance/funding role to Peanut.
       - run: pnpm marketing-copy:audit
 
       # The product has one generated doodle system. Keep library icons, raw UI
@@ -146,6 +150,29 @@ jobs:
           --build-arg NEXT_PUBLIC_SPLIT_V2_ENABLED=1
           --build-arg NEXT_PUBLIC_BASE_URL=https://peanutsplit.com
           apps/web
+
+  # Both OG incidents this year (123a048, 76e8dce) were structurally invisible to
+  # every job above. In each one the app spelled a metadata-image URL by hand while
+  # Next served it with a build-scoped hash on the segment, so the tag pointed at a
+  # 404: rooms unfurled imageless, "Share the story" was a dead button. Nothing
+  # typechecks a URL, the unit tests call the route export directly where no hash
+  # can reach, and the build is perfectly happy. 76e8dce's own message names the
+  # tier gap as the reason it survived for weeks — the spec that asserted the path
+  # was an e2e, and e2e ran only on the nightly cron, which short-circuits when the
+  # default branch has not moved and reports the morning after the deploy anyway.
+  #
+  # This is not the nightly suite moved forward. It is the three files that assert
+  # what a crawler and a share sheet actually receive — the landing card, the room
+  # card the link preview warms, the recap card the share button fetches — on the
+  # `mobile` project alone, because 390x844 is the design target and the desktop
+  # project reads the same tags through a wider viewport. Ten tests. The full
+  # matrix is 35 files across three engines and budgets 45 minutes; a per-push job
+  # that slow stops being read, which is the failure this job exists to fix.
+  #
+  # Advisory in exactly the sense the header describes: Dokploy polls git, so a red
+  # X here means the broken card is already in production and the fix is to roll
+  # forward. Deliberately not continue-on-error — a green check over a red run is
+  # how a check quietly becomes decoration.
   e2e-unfurl:
     runs-on: ubuntu-latest
     # The suite boots its own `next dev` and compiles routes on demand; without a

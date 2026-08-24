@@ -4,10 +4,10 @@ description: "Organize as despesas de uma viagem entre países: escolha uma moed
 slug: split-a-group-trip-across-countries
 type: guide
 lang: pt-br
-author: Peanut
+author: Squirrel Labs
 date: 2026-07-28
 tags: [viagens, moedas, receber]
-claims: [automatic-currency-conversion, netting-is-bounded-exact, settle-is-a-record, link-is-the-key, free-forever, no-app]
+claims: [automatic-currency-conversion, netting-is-bounded-exact, settle-is-a-record, link-is-the-key, no-app]
 cast: []
 canonical: https://peanutsplit.com/pt-br/guides/split-a-group-trip-across-countries
 schema_types: [BlogPosting]
@@ -26,17 +26,18 @@ generated_from:
   context:
     - split-content/_system/context/messaging.md
     - split-content/_system/context/localization.pt-br.md
+    - split-content/_system/context/valid-links.md
   guidelines:
     - split-content/_system/guidelines/seo.md
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-11
+generated_at: 2026-08-24
 ---
 
 Numa viagem de brasileiros a Buenos Aires, uma pessoa paga o apartamento, outra cobre o aluguel do
 carro e os recibos somem entre fotos no WhatsApp; se o rateio não fecha, alguém volta para casa no
-prejuízo e o ressentimento reaparece no próximo encontro. Deixe o Split by Peanut cuidar dessa parte.
+prejuízo e o ressentimento reaparece no próximo encontro. Deixe o Peanut Split cuidar dessa parte.
 O Split reúne as despesas na mesma sala para o grupo conferir o rateio.
 
 Nessa hora, quem organizou a viagem procura recibos no histórico do WhatsApp. Vamos poupar esse
@@ -50,9 +51,7 @@ trabalho!
 <Step title="Combine com o grupo o que entra">Decida se entram mercado, pedágio e gorjeta, ou apenas as despesas maiores. Uma mensagem resolve essa parte.</Step>
 </Steps>
 
-O Split abre no navegador; ninguém precisa instalá-lo para entrar. O Peanut faz o Split para que
-mais pessoas conheçam o Peanut. Por isso, o Split é grátis para sempre e não existe nenhuma versão
-paga.
+O Split abre no navegador; ninguém precisa instalá-lo para entrar.
 
 ## Registre cada despesa enquanto está com o recibo
 

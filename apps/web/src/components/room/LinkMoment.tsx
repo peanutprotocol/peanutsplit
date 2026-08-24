@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
-import { siteUrl } from '@/lib/site'
+import { productUrl } from '@/lib/site'
 import { QRCodeSVG } from 'qrcode.react'
 import { peanutWavingHello } from '@/assets/mascot'
 import { Button } from '@/components/ui/Button'
@@ -51,8 +51,8 @@ interface LinkMomentProps {
     onCompleted?: (method: 'native' | 'clipboard') => void
 }
 
-export const roomUrl = (slug: string): string =>
-    typeof window === 'undefined' ? `${siteUrl}/r/${slug}` : `${window.location.origin}/r/${slug}`
+/** Share the configured product origin even if an untrusted Host reaches the renderer. */
+export const roomUrl = (slug: string): string => productUrl(`/r/${slug}`)
 
 /**
  * The group-chat handoff.

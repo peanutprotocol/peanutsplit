@@ -1,10 +1,12 @@
 import { prisma } from '@/server/db'
 import { labelForOrdinal } from '@/server/history'
 import { notFound } from '@/server/http'
+import { ROOM_CAPABILITY_REDACTION, redactRoomCapability, sanitizeExportValue } from '@/lib/export-sanitizer'
+
+export { ROOM_CAPABILITY_REDACTION, redactRoomCapability } from '@/lib/export-sanitizer'
 
 export const ROOM_HISTORY_EXPORT_SCHEMA = 'peanut-split-room-history' as const
 export const ROOM_HISTORY_EXPORT_VERSION = 1 as const
-export const ROOM_CAPABILITY_REDACTION = '[REDACTED_ROOM_CAPABILITY]' as const
 
 type HistoryCoverageBasis = 'room_created' | 'room_imported' | 'history_started' | 'unknown'
 type EarlierEvents = 'none' | 'unavailable' | 'unknown'
@@ -75,91 +77,8 @@ export interface RoomHistoryExport {
     events: RoomHistoryExportEvent[]
 }
 
-/**
- * Audit payloads are deliberately extensible JSON. Scrub recursively rather
- * than trusting today's writers: an older or future event must not turn a room
- * capability, member proof, push credential, or device fingerprint into a
- * durable file in somebody's Downloads directory.
- *
- * Conservative name/fragment matching catches future variants such as
- * `push_auth_token`; a narrow allowlist keeps harmless audit facts such as
- * `tokenRotated: true`.
- */
-const SECRET_FIELD_NAMES = new Set([
-    'slug',
-    'roomslug',
-    'capability',
-    'roomcapability',
-    'token',
-    'tokens',
-    'membertoken',
-    'accesstoken',
-    'refreshtoken',
-    'idtoken',
-    'authtoken',
-    'secrettoken',
-    'secret',
-    'secrets',
-    'clientsecret',
-    'apikey',
-    'privatekey',
-    'authorization',
-    'auth',
-    'cookie',
-    'cookies',
-    'credential',
-    'credentials',
-    'password',
-    'passcode',
-    'keys',
-    'p256dh',
-    'endpoint',
-    'useragent',
-    'actordevicehash',
-    'devicehash',
-])
-const SECRET_FIELD_FRAGMENT = /(token|secret|password|passcode|credential|authorization|cookie|privatekey|apikey)/
-const SAFE_SECURITY_METADATA_FIELDS = new Set(['tokenrotated'])
-
-const normalizedFieldName = (key: string): string =>
-    key
-        .normalize('NFKC')
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, '')
-const secretField = (key: string): boolean => {
-    const normalized = normalizedFieldName(key)
-    return (
-        !SAFE_SECURITY_METADATA_FIELDS.has(normalized) &&
-        (SECRET_FIELD_NAMES.has(normalized) || SECRET_FIELD_FRAGMENT.test(normalized))
-    )
-}
-const regexEscape = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-
-/** Replace the live bearer value wherever it was embedded (for example in a URL or note). */
-export function redactRoomCapability(value: string, liveSlug: string): string {
-    if (!liveSlug) return value
-    const variants = [...new Set([liveSlug, encodeURIComponent(liveSlug)])]
-    return variants.reduce(
-        (redacted, variant) =>
-            variant ? redacted.replace(new RegExp(regexEscape(variant), 'gi'), ROOM_CAPABILITY_REDACTION) : redacted,
-        value
-    )
-}
-
-export function redactAuditPayload(value: unknown, liveSlug: string): unknown {
-    if (typeof value === 'string') return redactRoomCapability(value, liveSlug)
-    if (Array.isArray(value)) return value.map((item) => redactAuditPayload(item, liveSlug))
-    if (value === null || typeof value !== 'object') return value
-
-    const entries: [string, unknown][] = []
-    for (const [key, item] of Object.entries(value)) {
-        if (secretField(key) || redactRoomCapability(key, liveSlug) !== key) continue
-        entries.push([key, redactAuditPayload(item, liveSlug)])
-    }
-    // Object.fromEntries creates a data property for hostile keys such as
-    // `__proto__`; assigning those keys onto `{}` would mutate its prototype.
-    return Object.fromEntries(entries)
-}
+/** Compatibility name retained for the history-export callers and tests. */
+export const redactAuditPayload = sanitizeExportValue
 
 const historyCoverage = (events: readonly HistoryExportSourceEvent[]): RoomHistoryExport['historyCoverage'] => {
     const cutoff = events.find((event) => event.action === 'history_started')

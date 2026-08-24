@@ -36,7 +36,7 @@ interface SettleDrawerProps {
     me?: ApiMember | null
 }
 
-/** The Peanut link is the ONE place Peanut appears outside the footer mark, and
+/** The Peanut link is the one transactional reference allowed by the official-host budget, and
  *  it sits as an equal among cash and bank transfer — by product guardrail.
  *  code=squirrel gets a new user past peanut.me's invite wall (squirrel is the
  *  system inviter); campaign=split awards the Split badge and skips the waitlist.

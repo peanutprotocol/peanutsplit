@@ -7,8 +7,9 @@
  * (`src/content/alternatives/splitwise-alternative/`), where its three languages are three
  * markdown files held to the same gates as every other article.
  *
- * Rules for whoever edits this: keep it honest. Free forever is a promise, not a growth line;
- * "settle however you like" must never imply the Peanut path is safer than cash.
+ * Rules for whoever edits this: keep it honest. "Free to use" describes the current hosted policy,
+ * not the service's lifetime; "settle however you like" must never imply the Peanut path is safer
+ * than cash.
  */
 export const marketingCopy = {
     /**
@@ -24,7 +25,7 @@ export const marketingCopy = {
      */
     importPage: {
         meta: {
-            title: 'Import your Splitwise group — free forever, no account',
+            title: 'Import your Splitwise group — free to use, no account',
             description:
                 'Move a Splitwise group to Peanut Split in one step: export it as a spreadsheet, drop the file in, and get a shareable room with expenses and balances in it.',
         },

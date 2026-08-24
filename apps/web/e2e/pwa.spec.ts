@@ -77,6 +77,7 @@ test('direct room and recap responses expose the Split manifest in the initial h
 })
 
 test('the compatibility alias redirects instead of advertising a second installable Split', async ({ request }) => {
+    const configuredOrigin = new URL(test.info().project.use.baseURL as string).origin
     const headers = { 'x-forwarded-host': 'split.peanut.me', 'user-agent': chromeUserAgent }
     const [manifest, app] = await Promise.all([
         request.get('/manifest.webmanifest', { headers, maxRedirects: 0 }),
@@ -84,9 +85,9 @@ test('the compatibility alias redirects instead of advertising a second installa
     ])
 
     expect(manifest.status()).toBe(308)
-    expect(manifest.headers().location).toBe('https://peanutsplit.com/manifest.webmanifest')
+    expect(new URL(manifest.headers().location, configuredOrigin).href).toBe(`${configuredOrigin}/manifest.webmanifest`)
     expect(app.status()).toBe(308)
-    expect(app.headers().location).toBe('https://peanutsplit.com/app')
+    expect(new URL(app.headers().location, configuredOrigin).href).toBe(`${configuredOrigin}/app`)
 })
 
 test('iOS is offered "Split" as the home-screen name', async ({ page }) => {

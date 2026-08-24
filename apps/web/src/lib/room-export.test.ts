@@ -7,6 +7,7 @@ const state: RoomState = {
     room: {
         id: 'internal-room-id',
         slug: 'lisbon-weekend-secret',
+        analyticsKey: 'private-analytics-pseudonym',
         name: 'Lisbon, "weekend"',
         emoji: 'trip-plane',
         currency: 'EUR',
@@ -70,6 +71,9 @@ const csvWidth = (line: string): number => {
     return width
 }
 
+const percentEncodeEveryByte = (value: string): string =>
+    [...new TextEncoder().encode(value)].map((byte) => `%${byte.toString(16).padStart(2, '0')}`).join('')
+
 describe('room export', () => {
     it('keeps ledger and original-currency provenance without exporting the bearer credential', () => {
         const exported = portableRoom(state, '2026-07-29T12:00:00.000Z')
@@ -89,6 +93,7 @@ describe('room export', () => {
         expect(JSON.stringify(exported)).not.toContain(state.room.slug)
         expect(exported.room).not.toHaveProperty('slug')
         expect(exported.room).not.toHaveProperty('id')
+        expect(exported.room).not.toHaveProperty('analyticsKey')
     })
 
     it('produces a parseable JSON snapshot with a stable schema marker', () => {
@@ -144,9 +149,10 @@ describe('room export', () => {
         expect(csv).toContain('share,,expense-1,bea,,10925,EUR,,,7500,1.179991000000,PERCENTAGE')
     })
 
-    it('uses a safe local filename and never derives it from the slug', () => {
-        expect(exportFilename(state.room.name, 'json')).toBe('lisbon-weekend.json')
+    it('uses a safe generic filename because the display name can echo the slug', () => {
+        expect(exportFilename(state.room.name, 'json')).toBe('split-room.json')
         expect(exportFilename('✨', 'csv')).toBe('split-room.csv')
+        expect(exportFilename(`Archive of ${state.room.slug}`, 'json')).toBe('split-room.json')
     })
 
     it('does not turn user-authored spreadsheet cells into executable formulas', () => {
@@ -161,6 +167,79 @@ describe('room export', () => {
         expect(csv).toContain(`'\t@SUM(1+1)`)
         // Numeric balances stay numeric so the spreadsheet remains useful.
         expect(csv).toContain('balance,,,bea,,-2567,EUR')
+    })
+
+    it('redacts raw, case-varied and percent-encoded room capabilities from every exported text surface', () => {
+        const slug = state.room.slug
+        const upperSlug = slug.toUpperCase()
+        const encodedUpperSlug = percentEncodeEveryByte(upperSlug)
+        const hostile = {
+            ...state,
+            room: {
+                ...state.room,
+                name: `Raw echo ${upperSlug}`,
+                analyticsKey: 'analytics-key-must-not-leave',
+            },
+            members: [
+                {
+                    ...state.members[0],
+                    name: `Encoded member ${encodedUpperSlug}`,
+                    memberToken: 'member-proof-must-not-leave',
+                },
+                state.members[1],
+            ],
+            expenses: [
+                {
+                    ...state.expenses[0],
+                    description: `Room URL https://split.test/r/${slug}`,
+                    credentials: { bearer: slug },
+                    [`evidence-${encodedUpperSlug}`]: 'safe fact under a hostile key',
+                },
+            ],
+            settlements: [
+                {
+                    ...state.settlements[0],
+                    method: `wire-${upperSlug}`,
+                    note: `partially encoded lisbon%2Dweekend%2Dsecret`,
+                    receiptUrl: `https://receipts.test/${encodedUpperSlug}?download=1`,
+                    endpoint: `https://push.test/${slug}`,
+                },
+            ],
+        } as unknown as RoomState
+
+        const portable = portableRoom(hostile, '2026-07-29T12:00:00.000Z')
+        const json = JSON.stringify(portable)
+        const csv = roomCsv(hostile)
+
+        for (const output of [json, csv]) {
+            expect(output.toLowerCase()).not.toContain(slug.toLowerCase())
+            expect(output.toLowerCase()).not.toContain(encodedUpperSlug.toLowerCase())
+            expect(output).not.toContain('analytics-key-must-not-leave')
+            expect(output).not.toContain('member-proof-must-not-leave')
+            expect(output).not.toContain('https://push.test/')
+            expect(output).toContain('[REDACTED_ROOM_CAPABILITY]')
+        }
+
+        expect(portable.room).not.toHaveProperty('analyticsKey')
+        expect(portable.members[0]).not.toHaveProperty('memberToken')
+        expect(portable.expenses[0]).not.toHaveProperty('credentials')
+        expect(portable.settlements[0]).not.toHaveProperty('endpoint')
+        expect(Object.keys(portable.expenses[0])).toContain('evidence-[REDACTED_ROOM_CAPABILITY]')
+
+        // Security scrubbing must not break the ledger's relational graph.
+        expect(portable.expenses[0].id).toBe('expense-1')
+        expect(portable.expenses[0].shares.map((share) => share.memberId)).toEqual(['ana', 'bea'])
+        expect(portable.balances).toEqual(state.balances)
+        expect(portable.suggestedTransfers).toEqual(state.suggestedTransfers)
+        for (const member of portable.members) {
+            expect(deriveBalance(portable as unknown as RoomState, member.id).totalMinor).toBe(
+                portable.balances[member.id]
+            )
+        }
+        expect(csv).toContain('share,,expense-1,ana,,7000,EUR')
+        expect(csv).toContain('balance,,,ana,,2567,EUR')
+        expect(csv).toContain('suggested_transfer,,,,,2567,EUR')
+        expect(exportFilename(hostile.room.name, 'json')).not.toContain(slug)
     })
 
     it('keeps a maximum-size room and Unicode names readable in both formats', () => {

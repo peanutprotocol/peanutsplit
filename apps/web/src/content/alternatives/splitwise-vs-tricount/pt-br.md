@@ -6,7 +6,7 @@ type: comparison
 headTerm: splitwise vs tricount
 tags: [alternativas, moedas]
 claims:
-    - free-forever
+    - hosted-price
     - link-is-the-key
     - no-app
     - automatic-currency-conversion
@@ -206,7 +206,7 @@ O Tricount é da bunq, um banco, e o registro automático por cartão funciona s
 | Onde funciona            | "Free for iPhone, Android, and web."                             | download                                  | Qualquer navegador, sem instalar nada                                              |
 | Fora de sinal            | "Offline mode" listado como função básica                        | "add expenses that sync later"            | Despesas novas ficam na fila no celular; registrar um pagamento precisa de conexão |
 | Na hora de acertar       | "record any cash or online payment"                              | "paid directly to your bank account"      | Do jeito que vocês dois pagarem; um de vocês toca para registrar                   |
-| Quem está atrás          | "Made with :) in Providence, RI, USA"                            | "tricount by bunq"                        | Peanut                                                                             |
+| Quem está atrás          | "Made with :) in Providence, RI, USA"                            | "tricount by bunq"                        | Squirrel Labs                                                                      |
 
 Citações retiradas de splitwise.com, kb.splitwise.com, feedback.splitwise.com e tricount.com em 31 de julho de 2026.
 
@@ -241,7 +241,7 @@ Os dois são produtos maiores e com mais coisa dentro, e um grupo que ficaria fe
 
 ## Bom saber
 
-O Split é grátis para sempre e não existe nada para assinar depois. A Peanut faz o Split para apresentar a Peanut às pessoas, e é daí que sai o dinheiro, então não tem uma segunda versão para vender a você nem plano de construir uma.
+O serviço oficial é de uso grátis e não tem plano pago.
 
 <CTA
   title="Para o grupo que não se encaixa em nenhum dos dois"
