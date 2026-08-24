@@ -120,6 +120,18 @@ export const HARD_EXCLUDED_PATHS = Object.freeze([
 const PROFILE_PATH = 'public-release/allowlist.json'
 const CLEARANCE_PATH = 'public-release/clearance.json'
 const LEDGER_LABEL = 'private release ledger'
+const PUBLIC_CI_TEMPLATE_SHA256 = '500d6f34b3ea377afd51cc1e0057850f4bf002879f7d601b16600eb9984a4e4c'
+const PUBLIC_CI_ACTIONS = Object.freeze([
+	'        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683',
+	'        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020',
+])
+const PUBLIC_CI_RUN_COMMANDS = Object.freeze([
+	'corepack enable && corepack prepare pnpm@10.17.1 --activate',
+	REQUIRED_BUILD_COMMANDS.install.join(' '),
+	REQUIRED_BUILD_COMMANDS.typecheck.join(' '),
+	REQUIRED_BUILD_COMMANDS.foss_boundary_tests.join(' '),
+	REQUIRED_BUILD_COMMANDS.build.join(' '),
+])
 const MAX_FILE_BYTES = 1024 * 1024
 const BINARY_EXTENSIONS = new Set(['.ico', '.png', '.ttf', '.webp', '.woff', '.woff2'])
 const MEDIA_EXTENSIONS = new Set([...BINARY_EXTENSIONS, '.svg'])
@@ -172,10 +184,6 @@ const FOSS_RELEASE_BOUNDARY = Object.freeze({
 const FOSS_RELEASE_CONTRACTS = [
 	['apps/web/src/app/(product-shell)/(marketing)/source/page.tsx', /if \(!publicFossReleased\(\)\) notFound\(\)/u],
 	['apps/web/src/components/marketing/SiteFooter.tsx', /publicFossReleased\(\) &&/u],
-	[
-		'apps/web/src/components/marketing/mdx/blocks.tsx',
-		/export function PublicSourceOnly[\s\S]{0,300}return publicFossReleased\(\) \? children : null/u,
-	],
 	['apps/web/src/data/static-pages.ts', /inSitemap: publicFossReleased/u],
 	[
 		'apps/web/src/lib/content.ts',
@@ -629,6 +637,7 @@ function credentialSemanticName(value) {
 	const parts = normalized.split('_').filter(Boolean)
 	const has = (part) => parts.includes(part)
 	return (
+		(value === value.toUpperCase() && (value === 'TOKEN' || value === 'SECRET')) ||
 		has('PASSWORD') ||
 		has('PASSWD') ||
 		has('CREDENTIAL') ||
@@ -890,9 +899,96 @@ function validatePublicFossGate(file) {
 	}
 }
 
+function unwrapParentheses(node) {
+	let current = node
+	while (ts.isParenthesizedExpression(current)) current = current.expression
+	return current
+}
+
+function validatePublicSourceOnly(file) {
+	const source = file.bytes.toString('utf8')
+	const parsed = ts.createSourceFile('blocks.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+	const importsGate = parsed.statements.some(
+		(statement) =>
+			ts.isImportDeclaration(statement) &&
+			ts.isStringLiteral(statement.moduleSpecifier) &&
+			statement.moduleSpecifier.text === '@/lib/flags' &&
+			statement.importClause?.namedBindings &&
+			ts.isNamedImports(statement.importClause.namedBindings) &&
+			statement.importClause.namedBindings.elements.some(
+				(element) => !element.propertyName && element.name.text === 'publicFossReleased'
+			)
+	)
+	const declarations = parsed.statements.filter(
+		(statement) => ts.isFunctionDeclaration(statement) && statement.name?.text === 'PublicSourceOnly'
+	)
+	if (!importsGate || declarations.length !== 1) {
+		fail('PublicSourceOnly must import the public FOSS gate and have one top-level implementation')
+	}
+	const declaration = declarations[0]
+	const parameter = declaration.parameters[0]
+	const binding = parameter && ts.isObjectBindingPattern(parameter.name) ? parameter.name.elements : []
+	const statements = declaration.body?.statements ?? []
+	const returned = statements.length === 1 && ts.isReturnStatement(statements[0]) ? statements[0].expression : null
+	const conditional = returned ? unwrapParentheses(returned) : null
+	const condition =
+		conditional && ts.isConditionalExpression(conditional) ? unwrapParentheses(conditional.condition) : null
+	const whenTrue =
+		conditional && ts.isConditionalExpression(conditional) ? unwrapParentheses(conditional.whenTrue) : null
+	const whenFalse =
+		conditional && ts.isConditionalExpression(conditional) ? unwrapParentheses(conditional.whenFalse) : null
+	if (
+		declaration.parameters.length !== 1 ||
+		binding.length !== 1 ||
+		!ts.isIdentifier(binding[0].name) ||
+		binding[0].name.text !== 'children' ||
+		!condition ||
+		!ts.isCallExpression(condition) ||
+		condition.arguments.length !== 0 ||
+		!ts.isIdentifier(condition.expression) ||
+		condition.expression.text !== 'publicFossReleased' ||
+		!whenTrue ||
+		!ts.isIdentifier(whenTrue) ||
+		whenTrue.text !== 'children' ||
+		!whenFalse ||
+		whenFalse.kind !== ts.SyntaxKind.NullKeyword
+	) {
+		fail('PublicSourceOnly must be a single fail-closed conditional return')
+	}
+	const isolated = `${declaration.getText(parsed)}\nmodule.exports = { PublicSourceOnly }\n`
+	const output = ts.transpileModule(isolated, {
+		compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+		fileName: 'PublicSourceOnly.tsx',
+		reportDiagnostics: true,
+	})
+	if (output.diagnostics?.some((diagnostic) => diagnostic.category === ts.DiagnosticCategory.Error)) {
+		fail('PublicSourceOnly cannot be transpiled for behavioral gate verification')
+	}
+	const module = { exports: {} }
+	let released = false
+	try {
+		runInNewContext(
+			output.outputText,
+			{ module, exports: module.exports, publicFossReleased: () => released },
+			{ timeout: 1000 }
+		)
+		const render = module.exports.PublicSourceOnly
+		const children = Object.freeze({ marker: 'public-source-child' })
+		if (typeof render !== 'function' || render({ children }) !== null) {
+			fail('PublicSourceOnly emitted children while the public FOSS receipt was closed')
+		}
+		released = true
+		if (render({ children }) !== children) fail('PublicSourceOnly did not emit children after the FOSS gate opened')
+	} catch (error) {
+		if (error.message.startsWith('public-release:')) throw error
+		fail('PublicSourceOnly cannot be evaluated for behavioral gate verification')
+	}
+}
+
 function validateFossReleaseBoundary(files) {
 	for (const path of [
 		'apps/web/src/lib/flags.ts',
+		'apps/web/src/components/marketing/mdx/blocks.tsx',
 		'apps/web/.env.example',
 		'apps/web/Dockerfile',
 		'apps/web/docker-compose.yml',
@@ -936,6 +1032,7 @@ function validateFossReleaseBoundary(files) {
 		}
 	}
 	validatePublicFossGate(files.get('apps/web/src/lib/flags.ts'))
+	validatePublicSourceOnly(files.get('apps/web/src/components/marketing/mdx/blocks.tsx'))
 	for (const [path, pattern] of FOSS_RELEASE_CONTRACTS) {
 		if (!pattern.test(files.get(path).bytes.toString('utf8'))) {
 			fail(`FOSS release boundary contract drifted: ${path}`)
@@ -958,35 +1055,50 @@ function validatePublicCandidateScaffolding(files) {
 		fail('public candidate README must describe only the history-free apps/web distribution')
 	}
 	const workflow = files.get('.github/workflows/ci.yml').bytes.toString('utf8')
+	const workflowLines = workflow.split('\n')
+	const permissionLines = workflowLines.filter((line) => /^\s*permissions\s*:/u.test(line))
 	if (
-		!/^permissions:\n\s+contents: read$/mu.test(workflow) ||
-		/pull_request_target|contents:\s*write/iu.test(workflow)
+		permissionLines.length !== 1 ||
+		permissionLines[0] !== 'permissions:' ||
+		!workflow.includes('permissions:\n  contents: read\n\njobs:') ||
+		/pull_request_target|\b[a-z0-9_-]+\s*:\s*write\b/iu.test(workflow)
 	) {
 		fail('public candidate CI must use a read-only token and must not use pull_request_target')
 	}
-	for (const match of workflow.matchAll(/^\s*uses:\s*([^\s]+)$/gmu)) {
-		if (!/@[0-9a-f]{40}$/u.test(match[1]))
-			fail(`public candidate CI action is not pinned to a full SHA: ${match[1]}`)
+	const actionLines = workflowLines.filter((line) => /^\s*uses\s*:/u.test(line))
+	if (!sameArray(actionLines, PUBLIC_CI_ACTIONS)) {
+		fail('public candidate CI actions must exactly match the pinned action allowlist')
 	}
-	for (const required of ['install --frozen-lockfile', 'typecheck', 'build']) {
-		if (!workflow.includes(required)) fail(`public candidate CI is missing required gate: ${required}`)
+	const runCommands = []
+	for (let index = 0; index < workflowLines.length; index += 1) {
+		const match = /^(\s*)run\s*:\s*(.*)$/u.exec(workflowLines[index])
+		if (!match) continue
+		if (match[2] !== '>-') {
+			runCommands.push(match[2])
+			continue
+		}
+		const runIndent = match[1].length
+		const commandLines = []
+		for (index += 1; index < workflowLines.length; index += 1) {
+			const line = workflowLines[index]
+			if (!line.trim()) continue
+			if (line.search(/\S/u) <= runIndent) {
+				index -= 1
+				break
+			}
+			commandLines.push(line.trim())
+		}
+		runCommands.push(commandLines.join(' ').replace(/\\([()])/gu, '$1'))
 	}
-	const workflowLines = workflow.split('\n')
-	const stepIndex = workflowLines.findIndex((line) => line.trim() === '- name: FOSS release-boundary tests')
-	const runIndex = workflowLines.findIndex((line, index) => index > stepIndex && line.trim() === 'run: >-')
-	if (stepIndex === -1 || runIndex === -1) fail('public candidate CI is missing its folded FOSS boundary step')
-	const runIndent = workflowLines[runIndex].search(/\S/u)
-	const commandLines = []
-	for (let index = runIndex + 1; index < workflowLines.length; index += 1) {
-		const line = workflowLines[index]
-		if (!line.trim()) continue
-		if (line.search(/\S/u) <= runIndent) break
-		commandLines.push(line.trim())
-	}
-	const actualFossCommand = commandLines.join(' ').replace(/\\([()])/gu, '$1')
 	const requiredFossCommand = REQUIRED_BUILD_COMMANDS.foss_boundary_tests.join(' ')
-	if (actualFossCommand !== requiredFossCommand) {
+	if (runCommands[3] !== requiredFossCommand) {
 		fail('public candidate CI FOSS boundary command does not exactly match the attestation gate')
+	}
+	if (!sameArray(runCommands, PUBLIC_CI_RUN_COMMANDS)) {
+		fail('public candidate CI run commands must exactly match the attestation command allowlist')
+	}
+	if (sha256(Buffer.from(workflow)) !== PUBLIC_CI_TEMPLATE_SHA256) {
+		fail('public candidate CI workflow differs from the reviewed canonical template')
 	}
 }
 
@@ -1273,6 +1385,9 @@ export function auditCandidate(
 	if (!ledgerPath) fail('independent candidate audit requires the external private ledger')
 	assertExternalReleaseInput(trustedSourceRoot, ledgerPath, LEDGER_LABEL)
 	const ledgerReal = realpathSync(resolve(ledgerPath))
+	if (process.platform !== 'win32' && (statSync(ledgerReal).mode & 0o077) !== 0) {
+		fail('private release ledger must not be readable or writable by group or other users')
+	}
 	const candidateReal = realpathSync(root)
 	if (ledgerReal === candidateReal || ledgerReal.startsWith(`${candidateReal}${sep}`)) {
 		fail('private release ledger must not be stored inside the candidate')
@@ -1932,6 +2047,11 @@ export function createReleaseReceipt({
 	if (!sameArray(refs, [`refs/heads/main commit ${publicGit.commit}`])) {
 		fail('public checkout must expose only refs/heads/main at the history-free release commit')
 	}
+	const remotes = execFileSync('git', ['remote'], { cwd: publicRoot, encoding: 'utf8' })
+		.trim()
+		.split(/\s+/u)
+		.filter(Boolean)
+	if (remotes.length > 0) fail('public checkout must be a fresh repository without configured remotes')
 	const symbolicHead = execFileSync('git', ['symbolic-ref', '--quiet', 'HEAD'], {
 		cwd: publicRoot,
 		encoding: 'utf8',
@@ -1960,6 +2080,24 @@ export function createReleaseReceipt({
 		.filter(Boolean)
 	if (new Set(allCommits).size !== 1 || allCommits[0] !== publicGit.commit) {
 		fail('public checkout must contain exactly one history-free commit across all refs')
+	}
+	const reflogCommits = execFileSync('git', ['reflog', '--all', '--format=%H'], {
+		cwd: publicRoot,
+		encoding: 'utf8',
+	})
+		.trim()
+		.split(/\s+/u)
+		.filter(Boolean)
+	if (reflogCommits.some((commit) => commit !== publicGit.commit)) {
+		fail('public checkout reflogs must contain only the history-free release commit')
+	}
+	const objectAudit = spawnSync(
+		'git',
+		['--no-replace-objects', 'fsck', '--full', '--unreachable', '--no-reflogs', '--no-progress'],
+		{ cwd: publicRoot, encoding: 'utf8' }
+	)
+	if (objectAudit.status !== 0 || objectAudit.stdout.trim() || objectAudit.stderr.trim()) {
+		fail('public checkout object database contains unreachable, dangling, or invalid objects')
 	}
 	const parentLine = execFileSync(
 		'git',

@@ -280,12 +280,14 @@ launch**.
    software freedom are separate claims, “Split by Peanut” and wrong Peanut maintainer/funder claims
    are retired, and `marketing-copy:audit:all` is clean. FOSS intent is consolidated into the one
    substantive Splitwise comparison in English, Spanish, and Portuguese rather than doorway pages.
-4. **Positive claims fail closed.** `/source`, the three comparison routes, their sitemap entries,
-   and the footer link require the same literal release flag and complete corresponding-source
-   receipt. A hand reproduction with blank receipt fields returned 404/noindex with no claim text;
-   a complete synthetic receipt returned 200 with exact commit/archive fields. The application
-   validates syntax and equality only; release audit and deployment controls must establish that the
-   embedded values are truthful.
+4. **Positive claims fail closed without sacrificing the canonical SEO page.** `/source` and the
+   footer link require the same literal release flag and complete corresponding-source receipt. The
+   established Splitwise-comparison URLs, sitemap entries, and safe “free/no signup” metadata remain
+   live before release; only their `publicSource*` metadata, FAQ/schema entries, OG title, and
+   `<PublicSourceOnly>` body regions open with that receipt. Closed-render regressions assert zero
+   AGPL/FOSS/self-hosting copy or `/source` links, and the copy audit permits launch language only in
+   those exact frontmatter/MDX regions. The application validates syntax and equality only; release
+   audit and deployment controls must establish that embedded receipt values are truthful.
 5. **Restore and export blockers resolved.** Expense restore moved behind both room slug and expense
    id, with a mismatched-room 404/no-mutation regression. Portable JSON, CSV, and history exports now
    remove credential-shaped fields and raw, case-varied, and percent-encoded room capabilities while
