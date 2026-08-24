@@ -1,0 +1,619 @@
+<title>Split Listing Kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+	rel="stylesheet"
+	href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400;8..144,500;8..144,800&family=Roboto+Mono:wght@400;500&display=swap"
+/>
+
+<style>
+	:root {
+		--pink: #ff90e8;
+		--yellow: #ffc900;
+		--lav: #90a8ed;
+		--ink: #100a0e;
+		--ground: #ffffff;
+		--card: #ffffff;
+		--muted: #6b5f67;
+		--rule: #100a0e;
+		--hair: #e4dae1;
+		--shadow: #100a0e;
+		--ok: #1b7f4b;
+		--warn: #a8631a;
+		--stop: #b3261e;
+		--tint: #fff4fc;
+	}
+	@media (prefers-color-scheme: dark) {
+		:root:not([data-theme='light']) {
+			--ink: #f7eff4;
+			--ground: #140f13;
+			--card: #1d161b;
+			--muted: #b3a3ad;
+			--rule: #3a2e36;
+			--hair: #2c2229;
+			--shadow: #000000;
+			--tint: #251a22;
+			--ok: #5fd494;
+			--warn: #e9a94f;
+			--stop: #ff8a80;
+		}
+	}
+	:root[data-theme='dark'] {
+		--ink: #f7eff4;
+		--ground: #140f13;
+		--card: #1d161b;
+		--muted: #b3a3ad;
+		--rule: #3a2e36;
+		--hair: #2c2229;
+		--shadow: #000000;
+		--tint: #251a22;
+		--ok: #5fd494;
+		--warn: #e9a94f;
+		--stop: #ff8a80;
+	}
+
+	* {
+		box-sizing: border-box;
+	}
+	body {
+		margin: 0;
+		background: var(--ground);
+		color: var(--ink);
+		font-family:
+			'Roboto Flex',
+			system-ui,
+			-apple-system,
+			sans-serif;
+		font-size: 17px;
+		line-height: 1.6;
+		-webkit-font-smoothing: antialiased;
+	}
+	.wrap {
+		max-width: 880px;
+		margin: 0 auto;
+		padding: 0 24px 96px;
+	}
+
+	/* ---- hero ---- */
+	.hero {
+		background: var(--pink);
+		border-bottom: 2px solid var(--rule);
+		margin-bottom: 48px;
+	}
+	.hero__in {
+		max-width: 880px;
+		margin: 0 auto;
+		padding: 44px 24px 40px;
+		display: flex;
+		gap: 24px;
+		align-items: center;
+		flex-wrap: wrap;
+	}
+	.hero img {
+		width: 84px;
+		height: 84px;
+		border: 2px solid #100a0e;
+		border-radius: 18px;
+		box-shadow: 5px 5px 0 #100a0e;
+		background: #fff;
+	}
+	.hero h1 {
+		font-size: clamp(34px, 6vw, 52px);
+		font-weight: 800;
+		line-height: 1.02;
+		margin: 0 0 6px;
+		color: #100a0e;
+		text-wrap: balance;
+		letter-spacing: -0.02em;
+	}
+	.hero p {
+		margin: 0;
+		color: #100a0e;
+		font-weight: 500;
+		max-width: 46ch;
+	}
+
+	h2 {
+		font-size: 13px;
+		font-weight: 800;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		margin: 56px 0 4px;
+		color: var(--muted);
+	}
+	h2 + .lede {
+		margin: 0 0 22px;
+		font-size: 21px;
+		font-weight: 500;
+		max-width: 60ch;
+		text-wrap: balance;
+		line-height: 1.35;
+	}
+	p {
+		max-width: 66ch;
+	}
+	a {
+		color: inherit;
+		text-decoration-color: var(--pink);
+		text-decoration-thickness: 2px;
+		text-underline-offset: 3px;
+	}
+	a:focus-visible,
+	button:focus-visible {
+		outline: 3px solid var(--lav);
+		outline-offset: 2px;
+	}
+
+	/* ---- status ---- */
+	.status {
+		display: grid;
+		gap: 12px;
+		margin: 8px 0 0;
+		padding: 0;
+		list-style: none;
+	}
+	.status li {
+		display: grid;
+		grid-template-columns: 92px 1fr;
+		gap: 16px;
+		align-items: start;
+		padding: 14px 16px;
+		background: var(--card);
+		border: 1px solid var(--hair);
+		border-radius: 12px;
+	}
+	.chip {
+		font-family: 'Roboto Mono', monospace;
+		font-size: 10.5px;
+		font-weight: 500;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		padding: 4px 0;
+		text-align: center;
+		border-radius: 5px;
+		border: 1.5px solid currentColor;
+	}
+	.chip--ok {
+		color: var(--ok);
+	}
+	.chip--warn {
+		color: var(--warn);
+	}
+	.chip--stop {
+		color: var(--stop);
+	}
+	.status b {
+		display: block;
+		font-weight: 800;
+	}
+	.status span {
+		color: var(--muted);
+		font-size: 15.5px;
+	}
+
+	/* ---- copy fields ---- */
+	.field {
+		border: 1px solid var(--hair);
+		border-radius: 12px;
+		margin-bottom: 12px;
+		background: var(--card);
+		overflow: hidden;
+	}
+	.field__head {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 9px 12px 9px 16px;
+		border-bottom: 1px solid var(--hair);
+		background: var(--tint);
+	}
+	.field__label {
+		font-size: 12px;
+		font-weight: 800;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--muted);
+	}
+	.copy {
+		font-family: 'Roboto Mono', monospace;
+		font-size: 11px;
+		font-weight: 500;
+		padding: 5px 12px;
+		cursor: pointer;
+		color: var(--ink);
+		background: var(--ground);
+		border: 1.5px solid var(--rule);
+		border-radius: 6px;
+		transition: transform 0.1s;
+	}
+	.copy:hover {
+		background: var(--yellow);
+		color: #100a0e;
+	}
+	.copy:active {
+		transform: translate(1px, 1px);
+	}
+	.copy[data-done='1'] {
+		background: var(--ok);
+		border-color: var(--ok);
+		color: #fff;
+	}
+	.field__val {
+		font-family: 'Roboto Mono', monospace;
+		font-size: 13.5px;
+		line-height: 1.65;
+		margin: 0;
+		padding: 14px 16px;
+		white-space: pre-wrap;
+		word-break: break-word;
+	}
+
+	/* ---- callout ---- */
+	.callout {
+		border: 2px solid var(--rule);
+		border-radius: 14px;
+		padding: 20px 22px;
+		background: var(--card);
+		box-shadow: 6px 6px 0 var(--shadow);
+		margin: 22px 0;
+	}
+	.callout h3 {
+		margin: 0 0 8px;
+		font-size: 18px;
+		font-weight: 800;
+	}
+	.callout p:last-child {
+		margin-bottom: 0;
+	}
+	.callout--warn {
+		background: var(--yellow);
+		color: #100a0e;
+		border-color: #100a0e;
+		box-shadow: 6px 6px 0 #100a0e;
+	}
+	.callout--warn a {
+		color: #100a0e;
+	}
+
+	/* ---- gallery ---- */
+	.gallery {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+		gap: 22px;
+		margin-top: 22px;
+	}
+	.shot {
+		margin: 0;
+	}
+	.shot--wide {
+		grid-column: 1 / -1;
+	}
+	.shot img {
+		width: 100%;
+		display: block;
+		border: 2px solid var(--rule);
+		border-radius: 12px;
+		box-shadow: 5px 5px 0 var(--shadow);
+		background: #fff;
+	}
+	figcaption {
+		margin-top: 12px;
+		font-size: 14px;
+		line-height: 1.4;
+	}
+	figcaption b {
+		display: block;
+		font-weight: 800;
+	}
+	figcaption span {
+		color: var(--muted);
+	}
+	.pending {
+		font-size: 15px;
+		color: var(--muted);
+		border-left: 3px solid var(--yellow);
+		padding-left: 14px;
+		margin-top: 20px;
+	}
+
+	/* ---- table ---- */
+	.scroll {
+		overflow-x: auto;
+		margin-top: 20px;
+		border: 1px solid var(--hair);
+		border-radius: 12px;
+	}
+	table {
+		border-collapse: collapse;
+		width: 100%;
+		font-size: 15px;
+	}
+	th,
+	td {
+		text-align: left;
+		padding: 11px 16px;
+		border-bottom: 1px solid var(--hair);
+		white-space: nowrap;
+	}
+	th {
+		font-size: 11px;
+		font-weight: 800;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--muted);
+		background: var(--tint);
+	}
+	tbody tr:last-child td {
+		border-bottom: 0;
+	}
+	td.w {
+		white-space: normal;
+		min-width: 250px;
+		color: var(--muted);
+	}
+	.dot {
+		font-family: 'Roboto Mono', monospace;
+		font-size: 11px;
+		font-weight: 500;
+	}
+
+	code {
+		font-family: 'Roboto Mono', monospace;
+		font-size: 0.88em;
+		background: var(--tint);
+		padding: 2px 6px;
+		border-radius: 4px;
+		border: 1px solid var(--hair);
+	}
+	pre.block {
+		font-family: 'Roboto Mono', monospace;
+		font-size: 13px;
+		background: var(--tint);
+		border: 1px solid var(--hair);
+		border-radius: 10px;
+		padding: 14px 16px;
+		overflow-x: auto;
+	}
+	hr {
+		border: 0;
+		border-top: 1px solid var(--hair);
+		margin: 0;
+	}
+	.foot {
+		margin-top: 64px;
+		padding-top: 20px;
+		border-top: 1px solid var(--hair);
+		font-size: 14px;
+		color: var(--muted);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		* {
+			transition: none !important;
+		}
+	}
+</style>
+
+<header class="hero">
+	<div class="hero__in">
+		<img src="{{ICON}}" alt="Peanut Split icon" />
+		<div>
+			<h1>Split Listing Kit</h1>
+			<p>Vetted copy, press assets, and what the directory campaign actually ran into.</p>
+		</div>
+	</div>
+</header>
+
+<div class="wrap">
+	<h2>Where this stands</h2>
+	<p class="lede">
+		One listing is live in a review queue. The bigger finding is that most of this list cannot be automated at all.
+	</p>
+	<ul class="status">
+		<li>
+			<span class="chip chip--ok">Submitted</span>
+			<div>
+				<b>pwa.directory</b
+				><span
+					>Filed 24 Aug, confirmation received in the intern mailbox. Human review, stated SLA under 4
+					weeks.</span
+				>
+			</div>
+		</li>
+		<li>
+			<span class="chip chip--ok">Ready</span>
+			<div>
+				<b>Copy &amp; press assets</b
+				><span
+					>Vetted strings below; icons and seven screenshots now served from
+					<code>peanutsplit.com/press/</code>.</span
+				>
+			</div>
+		</li>
+		<li>
+			<span class="chip chip--stop">Walled</span>
+			<div>
+				<b>5 of 9 directories</b
+				><span>Cloudflare, Turnstile or hCaptcha defend exactly the traffic shape this campaign has.</span>
+			</div>
+		</li>
+		<li>
+			<span class="chip chip--stop">Failed</span>
+			<div>
+				<b>pwa.com</b
+				><span>Their own upload backend returns 403. Nothing saved, not fixable from our side.</span>
+			</div>
+		</li>
+	</ul>
+
+	<div class="callout callout--warn">
+		<h3>The copy below is gated — do not paraphrase it</h3>
+		<p>{{RULES}}</p>
+		<p>Paste these strings verbatim. Rewording reintroduces exactly the claims that got caught.</p>
+	</div>
+
+	<h2>The bot wall</h2>
+	<p class="lede">Every target probed with a real browser. This, not copy or assets, is the deciding constraint.</p>
+	<div class="scroll">
+		<table>
+			<thead>
+				<tr>
+					<th>Directory</th>
+					<th>Result</th>
+					<th>Automatable</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td><b>AlternativeTo</b></td>
+					<td class="w">Cloudflare 403 on every page, including public ones</td>
+					<td class="dot">No</td>
+				</tr>
+				<tr>
+					<td>Peerlist</td>
+					<td class="w">Cloudflare 403 + Turnstile</td>
+					<td class="dot">No</td>
+				</tr>
+				<tr>
+					<td>MicroLaunch</td>
+					<td class="w">Cloudflare 403 + Turnstile</td>
+					<td class="dot">No</td>
+				</tr>
+				<tr>
+					<td>Launching Next</td>
+					<td class="w">Cloudflare 403 + Turnstile</td>
+					<td class="dot">No</td>
+				</tr>
+				<tr>
+					<td><b>SaaSHub</b></td>
+					<td class="w">Loads, but registration carries interactive hCaptcha</td>
+					<td class="dot">No</td>
+				</tr>
+				<tr>
+					<td>Fazier</td>
+					<td class="w">200, no wall on landing; submit form unprobed</td>
+					<td class="dot">Maybe</td>
+				</tr>
+				<tr>
+					<td>DevHunt</td>
+					<td class="w">200, no wall on landing; submit form unprobed</td>
+					<td class="dot">Maybe</td>
+				</tr>
+				<tr>
+					<td>Indie Hackers</td>
+					<td class="w">200, no wall on landing; submit form unprobed</td>
+					<td class="dot">Maybe</td>
+				</tr>
+				<tr>
+					<td>awesome-pwa</td>
+					<td class="w">Pull request, no bot wall</td>
+					<td class="dot">Yes</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	<p>
+		The Cloudflare blocks are browser-fingerprint blocks, so a human reading a challenge aloud does not help — those
+		need a genuine human browser session. The two highest-intent targets, AlternativeTo and SaaSHub, are both on the
+		wrong side of that line.
+	</p>
+	<p>
+		<b>Division of labour:</b> roughly four walled targets done by hand, about thirty minutes with every field
+		pre-staged below, while automation takes the open targets and the GitHub list PRs.
+	</p>
+
+	<div class="callout">
+		<h3>The higher-value motion is editorial, not submission</h3>
+		<p>
+			Directory submission is a thin seam: the good ones are walled and several open ones are half-built. The
+			"best Splitwise alternatives" comparison posts that already rank are human-edited lists reached by
+			<em>asking</em> — no bot walls, real referral traffic, and outreach that genuinely automates through the
+			existing mail persona stack.
+		</p>
+	</div>
+
+	<h2>Vetted copy</h2>
+	<p class="lede">Straight from <code>listing-kit.json</code>, so this page cannot drift from the checked strings.</p>
+	{{FIELDS}}
+	<p><b>Key features</b> — for directories that ask for bullets:</p>
+	<ul>
+		{{FEATURES}}
+	</ul>
+
+	<h2>Screenshots</h2>
+	<p class="lede">Shot from a real production room — four people, five expenses, live balances.</p>
+	<p>
+		Rather than mock up screens, the capture script creates an actual "Lisbon trip" room, adds a roster, files five
+		expenses across Stays, Food, Transport and Fun with different people paying, and photographs the result. The
+		balances are real arithmetic. All seven are now served from <code>peanutsplit.com/press/screenshots/</code>,
+		which matters because the repo is private and <code>raw.githubusercontent</code> links would 404 for any
+		directory fetching by URL.
+	</p>
+	<div class="gallery">{{GALLERY}}</div>
+	<p class="pending">
+		<b>Not included:</b> a desktop room shot. Split is mobile-first and renders a narrow column against dead space
+		at 1440px, which would weaken a listing rather than help it. The wide landing shot covers that need instead.
+	</p>
+
+	<h2>Mail access</h2>
+	<p class="lede">Working, but on a one-day fuse.</p>
+	<p>
+		The <code>konrad@peanut.me</code> token is <code>gmail.send</code> scope only — deliberate, and not worth
+		widening to read a whole founder inbox for confirmation mail. <code>intern@peanut.me</code> works in a browser
+		but costs a human-read CAPTCHA each sign-in, and IMAP with the account password fails outright because Workspace
+		has disabled password-based IMAP.
+	</p>
+	<div class="callout callout--warn">
+		<h3>Two deadlines</h3>
+		<p>
+			The domain enforces 2SV from <b>25 August</b>, and the enrolled factor is a passkey — device-bound, so
+			future sign-ins need you present. Treat the current browser session as one-shot.
+		</p>
+		<p>
+			<b>Smallest unblock:</b> an App Password for <code>intern@peanut.me</code>. Sixteen characters, works over
+			IMAP immediately, single-purpose, revocable — no GCP project, no service account, no domain-wide delegation.
+			Domain-wide delegation with <code>gmail.readonly</code> is the durable fix and is unaffected by 2SV.
+		</p>
+	</div>
+
+	<h2>Will this get us penalised</h2>
+	<p class="lede">No. But volume still has no upside.</p>
+	<p>
+		Since the December 2022 link-spam update, Google <em>neutralises</em> low-quality directory links rather than
+		penalising the site they point at. Manual actions for unnatural inbound links are rare and reserved for obvious
+		paid-link networks, and any manual action would show up in Search Console, which we already have access to.
+	</p>
+	<p>
+		Two real caveats. Directories that require a reciprocal do-follow badge <em>on peanutsplit.com</em> are a link
+		exchange — that lives on our own site, which is where manual actions actually bite. And because neutralised
+		links never recover their value, mass submission buys nothing. The bot wall enforces that discipline anyway.
+	</p>
+
+	<p class="foot">
+		Working files live in <code>peanutsplit/ops/listings/</code> — <code>listing-kit.json</code> is the single
+		source of truth for copy, <code>ledger.md</code> tracks per-directory status and submissions, and
+		<code>gen-report.py</code> rebuilds this page from both. Assets live in <code>apps/web/public/press/</code>.
+	</p>
+</div>
+
+<script>
+	document.querySelectorAll('.copy').forEach(function (btn) {
+		btn.addEventListener('click', function () {
+			var el = document.getElementById(btn.dataset.target)
+			if (!el) return
+			navigator.clipboard
+				.writeText(el.textContent)
+				.then(function () {
+					var old = btn.textContent
+					btn.textContent = 'Copied'
+					btn.dataset.done = '1'
+					setTimeout(function () {
+						btn.textContent = old
+						btn.dataset.done = '0'
+					}, 1400)
+				})
+				.catch(function () {
+					btn.textContent = 'Select it'
+				})
+		})
+	})
+</script>
