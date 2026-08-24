@@ -135,6 +135,11 @@ jobs:
     env:
       CI: true
       DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
+      # The Playwright webServer ignores DATABASE_URL entirely and pins its own from
+      # E2E_DATABASE_URL, falling back to split:split@localhost:5433 — a port nothing
+      # listens on here. Without this the app under test never reaches a database and
+      # every room-creating spec fails on a refused connection that reads like an app bug.
+      E2E_DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
       E2E_BROWSER: ${{ matrix.browser }}
     services:
       postgres:
@@ -180,6 +185,11 @@ jobs:
     env:
       CI: true
       DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
+      # The Playwright webServer ignores DATABASE_URL entirely and pins its own from
+      # E2E_DATABASE_URL, falling back to split:split@localhost:5433 — a port nothing
+      # listens on here. Without this the app under test never reaches a database and
+      # every room-creating spec fails on a refused connection that reads like an app bug.
+      E2E_DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
     services:
       postgres:
         image: postgres:16-alpine
