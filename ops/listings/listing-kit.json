@@ -1,0 +1,36 @@
+{
+  "_copy_rules": "Every string here must pass the same bars as src/content: no 'free forever' (product-truths.md#hosted-price), no 'works offline' / 'any currency' / 'multi-currency' (stylebook.md Offline + Currency rows), no 'fewest/minimum transfers' (content.test.ts#minimal-transfers). Nothing audits ops/, so this file is checked by hand — the first draft shipped three banned claims.",
+  "product": "Peanut Split",
+  "url": "https://peanutsplit.com",
+  "tagline_30": "Split costs, no signup",
+  "tagline_60": "Split group expenses from one link. No signup, no install.",
+  "tagline_100": "Share one link, split group expenses across 162 room currencies. No signup, no app, free to use.",
+  "description_260": "Peanut Split turns a group chat into a shared expense room. Paste one link, everyone adds what they paid, and Split converts across currencies at the day's indicative rate. No signup, no install. Split evenly, by shares, by percentage or exact amounts, import from Splitwise, scan receipts to itemise, then settle in cash, by bank transfer or through Peanut.",
+  "description_long": "Peanut Split turns a group chat into a shared expense room. Paste one link and everyone can open the same room and add what they paid - no account, no install, no app store. The catalog recognises 162 room currencies, and 156 of them convert automatically at the day's indicative rate.\n\nSplit evenly, by shares, by percentage or by exact amounts. Import an existing group from Splitwise, or scan a receipt to itemise it. Expenses typed with no signal wait on your phone and go when it comes back, and it installs to the home screen on iOS, Android and desktop as a Progressive Web App.\n\nWhen it is time to settle up, Split turns the balances into a short payment plan and lets people pay in cash, by bank transfer, or through Peanut. Free to use, with no ads and no paid tier.",
+  "categories": ["Finance", "Travel", "Productivity", "Web Apps", "PWA"],
+  "tags": [
+    "expense-splitting",
+    "group-travel",
+    "bill-splitting",
+    "currency-conversion",
+    "pwa",
+    "no-signup",
+    "splitwise-alternative",
+    "receipt-scanning"
+  ],
+  "key_features": [
+    "One shared link, no signup or install",
+    "162 room currencies, 156 convert automatically",
+    "Expenses typed with no signal sync when you reconnect",
+    "Import from Splitwise and scan receipts"
+  ],
+  "pricing": "Free to use, no paid tier",
+  "platforms": ["Web", "PWA (installable, iOS + Android + desktop)"],
+  "maker": "Squirrel Labs",
+  "contact": "intern@peanut.me",
+  "assets": {
+    "icon": "apps/web/public/icon.png",
+    "og": "apps/web/public/og-default.png",
+    "source": "design/og/c2-hifi-hl.html — re-render to change either copy of the card"
+  }
+}
