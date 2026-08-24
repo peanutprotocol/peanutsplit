@@ -69,6 +69,8 @@ const OG_IMAGE_ROUTES = [
     '(product-shell)/(marketing)/pt-br/[page]/opengraph-image.tsx',
     '(product-shell)/(marketing)/pt-br/blog/[slug]/opengraph-image.tsx',
     '(product-shell)/(marketing)/pt-br/blog/opengraph-image.tsx',
+    '(product-shell)/(marketing)/t/[template]/opengraph-image.tsx',
+    '(product-shell)/(marketing)/t/opengraph-image.tsx',
     '(product-shell)/(marketing)/tools/opengraph-image.tsx',
     '(product-shell)/r/[slug]/opengraph-image.tsx',
     '(product-shell)/r/[slug]/recap/opengraph-image.tsx',

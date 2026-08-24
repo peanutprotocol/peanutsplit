@@ -16,10 +16,14 @@ export const MARKETING_CACHE_CONTROL = 'public, max-age=0, s-maxage=600, stale-w
 const SLUG = '[a-z0-9]+(?:-[a-z0-9]+)*'
 
 /**
- * The blog hub and its articles, the calculators hub, and a root-level page (comparison, capture,
- * calculator) with its country pages. Mirrors `(marketing)` in `src/app`.
+ * The template rooms, the blog hub and its articles, the calculators hub, and a root-level page
+ * (comparison, capture, calculator) with its country pages. Mirrors `(marketing)` in `src/app`.
+ *
+ * `/t` is spelled out ahead of the root-level branch because its segment is reserved, and every
+ * reserved segment is per-request below. A template varies with nothing but its URL — the campaign
+ * it forwards is part of that URL — so it caches like the article it sits beside.
  */
-const MARKETING_SURFACES = new RegExp(`^(?:/blog(?:/${SLUG})?|/tools|/(${SLUG})(?:/${SLUG})?)$`)
+const MARKETING_SURFACES = new RegExp(`^(?:/t(?:/${SLUG})?|/blog(?:/${SLUG})?|/tools|/(${SLUG})(?:/${SLUG})?)$`)
 
 /**
  * Root segments that sit at a marketing-shaped URL but are not served by `[page]`: every root path

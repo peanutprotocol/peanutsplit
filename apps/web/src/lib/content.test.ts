@@ -25,6 +25,7 @@ import { DEFAULT_LOCALE, HREFLANG, INDEXED_LOCALES, LOCALES, type IndexedLocale 
 import { hreflangAlternates, localizedPath } from '@/i18n/paths'
 import sitemap from '@/app/sitemap'
 import { absoluteUrl, pageTitle } from './seo'
+import { TEMPLATES, templatePath } from '@/templates/registry'
 import { TOOLS, getTool, toolLocales, toolPath, toolsIn } from '@/tools/registry'
 import { MILEAGE_RATES } from '@/tools/mileage-rates'
 import { mileageSplitCalculator } from '@/tools/mileage-split-calculator'
@@ -402,6 +403,8 @@ describe('article bodies', () => {
             ...listAllTranslations().map((doc) => doc.href),
             ...[...staticPageSlugs].map((slug) => `/${slug}`),
             ...TOOLS.flatMap((tool) => toolLocales(tool).map((locale) => toolPath(tool, locale))),
+            // Template rooms. English only, so one path each and no prefixed twin.
+            ...TEMPLATES.map(templatePath),
             ...STATIC_PAGES.flatMap((page) =>
                 (page.locales ?? [DEFAULT_LOCALE]).map((locale) => localizedPath(page.href, locale))
             ),

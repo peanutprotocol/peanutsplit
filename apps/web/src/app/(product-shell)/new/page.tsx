@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { CreateRoomForm } from '@/components/room/CreateRoomForm'
+import { readPrefill } from '@/lib/room-prefill'
+import type { Query } from '@/lib/utm'
 
 export const metadata: Metadata = {
     title: 'New split — Peanut Split',
@@ -10,10 +12,16 @@ export const metadata: Metadata = {
     robots: { index: false, follow: true },
 }
 
-export default function NewRoomPage() {
+/**
+ * The query string is where a template link puts what it has already decided — see
+ * `room-prefill.ts`. Read on the server so the form's first paint already carries it: seeding
+ * from a client hook would render the empty composer and then rewrite it, and the field that
+ * matters is autofocused.
+ */
+export default async function NewRoomPage({ searchParams }: { searchParams: Promise<Query> }) {
     return (
         <main className="mx-auto min-h-dvh w-full max-w-xl bg-background">
-            <CreateRoomForm />
+            <CreateRoomForm prefill={readPrefill(await searchParams)} />
         </main>
     )
 }

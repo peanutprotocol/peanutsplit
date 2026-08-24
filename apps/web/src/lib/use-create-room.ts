@@ -14,6 +14,8 @@ export interface CreateRoomFields {
     emoji: string
     currency: string
     creatorName: string
+    /** The template link this came from, if any. A fact about the page, never about the room. */
+    template?: string
 }
 
 /**
@@ -52,7 +54,13 @@ export function useCreateRoomFlow(fallbackMessage: string) {
             // knows and only the room document advertises — and this runs on `/new`
             // or the landing hero, whose head is still describing that page. The
             // warm happens where the room itself renders; see `room-preview.ts`.
-            track('room_created', roomProps(state.room.slug, { currency: state.room.currency }))
+            track(
+                'room_created',
+                roomProps(state.room.slug, {
+                    currency: state.room.currency,
+                    ...(fields.template ? { template: fields.template } : {}),
+                })
+            )
             // A room came into being — the cork, not the pencil.
             feedback('pop')
             return state
