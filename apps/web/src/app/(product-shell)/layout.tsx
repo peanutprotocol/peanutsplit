@@ -77,6 +77,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     return (
         <html lang={HREFLANG[locale]} translate="no" style={{ colorScheme: 'light' }} suppressHydrationWarning>
             <head>
+                {/* Chrome's page-level translation prompt checks this literal head tag, not the
+                    standard translate="no" document attribute. Split owns the product locale, so
+                    keep Chrome from offering a second translation layer after a locale reload. */}
+                <meta name="google" content="notranslate" />
                 {/* Next streams Metadata API output after <body> on dynamic room routes. Browsers
                     ignore a manifest discovered there, which made the room surface ineligible for
                     installation. These product-only tags must be literal initial-head markup; the

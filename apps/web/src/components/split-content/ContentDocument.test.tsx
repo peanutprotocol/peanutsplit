@@ -13,6 +13,7 @@ const FORBIDDEN_CONTENT_HTML = [
     'apple-touch-icon',
     'apple-mobile-web-app',
     'mobile-web-app-capable',
+    'name="google"',
     'theme-color',
     '/favicon.ico',
     '/icon.png',
