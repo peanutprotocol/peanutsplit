@@ -47,9 +47,11 @@ async function expectIdentityInInitialHead(request: APIRequestContext, path: str
     expect(headEnd).toBeGreaterThan(0)
 
     const initialHead = html.slice(0, headEnd)
+    expect(initialHead).toContain('<meta name="google" content="notranslate"')
     expect(initialHead).toContain('<link rel="manifest" href="/manifest.webmanifest"')
     expect(initialHead).toContain('<meta name="application-name" content="Split"')
     expect(initialHead).toContain('<meta name="apple-mobile-web-app-title" content="Split"')
+    expect(html.match(/name="google" content="notranslate"/g) ?? []).toHaveLength(1)
     expect(html.match(/rel="manifest"/g) ?? []).toHaveLength(1)
 }
 

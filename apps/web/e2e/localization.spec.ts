@@ -18,6 +18,7 @@ test('native catalogs own the document and migrate existing locale choices', asy
 
         await expect(page.locator('html')).toHaveAttribute('lang', entry.lang)
         await expect(page.locator('html')).toHaveAttribute('translate', 'no')
+        await expect(page.locator('head > meta[name="google"]')).toHaveAttribute('content', 'notranslate')
         await expect(page.locator('.notranslate')).toHaveCount(0)
         await expect(page.locator('body [translate="no"]')).toHaveCount(0)
         await expect(page.getByTestId('pass-link-headline')).toHaveText(entry.headline)

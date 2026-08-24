@@ -19,8 +19,9 @@
  *      instead of the sentence. Caught for real on `room.latecomer.body`.
  *   4. A locale with grammatical plural categories omits one of them from an ICU plural. The
  *      `other` branch prevents a crash but can silently render the wrong noun form.
- *   5. Translation suppression appears below the document root. Native catalogs own the page;
- *      one root `translate="no"` policy replaces component-level translator workarounds.
+ *   5. Translation suppression appears below the product document root. Native catalogs own the
+ *      product page; one root `translate="no"` policy and one Chrome page-level opt-out replace
+ *      component-level translator workarounds. The separate content document stays translatable.
  *
  * Computed keys (`t(someVariable)`, `t(\`a.${b}\`)`) cannot be resolved statically and are
  * reported as skipped rather than guessed at. Keep them rare: the code paths that use them
@@ -335,7 +336,14 @@ const translationPolicyViolations = []
 for (const file of sourceFiles(srcRoot)) {
     const path = relative(appRoot, file)
     const source = stripComments(readFileSync(file, 'utf8'))
-    if (source.includes('notranslate')) translationPolicyViolations.push(`${path} uses notranslate`)
+    const notranslateOccurrences = source.match(/notranslate/g) ?? []
+    const googlePageOptOut = '<meta name="google" content="notranslate" />'
+    if (path !== layoutPath && notranslateOccurrences.length > 0) {
+        translationPolicyViolations.push(`${path} uses notranslate outside the product document root`)
+    }
+    if (path === layoutPath && (notranslateOccurrences.length !== 1 || !source.includes(googlePageOptOut))) {
+        translationPolicyViolations.push(`${path} must contain exactly one literal Google page-level opt-out`)
+    }
 
     const attributes = [...source.matchAll(/translate\s*=\s*['"]no['"]/g)]
     if (path !== layoutPath && attributes.length > 0) {
