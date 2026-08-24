@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { basename, extname, join, relative, resolve } from 'node:path'
+import matter from 'gray-matter'
 import ts from 'typescript'
 
 const root = resolve(import.meta.dirname, '..')
@@ -9,6 +10,12 @@ const FOSS_RELEASE_LABEL = 'claims FOSS, open-source, or AGPL status before the 
 const APPROVED_PUBLIC_SOURCE_CANDIDATES = new Set(
     ['en', 'es-419', 'pt-br'].map((locale) => `src/content/alternatives/splitwise-alternative/${locale}.md`)
 )
+const PUBLIC_SOURCE_FRONTMATTER_KEYS = new Set(['publicSourceTitle', 'publicSourceDescription', 'publicSourceFaqs'])
+// Internal evidence IDs are validated by content.test.ts but never rendered or emitted as metadata.
+const NON_COPY_FRONTMATTER_KEYS = new Set(['claims', 'competitorClaims'])
+const PUBLIC_SOURCE_WRAPPER_LABEL = 'has an unbalanced or nested PublicSourceOnly release boundary'
+const PUBLIC_SOURCE_BOUNDARY_PATTERN =
+    /\b(?:AGPL(?:-3\.0(?:-or-later)?)?|FOSS|open[- ]source|self[- ]host(?:ed|ing|able)?|public (?:source|repository)|source code|host (?:it|the (?:code|software|release)) yourself)\b|source.{0,30}publicly available|código abierto|código aberto|código fonte|código[- ]fonte|código fuente|software libre|software livre|repositorio público|repositório público|alojar(?:lo|la|se| Split)?.{0,35}(?:por tu cuenta|propio servidor)|auto[- ]hospedar|hospedar.{0,30}por conta própria|\]\(\/source(?:[?#][^)]*)?\)|href=["']\/source(?:[?#][^"']*)?["']/giu
 
 /**
  * These are posture failures, not a word-choice score. The official host has no paid tier today,
@@ -31,6 +38,13 @@ const prohibitedClaims = [
         label: FOSS_RELEASE_LABEL,
         pattern:
             /\b(?:Peanut Split|Split)\s+(?:is|remains|ships as|will (?:be|remain)|is licensed under)\s+(?:a\s+)?(?:free and open[- ]source|open[- ]source|FOSS|AGPL(?:-3\.0(?:-or-later)?)?)\b|\b(?:FOSS|open[- ]source|free and open[- ]source|AGPL(?:-3\.0(?:-or-later)?)?)\s+(?:alternatives?(?:\s+to\s+Splitwise)?|Splitwise\s+alternatives?|expense[- ]sharing app|bill[- ]splitting app|expense splitter|bill splitter)\b|\bSplit\s+(?:es|seguirá siendo)\s+(?:FOSS|software libre|de código abierto)\b|\b(?:O\s+)?Split\s+(?:é|continua sendo)\s+(?:FOSS|software livre|de código aberto)\b|\bSplit\s+(?:ist|bleibt)\s+(?:Open Source|quelloffen)\b|\bSplit\s+(?:est|reste)\s+(?:open source|un logiciel libre)\b|\bSplit\s+(?:jest|pozostaje)\s+(?:open source|otwartym oprogramowaniem)\b|\bSplit\s+(?:є|залишається)\s+(?:open source|програмним забезпеченням з відкритим кодом)\b/giu,
+    },
+    {
+        // Interrogative FAQ/schema copy is still visible copy. Without this order, “Is Split open
+        // source?” bypasses the statement-shaped rule above and leaks from an ungated base FAQ.
+        label: FOSS_RELEASE_LABEL,
+        pattern:
+            /\b(?:is|isn['’]t|is not)\s+(?:Peanut Split|Split)\s+(?:an?\s+)?(?:free and open[- ]source|open[- ]source|FOSS|AGPL(?:-3\.0(?:-or-later)?)?)\b/giu,
     },
     {
         label: 'guarantees that future versions will keep the same FOSS terms',
@@ -116,6 +130,17 @@ export function findPostureFailures(text, { allowPublicSourceCandidate = false }
     return found
 }
 
+function findBoundaryPostureFailures(text, { candidate, gated }) {
+    const found = findPostureFailures(text, { allowPublicSourceCandidate: candidate && gated })
+    if (!candidate || gated) return found
+
+    if (!found.some((failure) => failure.label === FOSS_RELEASE_LABEL)) {
+        const match = text.match(PUBLIC_SOURCE_BOUNDARY_PATTERN)?.[0]
+        if (match) found.push({ label: FOSS_RELEASE_LABEL, match })
+    }
+    return found
+}
+
 export function markdownParagraphs(source) {
     const paragraphs = []
     let lines = []
@@ -137,6 +162,178 @@ export function markdownParagraphs(source) {
     })
     flush()
     return paragraphs
+}
+
+function lineAt(source, index) {
+    return source.slice(0, index).split('\n').length
+}
+
+function commentRanges(source) {
+    const ranges = []
+    for (const pattern of [/\{\/\*[\s\S]*?(?:\*\/|$)/gu, /<!--[\s\S]*?(?:-->|$)/gu]) {
+        for (const match of source.matchAll(pattern)) ranges.push([match.index, match.index + match[0].length])
+    }
+    return ranges
+}
+
+function fencedCodeRanges(source) {
+    const ranges = []
+    const lines = source.matchAll(/^.*(?:\r?\n|$)/gmu)
+    let fence = null
+    for (const line of lines) {
+        const marker = line[0].match(/^\s*(`{3,}|~{3,})/u)?.[1]
+        if (!marker) continue
+        if (fence === null) {
+            fence = { character: marker[0], length: marker.length, start: line.index }
+        } else if (marker[0] === fence.character && marker.length >= fence.length) {
+            ranges.push([fence.start, line.index + line[0].length])
+            fence = null
+        }
+    }
+    if (fence !== null) ranges.push([fence.start, source.length])
+    return ranges
+}
+
+function inRanges(index, ranges) {
+    return ranges.some(([start, end]) => index >= start && index < end)
+}
+
+function maskRanges(source, ranges) {
+    if (ranges.length === 0) return source
+    // `String#matchAll` reports UTF-16 offsets. `split('')` deliberately uses the same units so an
+    // emoji before a comment cannot shift the masked range onto rendered prose.
+    const characters = source.split('')
+    for (const [start, end] of ranges) {
+        for (let index = start; index < end; index++) {
+            if (characters[index] !== '\n' && characters[index] !== '\r') characters[index] = ' '
+        }
+    }
+    return characters.join('')
+}
+
+/**
+ * Split an MDX body at the only component allowed to carry pre-release public-source prose.
+ * Returning the wrapper text itself would let a paragraph straddle the trust boundary, so tags
+ * are consumed and the prose on either side is audited as separate segments.
+ */
+export function publicSourceBodySegments(source) {
+    const segments = []
+    const boundaryFailures = []
+    const comments = commentRanges(source)
+    const protectedRanges = [...comments, ...fencedCodeRanges(source)]
+    const visibleSource = maskRanges(source, comments)
+    // A root-level MDX component is the release boundary. Requiring its tag to own the line keeps
+    // inline code, prose and examples from being mistaken for the component the renderer executes.
+    const tags = [...source.matchAll(/^[\t ]*<\/?PublicSourceOnly\s*>[\t ]*(?:\r?\n|$)/gmu)].filter(
+        (match) => !inRanges(match.index, protectedRanges)
+    )
+    const recognizedTagIndexes = new Set(tags.map((match) => match.index + match[0].indexOf('<')))
+    for (const rawTag of source.matchAll(/<\/?PublicSourceOnly\b/gu)) {
+        if (!inRanges(rawTag.index, protectedRanges) && !recognizedTagIndexes.has(rawTag.index)) {
+            boundaryFailures.push({
+                line: lineAt(source, rawTag.index),
+                label: PUBLIC_SOURCE_WRAPPER_LABEL,
+                match: 'PublicSourceOnly must be a standalone MDX block',
+            })
+        }
+    }
+    let depth = 0
+    let cursor = 0
+
+    for (const match of tags) {
+        if (match.index > cursor) {
+            segments.push({
+                line: lineAt(source, cursor),
+                text: visibleSource.slice(cursor, match.index),
+                gated: depth === 1,
+            })
+        }
+
+        const renderedTag = match[0].trim()
+        const closing = renderedTag.startsWith('</')
+        if ((!closing && depth !== 0) || (closing && depth !== 1)) {
+            boundaryFailures.push({
+                line: lineAt(source, match.index),
+                label: PUBLIC_SOURCE_WRAPPER_LABEL,
+                match: renderedTag,
+            })
+        }
+        depth += closing ? -1 : 1
+        if (depth < 0) depth = 0
+        cursor = match.index + match[0].length
+    }
+
+    if (cursor < source.length) {
+        segments.push({ line: lineAt(source, cursor), text: visibleSource.slice(cursor), gated: depth === 1 })
+    }
+    if (depth !== 0) {
+        boundaryFailures.push({
+            line: lineAt(source, source.length),
+            label: PUBLIC_SOURCE_WRAPPER_LABEL,
+            match: 'missing closing tag',
+        })
+    }
+
+    return { segments, boundaryFailures }
+}
+
+/** Pure Markdown posture audit, exported so the release-boundary fixtures exercise the CLI logic. */
+export function findMarkdownPostureFailures(source, { allowPublicSourceCandidate = false } = {}) {
+    let parsed
+    try {
+        parsed = matter(source)
+    } catch {
+        return markdownParagraphs(source).flatMap(({ line, text }) =>
+            findPostureFailures(text).map((failure) => ({ line, ...failure }))
+        )
+    }
+
+    const failures = []
+    const visitFrontmatter = (value, path, publicSourceField) => {
+        if (typeof value === 'string') {
+            for (const failure of findBoundaryPostureFailures(value, {
+                candidate: allowPublicSourceCandidate,
+                gated: publicSourceField,
+            })) {
+                failures.push({ line: `frontmatter.${path}`, ...failure })
+            }
+            return
+        }
+        if (Array.isArray(value)) {
+            value.forEach((item, index) => visitFrontmatter(item, `${path}[${index}]`, publicSourceField))
+            return
+        }
+        if (value && typeof value === 'object') {
+            for (const [key, child] of Object.entries(value)) {
+                if (!path && NON_COPY_FRONTMATTER_KEYS.has(key)) continue
+                const childPath = path ? `${path}.${key}` : key
+                visitFrontmatter(
+                    child,
+                    childPath,
+                    publicSourceField || (!path && PUBLIC_SOURCE_FRONTMATTER_KEYS.has(key))
+                )
+            }
+        }
+    }
+    visitFrontmatter(parsed.data, '', false)
+
+    const frontmatterPrefix = source.match(/^---\r?\n[\s\S]*?\r?\n---(?:\r?\n)?/u)?.[0] ?? ''
+    const bodyStartLine = lineAt(source, frontmatterPrefix.length)
+    const { segments, boundaryFailures } = publicSourceBodySegments(parsed.content)
+    failures.push(
+        ...boundaryFailures.map((failure) => ({ ...failure, line: bodyStartLine + Number(failure.line) - 1 }))
+    )
+    for (const segment of segments) {
+        for (const paragraph of markdownParagraphs(segment.text)) {
+            for (const failure of findBoundaryPostureFailures(paragraph.text, {
+                candidate: allowPublicSourceCandidate,
+                gated: segment.gated,
+            })) {
+                failures.push({ line: bodyStartLine + segment.line + paragraph.line - 2, ...failure })
+            }
+        }
+    }
+    return failures
 }
 
 function auditText(file, location, text, options = {}) {
@@ -176,14 +373,21 @@ function auditMarkdown(path) {
     const source = readFileSync(path, 'utf8')
     // Only the three translations of the one canonical comparison may carry launch copy. The path
     // allowlist prevents a pair of magic frontmatter lines from creating an indexable doorway.
-    const frontmatter = source.match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1] ?? ''
+    let frontmatter = {}
+    try {
+        frontmatter = matter(source).data
+    } catch {
+        // The content loader's parser test reports malformed YAML precisely. This audit still scans
+        // the raw file below so malformed frontmatter cannot also become a posture bypass.
+    }
     const allowPublicSourceCandidate =
         APPROVED_PUBLIC_SOURCE_CANDIDATES.has(local) &&
-        /^releaseGate:\s*public-source\s*$/mu.test(frontmatter) &&
-        /^\s*-\s*public-source-and-self-hosting\s*$/mu.test(frontmatter)
+        frontmatter.releaseGate === 'public-source' &&
+        Array.isArray(frontmatter.claims) &&
+        frontmatter.claims.includes('public-source-and-self-hosting')
 
-    for (const paragraph of markdownParagraphs(source)) {
-        auditText(local, paragraph.line, paragraph.text, { allowPublicSourceCandidate })
+    for (const failure of findMarkdownPostureFailures(source, { allowPublicSourceCandidate })) {
+        failures.push(`${local}:${failure.line} ${failure.label}: “${failure.match}”`)
     }
 }
 

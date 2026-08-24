@@ -75,7 +75,8 @@ fresh Git repository and create exactly one root commit on `main`. That public c
 identity `Squirrel Labs <opensource@peanutsplit.com>`, UTC, no signature, and message
 `release: Peanut Split public source`.
 
-The receipt command accepts that separate checkout, verifies its raw commit tree equals the audited
+The receipt command accepts that separate checkout, rejects configured remotes, non-release reflog
+entries, and unreachable or dangling Git objects, verifies its raw commit tree equals the audited
 candidate, creates and re-verifies a deterministic source archive without Git archive filters, and
 writes a minimal public receipt:
 
@@ -89,7 +90,7 @@ pnpm public-release:receipt -- \
   --build-commit REPLACE_WITH_PUBLIC_COMMIT \
   --archive-out /tmp/peanut-split-source.tar.gz \
   --archive-url https://releases.example/peanut-split/REPLACE_WITH_PUBLIC_COMMIT.tar.gz \
-  --out /tmp/PUBLIC_RELEASE_MANIFEST.json
+  --out /tmp/PUBLIC_RELEASE_RECEIPT.json
 ```
 
 The public receipt contains only the public root commit, archive URL/hash, runtime receipt values,

@@ -3,6 +3,7 @@ import { execFileSync, spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import {
 	appendFileSync,
+	chmodSync,
 	cpSync,
 	existsSync,
 	mkdirSync,
@@ -33,6 +34,7 @@ import {
 const REPOSITORY_ROOT = resolve(import.meta.dirname, '..')
 const CLI = join(REPOSITORY_ROOT, 'scripts/public-release.mjs')
 const LICENSE_BYTES = readFileSync(join(REPOSITORY_ROOT, OFFICIAL_LICENSE.path))
+const CI_TEMPLATE_BYTES = readFileSync(join(REPOSITORY_ROOT, 'public-release/templates/.github/workflows/ci.yml'))
 const SOURCE_DOCUMENTS = [
 	'CONTRIBUTING.md',
 	'MAINTAINERS.md',
@@ -165,7 +167,7 @@ function fixture(t) {
 	write(
 		root,
 		'apps/web/src/components/marketing/mdx/blocks.tsx',
-		'export function PublicSourceOnly({ children }) {\n\treturn publicFossReleased() ? children : null\n}\n'
+		"import { publicFossReleased } from '@/lib/flags'\nexport function PublicSourceOnly({ children }) {\n\treturn publicFossReleased() ? children : null\n}\n"
 	)
 	write(root, 'apps/web/src/data/static-pages.ts', 'export const sourcePage = { inSitemap: publicFossReleased }\n')
 	write(
@@ -192,31 +194,7 @@ function fixture(t) {
 	write(root, 'public-release/templates/docs/README.md', '# Candidate docs\n')
 	write(root, 'public-release/templates/.github/ISSUE_TEMPLATE/bug_report.yml', 'name: Bug report\nbody: []\n')
 	write(root, 'public-release/templates/.github/ISSUE_TEMPLATE/config.yml', 'blank_issues_enabled: false\n')
-	write(
-		root,
-		'public-release/templates/.github/workflows/ci.yml',
-		`name: CI
-on: [push]
-permissions:
-  contents: read
-jobs:
-  web:
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - run: pnpm --dir apps/web install --frozen-lockfile
-      - run: pnpm --dir apps/web typecheck
-      - name: FOSS release-boundary tests
-        run: >-
-          pnpm --dir apps/web exec vitest run
-          src/lib/flags.test.ts
-          src/lib/content.test.ts
-          src/lib/reference-budget.test.ts
-          src/lib/marketing-copy-policy.test.ts
-          src/components/marketing/SiteFooter.test.tsx
-          src/app/\(product-shell\)/\(marketing\)/source/page.test.tsx
-      - run: pnpm --dir apps/web build
-`
-	)
+	write(root, 'public-release/templates/.github/workflows/ci.yml', CI_TEMPLATE_BYTES)
 	writeJson(root, 'public-release/allowlist.json', profile())
 	writeJson(root, 'public-release/clearance.json', pendingClearance())
 	write(root, OFFICIAL_LICENSE.path, LICENSE_BYTES)
@@ -316,6 +294,15 @@ test('pins the exact official GNU AGPLv3 bytes and checksum', () => {
 	assert.match(LICENSE_BYTES.toString('utf8'), /<https:\/\/www\.gnu\.org\/licenses\/>\.\n$/)
 })
 
+test('real private-tree dry-run scans the full current allowlist without writing', () => {
+	const result = buildCandidate({ root: REPOSITORY_ROOT, mode: 'draft', dryRun: true })
+	assert.equal(result.dry_run, true)
+	assert.equal(result.mode, 'draft')
+	assert.ok(result.files >= 800)
+	assert.deepEqual(result.pending_gates, REQUIRED_GATES)
+	assert.equal(existsSync(join(REPOSITORY_ROOT, 'LICENSE')), false)
+})
+
 test('dry-run resolves an explicit flag-closed draft without writing output', (t) => {
 	const value = fixture(t)
 	const result = buildCandidate({ root: value.root, outDir: value.out, mode: 'draft', dryRun: true })
@@ -356,6 +343,11 @@ test('builds a source-backed, unlicensed, history-free apps/web draft with publi
 	assert.equal(
 		auditCandidate(value.out, { sourceRoot: value.root, ledgerPath: value.ledger }).ledger_sha256,
 		result.ledger_sha256
+	)
+	chmodSync(value.ledger, 0o644)
+	assert.throws(
+		() => auditCandidate(value.out, { sourceRoot: value.root, ledgerPath: value.ledger }),
+		/not be readable or writable by group or other users/
 	)
 })
 
@@ -565,6 +557,84 @@ test('FOSS boundary rejects open defaults and semantic gate bypasses', (t) => {
 			/CI FOSS boundary command does not exactly match the attestation gate/
 		)
 	}
+	{
+		const value = fixture(t)
+		write(
+			value.root,
+			'apps/web/src/components/marketing/mdx/blocks.tsx',
+			"import { publicFossReleased } from '@/lib/flags'\nexport function PublicSourceOnly({ children }) {\n\treturn children\n\treturn publicFossReleased() ? children : null\n}\n"
+		)
+		assert.throws(
+			() => buildCandidate({ root: value.root, mode: 'draft', dryRun: true }),
+			/PublicSourceOnly must be a single fail-closed conditional return/
+		)
+	}
+})
+
+test('public CI rejects action, permission, and command allowlist bypasses', (t) => {
+	{
+		const value = fixture(t)
+		const workflowPath = join(value.root, 'public-release/templates/.github/workflows/ci.yml')
+		writeFileSync(
+			workflowPath,
+			readFileSync(workflowPath, 'utf8').replace(
+				'uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683',
+				'uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # unreviewed suffix'
+			)
+		)
+		assert.throws(
+			() => buildCandidate({ root: value.root, mode: 'draft', dryRun: true }),
+			/actions must exactly match the pinned action allowlist/
+		)
+	}
+	{
+		const value = fixture(t)
+		const workflowPath = join(value.root, 'public-release/templates/.github/workflows/ci.yml')
+		writeFileSync(
+			workflowPath,
+			readFileSync(workflowPath, 'utf8').replace(
+				'actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020',
+				'attacker/action@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+			)
+		)
+		assert.throws(
+			() => buildCandidate({ root: value.root, mode: 'draft', dryRun: true }),
+			/actions must exactly match the pinned action allowlist/
+		)
+	}
+	{
+		const value = fixture(t)
+		const workflowPath = join(value.root, 'public-release/templates/.github/workflows/ci.yml')
+		writeFileSync(
+			workflowPath,
+			readFileSync(workflowPath, 'utf8').replace(
+				'  web:\n',
+				'  web:\n    permissions: { contents: read, id-token: write }\n'
+			)
+		)
+		assert.throws(
+			() => buildCandidate({ root: value.root, mode: 'draft', dryRun: true }),
+			/must use a read-only token/
+		)
+	}
+	{
+		const value = fixture(t)
+		const workflowPath = join(value.root, 'public-release/templates/.github/workflows/ci.yml')
+		writeFileSync(
+			workflowPath,
+			readFileSync(workflowPath, 'utf8')
+				.replace(
+					'run: pnpm --dir apps/web install --frozen-lockfile',
+					"run: echo 'skip install --frozen-lockfile'"
+				)
+				.replace('run: pnpm --dir apps/web typecheck', "run: echo 'skip typecheck'")
+				.replace('run: pnpm --dir apps/web build', "run: echo 'skip build'")
+		)
+		assert.throws(
+			() => buildCandidate({ root: value.root, mode: 'draft', dryRun: true }),
+			/run commands must exactly match the attestation command allowlist/
+		)
+	}
 })
 
 test('secret scan catches ordinary unquoted environment secrets without echoing them', (t) => {
@@ -590,6 +660,15 @@ test('secret scan catches ordinary unquoted environment secrets without echoing 
 		const value = fixture(t)
 		const secret = 'random-secret-8ad2078fbef3468a93a252fc'
 		write(value.root, 'apps/web/src/leak.ts', `export const api_secret = '${secret}'\n`)
+		assert.throws(
+			() => buildCandidate({ root: value.root, mode: 'draft', dryRun: true }),
+			(error) => /literal credential assignment/.test(error.message) && !error.message.includes(secret)
+		)
+	}
+	for (const name of ['TOKEN', 'SECRET']) {
+		const value = fixture(t)
+		const secret = 'random-live-credential-0123456789abcdef'
+		write(value.root, 'apps/web/src/leak.ts', `export const ${name} = '${secret}'\n`)
 		assert.throws(
 			() => buildCandidate({ root: value.root, mode: 'draft', dryRun: true }),
 			(error) => /literal credential assignment/.test(error.message) && !error.message.includes(secret)
@@ -777,7 +856,7 @@ test('post-publication receipt derives Q from one public commit and archives tha
 		() => createReleaseReceipt({ ...receiptOptions, buildCommit: 'c'.repeat(40) }),
 		/does not equal the audited public source commit/
 	)
-	git(publicRoot, ['-c', 'tag.gpgsign=false', 'tag', '-a', 'review', '-m', 'temporary review tag'])
+	git(publicRoot, ['update-ref', 'refs/tags/review', publicCommit])
 	assert.throws(() => createReleaseReceipt(receiptOptions), /must expose only refs\/heads\/main/)
 	git(publicRoot, ['tag', '-d', 'review'])
 	write(publicRoot, '.git/info/attributes', 'apps/web/src/index.ts export-ignore\n')
@@ -844,6 +923,65 @@ test('receipt compares audited candidate bytes directly to the public commit obj
 			}),
 		/commit blob differs from the audited candidate/
 	)
+})
+
+test('receipt rejects remotes, private reflogs, and dangling public-checkout objects', (t) => {
+	const value = fixture(t)
+	const inputs = prepareReleaseInputs(value)
+	buildCandidate({
+		root: value.root,
+		outDir: value.out,
+		ledgerOutPath: value.ledger,
+		mode: 'release',
+		clearancePath: inputs.clearancePath,
+		buildAttestationPath: inputs.attestationPath,
+	})
+	const preparePublicRoot = (name) => {
+		const publicRoot = join(value.base, name)
+		cpSync(value.out, publicRoot, { recursive: true })
+		execFileSync('git', ['init', '--initial-branch=main'], { cwd: publicRoot, stdio: 'ignore' })
+		git(publicRoot, ['config', 'user.email', PUBLIC_RELEASE_COMMIT.email])
+		git(publicRoot, ['config', 'user.name', PUBLIC_RELEASE_COMMIT.name])
+		git(publicRoot, ['add', '.'])
+		git(publicRoot, ['-c', 'commit.gpgsign=false', 'commit', '-m', PUBLIC_RELEASE_COMMIT.message])
+		return { publicRoot, publicCommit: git(publicRoot, ['rev-parse', 'HEAD']) }
+	}
+	const options = ({ publicRoot, publicCommit }, suffix) => ({
+		candidateDir: value.out,
+		sourceRoot: value.root,
+		ledgerPath: value.ledger,
+		clearancePath: inputs.clearancePath,
+		buildAttestationPath: inputs.attestationPath,
+		publicCheckout: publicRoot,
+		buildCommit: publicCommit,
+		archiveOutPath: join(value.base, `${suffix}.tar.gz`),
+		archiveUrl: `https://releases.example.invalid/peanut-split/${publicCommit}.tar.gz`,
+		outPath: join(value.base, `${suffix}.json`),
+	})
+	{
+		const publicValue = preparePublicRoot('public-with-remote')
+		git(publicValue.publicRoot, ['remote', 'add', 'origin', 'https://example.invalid/repository.git'])
+		assert.throws(
+			() => createReleaseReceipt(options(publicValue, 'remote-receipt')),
+			/fresh repository without configured remotes/
+		)
+	}
+	{
+		const publicValue = preparePublicRoot('public-with-private-object')
+		write(publicValue.publicRoot, 'PRIVATE-PAST.txt', 'must never reach a public source repository\n')
+		git(publicValue.publicRoot, ['add', 'PRIVATE-PAST.txt'])
+		git(publicValue.publicRoot, ['-c', 'commit.gpgsign=false', 'commit', '-m', 'private temporary history'])
+		git(publicValue.publicRoot, ['reset', '--hard', publicValue.publicCommit])
+		assert.throws(
+			() => createReleaseReceipt(options(publicValue, 'private-object-receipt')),
+			/reflogs must contain only the history-free release commit/
+		)
+		git(publicValue.publicRoot, ['reflog', 'expire', '--expire=now', '--all'])
+		assert.throws(
+			() => createReleaseReceipt(options(publicValue, 'dangling-object-receipt')),
+			/object database contains unreachable, dangling, or invalid objects/
+		)
+	}
 })
 
 test('CLI has no publish command or implicit output target', (t) => {

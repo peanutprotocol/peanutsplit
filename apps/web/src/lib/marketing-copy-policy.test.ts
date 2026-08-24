@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
+    findMarkdownPostureFailures,
     findPostureFailures,
     markdownParagraphs,
     productionTypescriptFiles,
@@ -73,5 +74,106 @@ describe('FOSS posture negative fixtures', () => {
         const failures = markdownParagraphs(copy).flatMap(({ text }) => labelsFor(text))
 
         expect(failures).not.toEqual([])
+    })
+
+    it('allows FOSS claims only in upgrade fields and PublicSourceOnly regions', () => {
+        const source = `---
+title: Split is FOSS
+description: Safe comparison
+publicSourceTitle: Free and open-source Splitwise alternative
+publicSourceDescription: Released source is available under AGPL-3.0-or-later.
+releaseGate: public-source
+claims:
+  - public-source-and-self-hosting
+publicSourceFaqs:
+  - question: Is Split FOSS?
+    answer: The released source is AGPL-3.0-or-later.
+faqs:
+  - question: Is Split open source?
+    answer: This base FAQ must not claim it.
+---
+
+Split is FOSS before the wrapper.
+
+<PublicSourceOnly>
+Split is FOSS inside the wrapper.
+</PublicSourceOnly>
+
+Split is FOSS after the wrapper.
+`
+        const failures = findMarkdownPostureFailures(source, { allowPublicSourceCandidate: true })
+        const releaseFailures = failures.filter(
+            (failure) => failure.label === 'claims FOSS, open-source, or AGPL status before the public-release gate'
+        )
+
+        expect(releaseFailures).toHaveLength(4)
+        expect(releaseFailures.map((failure) => failure.line)).toEqual(
+            expect.arrayContaining(['frontmatter.title', 'frontmatter.faqs[0].question'])
+        )
+        expect(releaseFailures.filter((failure) => typeof failure.line === 'number')).toHaveLength(2)
+    })
+
+    it('does not honor release wrappers on an unapproved Markdown candidate', () => {
+        const source = '<PublicSourceOnly>\nSplit is FOSS.\n</PublicSourceOnly>\n'
+        const failures = findMarkdownPostureFailures(source)
+
+        expect(failures.map((failure) => failure.label)).toContain(
+            'claims FOSS, open-source, or AGPL status before the public-release gate'
+        )
+    })
+
+    it.each([
+        '{/* <PublicSourceOnly> */}\n\nSplit is FOSS and this paragraph renders before release.\n\n{/* </PublicSourceOnly> */}',
+        '```mdx\n<PublicSourceOnly>\n```\n\nSplit is FOSS and this paragraph renders before release.\n\n```mdx\n</PublicSourceOnly>\n```',
+    ])('does not let a comment or fenced example establish a release boundary', (source) => {
+        const failures = findMarkdownPostureFailures(source, { allowPublicSourceCandidate: true })
+
+        expect(failures.map((failure) => failure.label)).toContain(
+            'claims FOSS, open-source, or AGPL status before the public-release gate'
+        )
+    })
+
+    it.each([
+        'The released software is licensed under AGPL-3.0-or-later.',
+        'The source code is licensed under AGPL-3.0-or-later.',
+        'Peanut Split is licensed as open source.',
+        'The project is FOSS.',
+        'Our code is open source.',
+        'You can self-host the AGPL source.',
+        'Licensed AGPL-3.0-or-later source is now public.',
+        'Peanut Split uses an AGPL-3.0-or-later license.',
+        'The public repository includes the source code.',
+        'The source is publicly available.',
+        'Download the source under AGPL-3.0-or-later.',
+        'The code carries an AGPL-3.0-or-later license.',
+        'This project is open source.',
+        'Peanut Split comes with source code under AGPL.',
+        'El proyecto es de código abierto.',
+        'El código se publica bajo AGPL-3.0-or-later.',
+        'El repositorio público incluye el código fuente.',
+        'Puedes alojar Split por tu cuenta.',
+        'O projeto é de código aberto.',
+        'O código é publicado sob AGPL-3.0-or-later.',
+        'O repositório público inclui o código-fonte.',
+        'Você pode auto-hospedar o Split.',
+        '[Read the source receipt](/source)',
+    ])('rejects any public-source term or link outside the approved MDX region: %s', (copy) => {
+        const failures = findMarkdownPostureFailures(copy, { allowPublicSourceCandidate: true })
+
+        expect(failures.map((failure) => failure.label)).toContain(
+            'claims FOSS, open-source, or AGPL status before the public-release gate'
+        )
+    })
+
+    it.each([
+        '<PublicSourceOnly>\nSplit is FOSS.\n',
+        '</PublicSourceOnly>\nSplit is FOSS.\n',
+        '<PublicSourceOnly>\n<PublicSourceOnly>\nSplit is FOSS.\n</PublicSourceOnly>\n</PublicSourceOnly>\n',
+    ])('rejects an unbalanced or nested public-source boundary', (source) => {
+        expect(findMarkdownPostureFailures(source, { allowPublicSourceCandidate: true })).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({ label: 'has an unbalanced or nested PublicSourceOnly release boundary' }),
+            ])
+        )
     })
 })

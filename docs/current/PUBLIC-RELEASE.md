@@ -33,7 +33,8 @@ private ledger records P, source paths, exclusions, human evidence, and build de
 external, mode `0600`, and private.
 
 After clearance, a separate fresh repository receives only the audited candidate and exactly one
-root commit on `main`: **Q**. The public archive and redacted receipt are derived from raw blobs in Q.
+root commit on `main`: **Q**. It has no configured remotes, private reflog entries, or unreachable or
+dangling objects. The public archive and redacted receipt are derived from raw blobs in Q.
 Neither contains P or private clearance/build provenance.
 
 ## Candidate machinery
@@ -75,10 +76,12 @@ configured secret-shaped, symlinked, history-bearing, excluded, or unreviewed in
 private publisher/provenance machinery, adaptive/persona prototype artifacts, press, portraits,
 verification files, and private generated SEO inputs are excluded.
 
-The `/source` route, comparison content, footer, and sitemap already share the fail-closed
-`NEXT_PUBLIC_FOSS_RELEASED` boundary. The builder behaviorally verifies that literal `1` is
-insufficient without valid receipt values and keeps `.env.example`, Docker, and Compose values
-unset. Creating a licensed candidate does not open the surface.
+The `/source` route, footer link, and public-source upgrade inside the canonical Splitwise comparison
+share the fail-closed `NEXT_PUBLIC_FOSS_RELEASED` boundary. The comparison's established safe
+“free/no signup” page and sitemap entry remain live; its FOSS metadata, FAQ/schema, OG title, and MDX
+regions do not. The builder behaviorally verifies that literal `1` is insufficient without valid
+receipt values and keeps `.env.example`, Docker, and Compose values unset. Creating a licensed
+candidate does not open the surface.
 
 ## Post-publication source receipt
 
@@ -98,7 +101,7 @@ pnpm public-release:receipt -- \
   --build-commit REPLACE_WITH_Q \
   --archive-out /tmp/peanut-split-source.tar.gz \
   --archive-url https://releases.example/peanut-split/REPLACE_WITH_Q.tar.gz \
-  --out /tmp/PUBLIC_RELEASE_MANIFEST.json
+  --out /tmp/PUBLIC_RELEASE_RECEIPT.json
 ```
 
 The output receipt is public and intentionally minimal: Q, the independently supplied equal build
