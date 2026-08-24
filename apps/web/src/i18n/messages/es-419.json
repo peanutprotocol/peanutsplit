@@ -103,36 +103,6 @@
                 }
             }
         },
-        "how": {
-            "title": "Cómo funciona",
-            "step1": {
-                "title": "Empieza a dividir"
-            },
-            "step2": {
-                "title": "Comparte el link"
-            },
-            "step3": {
-                "title": "Todos agregan gastos"
-            },
-            "step4": {
-                "title": "Salden las cuentas"
-            }
-        },
-        "uses": {
-            "title": "Qué se divide aquí",
-            "item1": {
-                "title": "Viajes en grupo"
-            },
-            "item2": {
-                "title": "Roommates"
-            },
-            "item3": {
-                "title": "Cenas y rondas"
-            },
-            "item4": {
-                "title": "Equipos remotos"
-            }
-        },
         "finalCta": {
             "title": "AHORA TE TOCA DIVIDIR.",
             "button": "Empezar a dividir"

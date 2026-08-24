@@ -30,18 +30,23 @@ export async function TemplatesHub() {
 
             <Breadcrumbs crumbs={crumbs} />
 
-            <header className="mx-auto w-full max-w-xl px-5 pb-2 pt-4">
-                <h1 className="split-page-title text-h4 leading-tight text-n-1">{TEMPLATES_HUB.h1}</h1>
-                <p className="mt-4 text-base leading-6 text-n-1">{TEMPLATES_HUB.intro}</p>
-            </header>
+            {/* The band the other two hubs open on, same markup as `/tools` and `/blog`. A hub is
+                chrome rather than content, so it carries no skin — which is also why the page title
+                takes `text-h3` here rather than a `split-` hook the frame would have to switch on. */}
+            <div className="mt-4 border-y border-n-1 bg-primary-1">
+                <div className="mx-auto w-full max-w-xl px-5 pb-8 pt-8">
+                    <h1 className="text-h3 leading-tight text-n-1">{TEMPLATES_HUB.h1}</h1>
+                    <p className="mt-3 text-base font-medium leading-6 text-n-1">{TEMPLATES_HUB.intro}</p>
+                </div>
+            </div>
 
-            <section className="mx-auto w-full max-w-xl px-5 py-4">
-                <ul className="flex flex-col gap-3">
+            <section className="mx-auto w-full max-w-xl px-5 py-8">
+                <ul className="flex flex-col gap-px overflow-hidden rounded-sm border border-n-1 [&>li:first-child>a]:rounded-t-sm [&>li:last-child>a]:rounded-b-sm">
                     {TEMPLATES.map((template) => (
                         <li key={template.slug}>
                             <Link
                                 href={templatePath(template)}
-                                className="flex items-start gap-3 rounded-sm border border-n-1 bg-white p-4 transition-transform hover:-translate-y-0.5"
+                                className="flex items-start gap-3 bg-white p-4 transition-transform hover:-translate-y-0.5"
                             >
                                 <Doodle name={template.room.emblem} size={32} weight={1.6} />
                                 <span className="min-w-0 flex-1">

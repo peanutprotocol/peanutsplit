@@ -36,10 +36,15 @@ const SKINNED = [
     '/rent-split-calculator',
     '/mileage-split-calculator',
     '/es-419/blog/split-expenses-across-currencies',
+    // Both wallpaper pools a template room draws from — `flat-monthly` is the only `home` one.
+    // These shipped unwrapped on 24 Aug, carrying `split-*` classes with no frame to switch them
+    // on, so they rendered flat: the pair is here to keep the registry surfaces honest.
+    '/t/villa-week',
+    '/t/flat-monthly',
 ] as const
 
 /** Chrome, not content: a hub has no frame call site, so it carries no `data-skin` at all. */
-const HUB = '/blog'
+const HUBS = ['/blog', '/t'] as const
 
 /** The same list `landing.spec.ts` measures its no-overflow test at, so a column that only breaks
  *  at 320px is caught here too. */
@@ -75,10 +80,12 @@ test.describe('sticker skin', () => {
         })
     }
 
-    test('a hub is chrome, not content — no frame, so no skin attribute either', async ({ page }) => {
-        await page.goto(HUB)
-        await expect(page.locator('[data-skin]')).toHaveCount(0)
-    })
+    for (const hub of HUBS) {
+        test(`${hub} is chrome, not content — no frame, so no skin attribute either`, async ({ page }) => {
+            await page.goto(hub)
+            await expect(page.locator('[data-skin]')).toHaveCount(0)
+        })
+    }
 })
 
 /**
