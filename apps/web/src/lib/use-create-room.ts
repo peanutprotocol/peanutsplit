@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { roomProps, track } from '@/lib/analytics'
 import { useErrorMessage } from '@/lib/error-messages'
+import { trackRoomCreatedConversion } from '@/lib/google-ads'
 import { writeIdentity } from '@/lib/identity'
 import { markRoomCreatedHere } from '@/lib/install-funnel'
 import { useCreateRoom } from '@/lib/queries'
@@ -61,6 +62,9 @@ export function useCreateRoomFlow(fallbackMessage: string) {
                     ...(fields.template ? { template: fields.template } : {}),
                 })
             )
+            // The campaign's conversion, from the one place both surfaces create a room. It
+            // carries nothing about the room, and is silent anywhere the tag is not mounted.
+            trackRoomCreatedConversion()
             // A room came into being — the cork, not the pencil.
             feedback('pop')
             return state
