@@ -25,6 +25,26 @@ describe('roomDoodleFor', () => {
         expect(roomDoodleFor('Beach holiday')).toBe('island')
     })
 
+    it('gives blues, jazz, and swing rooms a sax', () => {
+        expect(roomDoodleFor('Blues weekend')).toBe('sax')
+        expect(roomDoodleFor('Jazz night')).toBe('sax')
+        expect(roomDoodleFor('Swing dance')).toBe('sax')
+        expect(roomDoodleFor('Jazz night at Fabric')).toBe('sax')
+    })
+
+    it('gives club nights and well-known venue rooms lips', () => {
+        expect(roomDoodleFor('Berghain weekend')).toBe('lips')
+        expect(roomDoodleFor('Fabric London')).toBe('lips')
+        expect(roomDoodleFor('Lux Frágil Lisbon')).toBe('lips')
+        expect(roomDoodleFor('House of Yes NYC')).toBe('lips')
+        expect(roomDoodleFor('Rave night')).toBe('lips')
+    })
+
+    it('does not confuse ordinary travel or clubs with nightlife', () => {
+        expect(roomDoodleFor('Travel plans')).toBe('suitcase')
+        expect(roomDoodleFor('Book club')).toBe(FALLBACK_DOODLE)
+    })
+
     it('falls back to the peanut rather than to nothing', () => {
         expect(roomDoodleFor('Quarterly offsite')).toBe(FALLBACK_DOODLE)
         expect(roomDoodleFor('')).toBe(FALLBACK_DOODLE)
