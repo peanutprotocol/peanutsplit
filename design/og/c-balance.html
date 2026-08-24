@@ -1,0 +1,137 @@
+<meta charset="utf-8" /><link rel="stylesheet" href="shared.css" />
+<style>
+	.stage {
+		flex-direction: row;
+		align-items: center;
+		gap: 52px;
+	}
+	.left {
+		width: 468px;
+	}
+	.h1 {
+		font-weight: 800;
+		font-size: 55px;
+		line-height: 1.07;
+		letter-spacing: -0.022em;
+	}
+	.h1 em {
+		font-style: normal;
+		background: var(--pink);
+		border: 1.5px solid var(--ink);
+		border-radius: 10px;
+		padding: 0 10px;
+		display: inline-block;
+	}
+	.sub {
+		font-size: 25px;
+		color: #6b5a16;
+		margin-top: 22px;
+		line-height: 1.4;
+	}
+	.badges {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 9px;
+		margin-top: 26px;
+	}
+	.badge {
+		background: #fff;
+		border: 1.5px solid var(--ink);
+		border-radius: 999px;
+		padding: 8px 17px;
+		font-size: 19px;
+		font-weight: 800;
+		box-shadow: 3px 3px 0 var(--ink);
+	}
+	.app {
+		width: 400px;
+		padding: 0;
+		overflow: hidden;
+	}
+	.app .bar {
+		background: var(--yellow);
+		border-bottom: 1.5px solid var(--ink);
+		padding: 15px 22px;
+		font-weight: 800;
+		font-size: 22px;
+		display: flex;
+		justify-content: space-between;
+	}
+	.app .hero {
+		background: var(--incoming);
+		padding: 26px 22px 22px;
+		border-bottom: 1.5px solid var(--ink);
+	}
+	.app .hero .lbl {
+		font-size: 19px;
+		color: var(--incoming-ink);
+		font-weight: 800;
+	}
+	.app .hero .amt {
+		font-weight: 800;
+		font-size: 62px;
+		color: var(--incoming-ink);
+		letter-spacing: -0.03em;
+		line-height: 1.05;
+		margin-top: 4px;
+	}
+	.app .list {
+		padding: 6px 0 8px;
+	}
+	.app .li {
+		display: flex;
+		align-items: center;
+		gap: 13px;
+		padding: 11px 22px;
+	}
+	.app .li .nm {
+		flex: 1;
+		font-size: 21px;
+		font-weight: 800;
+	}
+	.app .li .v {
+		font-size: 20px;
+		color: var(--grey);
+	}
+	.app .li .chip {
+		width: 44px;
+		height: 44px;
+		font-size: 18px;
+	}
+</style>
+<div class="stage">
+	<div class="left">
+		<div class="h1">Who owes what,<br />settled in <em>seconds</em></div>
+		<div class="sub">Share a room link, add expenses, and Split works out the fewest transfers that clear it.</div>
+		<div class="badges">
+			<div class="badge">No signup</div>
+			<div class="badge">162 currencies</div>
+			<div class="badge">Works offline</div>
+			<div class="badge">Free</div>
+		</div>
+	</div>
+	<div class="card app">
+		<div class="bar"><span>Lisbon trip</span><span class="tnum">4</span></div>
+		<div class="hero">
+			<div class="lbl">You get back</div>
+			<div class="amt tnum">€42.50</div>
+		</div>
+		<div class="list">
+			<div class="li">
+				<div class="chip" style="background: var(--green)">M</div>
+				<div class="nm">Miguel</div>
+				<div class="v tnum">owes you €18.20</div>
+			</div>
+			<div class="li">
+				<div class="chip" style="background: var(--lav)">J</div>
+				<div class="nm">Jo</div>
+				<div class="v tnum">owes you €24.30</div>
+			</div>
+			<div class="li">
+				<div class="chip" style="background: var(--pink)">S</div>
+				<div class="nm">Sam</div>
+				<div class="v tnum">settled up</div>
+			</div>
+		</div>
+	</div>
+</div>

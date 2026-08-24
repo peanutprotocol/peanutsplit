@@ -1,0 +1,115 @@
+<meta charset="utf-8" /><link rel="stylesheet" href="shared.css" />
+<style>
+	.stage {
+		flex-direction: row;
+		align-items: center;
+		gap: 46px;
+	}
+	.left {
+		width: 500px;
+	}
+	.knerd {
+		font-size: 96px;
+	}
+	.sub {
+		font-size: 25px;
+		color: #6b5a16;
+		margin-top: 20px;
+		line-height: 1.38;
+	}
+	.marks {
+		display: flex;
+		gap: 9px;
+		margin-top: 26px;
+	}
+	.marks .chip {
+		width: 50px;
+		height: 50px;
+		font-size: 20px;
+	}
+	.thread {
+		flex: 1;
+		padding-right: 10px;
+		display: flex;
+		flex-direction: column;
+		gap: 13px;
+	}
+	.bub {
+		background: #fff;
+		border: 1.5px solid var(--ink);
+		border-radius: 20px;
+		padding: 13px 19px;
+		font-size: 21px;
+		max-width: 84%;
+		box-shadow: 4px 4px 0 var(--ink);
+	}
+	.bub.me {
+		align-self: flex-end;
+		background: var(--pink);
+	}
+	.linkcard {
+		align-self: flex-end;
+		width: 88%;
+		background: #fff;
+		border: 1.5px solid var(--ink);
+		border-radius: 20px;
+		box-shadow: 6px 6px 0 var(--ink);
+		overflow: hidden;
+	}
+	.linkcard .band {
+		background: var(--yellow);
+		border-bottom: 1.5px solid var(--ink);
+		padding: 11px 18px;
+		font-weight: 800;
+		font-size: 20px;
+		display: flex;
+		justify-content: space-between;
+	}
+	.linkcard .body {
+		padding: 14px 18px 16px;
+	}
+	.linkcard .ttl {
+		font-weight: 800;
+		font-size: 23px;
+	}
+	.linkcard .mt {
+		font-size: 19px;
+		color: var(--grey);
+		margin-top: 3px;
+	}
+	.foot {
+		position: absolute;
+		left: 52px;
+		right: 52px;
+		bottom: 40px;
+	}
+</style>
+<div class="stage">
+	<div class="left">
+		<div class="knerd">
+			<span class="fill">PASS THE<br />LINK</span><span class="out">PASS THE<br />LINK</span>
+		</div>
+		<div class="sub">Not the spreadsheet.<br />Drop one link in the group chat &mdash; everyone&rsquo;s in.</div>
+		<div class="marks">
+			<div class="chip" style="background: var(--yellow)">A</div>
+			<div class="chip" style="background: var(--green)">M</div>
+			<div class="chip" style="background: var(--lav)">J</div>
+			<div class="chip" style="background: var(--pink)">S</div>
+		</div>
+	</div>
+	<div class="thread">
+		<div class="bub">who&rsquo;s got the dinner receipt</div>
+		<div class="bub me">one sec</div>
+		<div class="linkcard">
+			<div class="band"><span>Lisbon trip</span><span class="tnum">4 people</span></div>
+			<div class="body">
+				<div class="ttl">peanutsplit.com/r/lisbon</div>
+				<div class="mt">Tap to add what you paid &middot; no signup</div>
+			</div>
+		</div>
+		<div class="bub">oh this is easy</div>
+	</div>
+	<div class="foot">
+		<div class="wordmark">Peanut Split</div>
+	</div>
+</div>

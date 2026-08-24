@@ -1,0 +1,119 @@
+<meta charset="utf-8" /><link rel="stylesheet" href="shared.css" />
+<style>
+	.head {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: 30px;
+	}
+	.knerd {
+		font-size: 86px;
+	}
+	.sub {
+		font-size: 23px;
+		color: #6b5a16;
+		text-align: right;
+		line-height: 1.35;
+		max-width: 21ch;
+	}
+	.fx {
+		display: flex;
+		align-items: stretch;
+		gap: 14px;
+		margin-top: 34px;
+	}
+	.cur {
+		flex: 1;
+		padding: 17px 19px 19px;
+	}
+	.cur .flag {
+		font-size: 30px;
+		line-height: 1;
+	}
+	.cur .amt {
+		font-weight: 800;
+		font-size: 33px;
+		margin-top: 10px;
+		letter-spacing: -0.02em;
+	}
+	.cur .who {
+		font-size: 17px;
+		color: var(--grey);
+		margin-top: 3px;
+	}
+	.op {
+		align-self: center;
+		font-weight: 800;
+		font-size: 33px;
+		opacity: 0.75;
+	}
+	.settled {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 26px;
+		background: var(--pink);
+		border: 1.5px solid var(--ink);
+		border-radius: 22px;
+		box-shadow: 7px 7px 0 var(--ink);
+		padding: 20px 28px;
+		margin-top: 26px;
+	}
+	.settled .lbl {
+		font-size: 18px;
+		font-weight: 800;
+		letter-spacing: 0.09em;
+		text-transform: uppercase;
+	}
+	.settled .amt {
+		font-weight: 800;
+		font-size: 44px;
+		letter-spacing: -0.025em;
+		margin-top: 2px;
+	}
+	.settled .note {
+		font-size: 18px;
+		text-align: right;
+		line-height: 1.3;
+		max-width: 24ch;
+	}
+</style>
+<div class="stage">
+	<div class="head">
+		<div class="knerd"><span class="fill">ONE ROOM</span><span class="out">ONE ROOM</span></div>
+		<div class="sub">Three countries, one bill, nobody doing maths at the airport.</div>
+	</div>
+
+	<div class="fx">
+		<div class="card cur">
+			<div class="flag">🇵🇹</div>
+			<div class="amt tnum">€128.40</div>
+			<div class="who">Ana &middot; dinner</div>
+		</div>
+		<div class="op">+</div>
+		<div class="card cur">
+			<div class="flag">🇧🇷</div>
+			<div class="amt tnum">R$ 260</div>
+			<div class="who">Miguel &middot; taxi</div>
+		</div>
+		<div class="op">+</div>
+		<div class="card cur">
+			<div class="flag">🇯🇵</div>
+			<div class="amt tnum">¥ 6,800</div>
+			<div class="who">Jo &middot; hotel</div>
+		</div>
+	</div>
+
+	<div class="settled">
+		<div>
+			<div class="lbl">Everyone settles</div>
+			<div class="amt tnum">€52.60 each</div>
+		</div>
+		<div class="note">converted at the day&rsquo;s rate<br />162 currencies supported</div>
+	</div>
+
+	<div class="foot">
+		<div class="wordmark">Peanut Split</div>
+		<div class="url">peanutsplit.com</div>
+	</div>
+</div>

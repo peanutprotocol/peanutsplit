@@ -1,0 +1,286 @@
+<meta charset="utf-8" />
+<link
+	rel="stylesheet"
+	href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wdth,wght@8..144,75..151,100..1000&display=swap"
+/>
+<style>
+	/* Tokens lifted from the live landing page: globals.css .pass-link-* and tailwind.config.js */
+	:root {
+		--pink: #ff90e8; /* bg-secondary-1 — the hero band */
+		--ink: #211c17; /* n-1 */
+		--cream: #fffdf8; /* .pass-link-chat-frame background */
+		--cream-2: #fff9ed; /* .pass-link-chat-header background */
+		--yellow: #ffc900; /* primary-1 — the shared card + CTA */
+		--green: #98e9ab; /* outgoing bubble */
+		--grey: #5f646d;
+		--incoming: #effaf2;
+		--incoming-ink: #246c3d;
+	}
+	* {
+		box-sizing: border-box;
+		margin: 0;
+		padding: 0;
+	}
+	html,
+	body {
+		width: 1200px;
+		height: 630px;
+		overflow: hidden;
+	}
+	body {
+		background: var(--pink);
+		color: var(--ink);
+		font-family: 'Roboto Flex', system-ui, sans-serif;
+		-webkit-font-smoothing: antialiased;
+	}
+	.stage {
+		display: grid;
+		grid-template-columns: 1.06fr 0.94fr;
+		gap: 46px;
+		align-items: center;
+		height: 100%;
+		padding: 52px 56px;
+	}
+
+	/* headline — .pass-link-copy h1: weight 950, -0.065em, line-height 0.84 */
+	h1 {
+		font-weight: 950;
+		font-size: 74px;
+		letter-spacing: -0.065em;
+		line-height: 0.84;
+		text-transform: uppercase;
+		max-width: 12ch;
+	}
+	h1 .hl {
+		background: var(--yellow);
+		box-shadow: 0 0 0 3px var(--yellow);
+	}
+
+	.sub {
+		margin-top: 24px;
+		font-size: 21px;
+		font-weight: 800;
+		line-height: 1.35;
+		max-width: 30ch;
+		color: #4a2e43;
+	}
+
+	.badges {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 9px;
+		margin-top: 26px;
+		max-width: 30rem;
+	}
+	.badge {
+		background: var(--cream-2);
+		border: 2px solid var(--ink);
+		border-radius: 999px;
+		padding: 7px 16px;
+		font-size: 16px;
+		font-weight: 900;
+		box-shadow: 3px 3px 0 var(--ink);
+	}
+
+	.who {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		margin-top: 30px;
+	}
+	.who .stack {
+		display: flex;
+	}
+	.who .stack img {
+		width: 46px;
+		height: 46px;
+		border: 2.5px solid var(--ink);
+		border-radius: 999px;
+		margin-right: -11px;
+		background: var(--cream-2);
+	}
+	.who .cap {
+		font-size: 15px;
+		font-weight: 900;
+		color: #4a2e43;
+		margin-left: 16px;
+	}
+
+	/* product panel — .pass-link-chat-frame: 2.5px border, 1.25rem radius, .65rem hard shadow, -1deg */
+	.panel {
+		border: 2.5px solid var(--ink);
+		border-radius: 20px;
+		background: var(--cream);
+		box-shadow: 10px 10px 0 var(--ink);
+		transform: rotate(-1deg);
+		overflow: hidden;
+	}
+	.p-head {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 15px 18px;
+		border-bottom: 2px solid var(--ink);
+		background: var(--cream-2);
+	}
+	.p-head .mark {
+		width: 38px;
+		height: 38px;
+		border: 1.5px solid var(--ink);
+		border-radius: 999px;
+		background: #c7a6ff;
+		display: grid;
+		place-items: center;
+		font-size: 18px;
+	}
+	.p-head .t {
+		flex: 1;
+		min-width: 0;
+	}
+	.p-head .t strong {
+		display: block;
+		font-size: 19px;
+		font-weight: 950;
+		letter-spacing: -0.025em;
+	}
+	.p-head .t small {
+		display: block;
+		margin-top: 2px;
+		font-size: 12px;
+		font-weight: 800;
+		color: var(--grey);
+	}
+	.p-head .ppl {
+		display: flex;
+	}
+	.p-head .ppl img {
+		width: 30px;
+		height: 30px;
+		border: 2px solid var(--ink);
+		border-radius: 999px;
+		margin-right: -8px;
+		background: var(--cream-2);
+	}
+
+	.p-hero {
+		background: var(--incoming);
+		border-bottom: 2px solid var(--ink);
+		padding: 22px 20px 20px;
+	}
+	.p-hero .lbl {
+		font-size: 15px;
+		font-weight: 900;
+		color: var(--incoming-ink);
+	}
+	.p-hero .amt {
+		font-size: 60px;
+		font-weight: 950;
+		letter-spacing: -0.055em;
+		line-height: 1;
+		color: var(--incoming-ink);
+		margin-top: 5px;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.p-rows {
+		padding: 6px 0 4px;
+	}
+	.p-row {
+		display: flex;
+		align-items: center;
+		gap: 11px;
+		padding: 10px 20px;
+	}
+	.p-row img {
+		width: 34px;
+		height: 34px;
+		border: 2px solid var(--ink);
+		border-radius: 999px;
+		background: var(--cream-2);
+	}
+	.p-row .nm {
+		flex: 1;
+		font-size: 17px;
+		font-weight: 950;
+	}
+	.p-row .v {
+		font-size: 15px;
+		font-weight: 800;
+		color: var(--grey);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.p-cta {
+		border-top: 2px solid var(--ink);
+		background: var(--yellow);
+		padding: 13px 20px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+	.p-cta strong {
+		font-size: 17px;
+		font-weight: 950;
+	}
+	.p-cta .arrow {
+		width: 30px;
+		height: 30px;
+		border: 2px solid var(--ink);
+		border-radius: 999px;
+		background: var(--cream-2);
+		display: grid;
+		place-items: center;
+		font-size: 15px;
+		font-weight: 900;
+	}
+</style>
+
+<div class="stage">
+	<div>
+		<h1>Better accounting makes <span class="hl">better friends</span></h1>
+		<div class="sub">Share one link, add what you paid, and Split clears it in the fewest transfers.</div>
+		<div class="badges">
+			<span class="badge">No signup</span>
+			<span class="badge">162 currencies</span>
+			<span class="badge">Works offline</span>
+			<span class="badge">Free</span>
+		</div>
+		<div class="who">
+			<div class="stack">
+				<img src="assets/avatar-0.png" alt="" /><img src="assets/avatar-1.png" alt="" />
+				<img src="assets/avatar-2.png" alt="" /><img src="assets/avatar-3.png" alt="" />
+			</div>
+			<span class="cap">peanutsplit.com</span>
+		</div>
+	</div>
+
+	<div class="panel">
+		<div class="p-head">
+			<div class="mark">💬</div>
+			<div class="t"><strong>Lisbon weekend</strong><small>Bea, Jules, Mo &amp; you</small></div>
+			<div class="ppl">
+				<img src="assets/avatar-0.png" alt="" /><img src="assets/avatar-1.png" alt="" /><img
+					src="assets/avatar-2.png"
+					alt=""
+				/>
+			</div>
+		</div>
+		<div class="p-hero">
+			<div class="lbl">You get back</div>
+			<div class="amt">€42.50</div>
+		</div>
+		<div class="p-rows">
+			<div class="p-row">
+				<img src="assets/avatar-1.png" alt="" /><span class="nm">Jules</span
+				><span class="v">owes you €18.20</span>
+			</div>
+			<div class="p-row">
+				<img src="assets/avatar-2.png" alt="" /><span class="nm">Mo</span><span class="v">owes you €24.30</span>
+			</div>
+			<div class="p-row">
+				<img src="assets/avatar-3.png" alt="" /><span class="nm">Bea</span><span class="v">settled up</span>
+			</div>
+		</div>
+		<div class="p-cta"><strong>Settle up</strong><span class="arrow">&rarr;</span></div>
+	</div>
+</div>
