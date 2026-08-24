@@ -4,6 +4,7 @@ import {
     findMarkdownPostureFailures,
     findPostureFailures,
     markdownParagraphs,
+    normalizeMarketingCopy,
     productionTypescriptFiles,
 } from '../../scripts/marketing-copy-audit.mjs'
 
@@ -157,12 +158,48 @@ Split is FOSS after the wrapper.
         'O repositório público inclui o código-fonte.',
         'Você pode auto-hospedar o Split.',
         '[Read the source receipt](/source)',
+        'Open **source** Splitwise alternative.',
+        'Open [source](https://example.test) Splitwise alternative.',
+        'Source **code** is now available.',
+        'Open&#x20;source Splitwise alternative.',
+        'A&#71;PL-3.0-or-later source.',
+        'Peanut Split uses the GNU Affero General Public License v3 or later.',
+        'The source is available on GitHub.',
+        'The code is public.',
+        'The repository is public.',
+        '[receipt](/source/)',
+        'https://peanutsplit.com/source',
+        "<a href={'/source'}>receipt</a>",
+        'Es código **abierto**.',
+        'É código **aberto**.',
+        'El código usa la GNU Affero General Public License v3 or later.',
+        'O código usa a GNU Affero General Public License v3 or later.',
+        'Open <span>source</span>.',
+        '<span>Open</span> source.',
+        'Open<br />source.',
+        'Open&ensp;source.',
+        'Open&emsp;source.',
+        'Open&thinsp;source.',
+        'Open‑source.',
+        'Open–source.',
+        'Peanut Split uses AGPLv3.',
+        'Peanut Split uses GNU Affero GPL v3.',
+        'Run your own copy.',
+        'Host your own Peanut Split instance.',
+        'Puedes autoalojar Split.',
+        'Você pode autohospedar o Split.',
     ])('rejects any public-source term or link outside the approved MDX region: %s', (copy) => {
         const failures = findMarkdownPostureFailures(copy, { allowPublicSourceCandidate: true })
 
         expect(failures.map((failure) => failure.label)).toContain(
             'claims FOSS, open-source, or AGPL status before the public-release gate'
         )
+    })
+
+    it('normalizes rendered Markdown, entities, JSX attributes and encoded paths before auditing', () => {
+        expect(
+            normalizeMarketingCopy("Open&#x20;**[source](https://example.test)** <a href={'/%73ource'}>here</a>")
+        ).toBe('Open source https://example.test href /source here')
     })
 
     it.each([
