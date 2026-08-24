@@ -1,0 +1,132 @@
+@font-face {
+	font-family: 'Knerd Filled';
+	src: url('../../apps/web/public/fonts/knerd-filled.woff2') format('woff2');
+}
+@font-face {
+	font-family: 'Knerd Outline';
+	src: url('../../apps/web/public/fonts/knerd-outline.woff2') format('woff2');
+}
+@font-face {
+	font-family: 'Sniglet';
+	src: url('../../apps/web/public/fonts/sniglet-regular.ttf') format('truetype');
+	font-weight: 400;
+}
+@font-face {
+	font-family: 'Sniglet';
+	src: url('../../apps/web/public/fonts/sniglet-extrabold.ttf') format('truetype');
+	font-weight: 800;
+}
+
+:root {
+	--yellow: #ffc900;
+	--yellow-2: #fae184;
+	--pink: #ff90e8;
+	--lav: #90a8ed;
+	--green: #98e9ab;
+	--peach: #e99898;
+	--ink: #211c17;
+	--grey: #5f646d;
+	--paper: #faf4f0;
+	--incoming: #effaf2;
+	--incoming-ink: #246c3d;
+}
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+html,
+body {
+	width: 1200px;
+	height: 630px;
+	overflow: hidden;
+}
+body {
+	font-family: 'Sniglet', system-ui, sans-serif;
+	color: var(--ink);
+	background: var(--yellow);
+	position: relative;
+	-webkit-font-smoothing: antialiased;
+}
+/* organic ground blobs — same device as the current card, used with more intent */
+body::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background:
+		radial-gradient(38% 62% at 100% 0%, var(--yellow-2) 0 55%, transparent 78%),
+		radial-gradient(30% 46% at 0% 100%, var(--yellow-2) 0 55%, transparent 78%);
+}
+.stage {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	padding: 46px 52px;
+	display: flex;
+	flex-direction: column;
+}
+
+/* the Peanut UI language: 1.5px ink border + hard offset shadow */
+.card {
+	background: #fff;
+	border: 1.5px solid var(--ink);
+	border-radius: 22px;
+	box-shadow: 7px 7px 0 var(--ink);
+}
+
+/* correct Knerd: white filled shifted +3px, outline on top at 0 (mirrors Title.tsx) */
+.knerd {
+	position: relative;
+	display: inline-block;
+	line-height: 0.82;
+}
+.knerd .fill {
+	font-family: 'Knerd Filled';
+	color: #fff;
+	transform: translateX(3px);
+	display: block;
+}
+.knerd .out {
+	font-family: 'Knerd Outline';
+	color: var(--ink);
+	position: absolute;
+	left: 0;
+	top: 0;
+	display: block;
+}
+
+.kicker {
+	font-weight: 800;
+	font-size: 21px;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+}
+.chip {
+	width: 58px;
+	height: 58px;
+	border-radius: 999px;
+	border: 1.5px solid var(--ink);
+	display: grid;
+	place-items: center;
+	font-weight: 800;
+	font-size: 23px;
+	text-transform: uppercase;
+}
+.foot {
+	margin-top: auto;
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+}
+.wordmark {
+	font-weight: 800;
+	font-size: 27px;
+	letter-spacing: 0.015em;
+}
+.url {
+	font-size: 21px;
+	color: #6b5a16;
+}
+.tnum {
+	font-variant-numeric: tabular-nums;
+}

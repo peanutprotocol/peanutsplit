@@ -1,0 +1,131 @@
+<meta charset="utf-8" /><link rel="stylesheet" href="shared.css" />
+<style>
+	.top {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 30px;
+	}
+	.knerd {
+		font-size: 92px;
+	}
+	.sub {
+		font-size: 23px;
+		color: #6b5a16;
+		margin-top: 13px;
+		max-width: 30ch;
+		line-height: 1.35;
+	}
+	.board {
+		display: flex;
+		align-items: center;
+		gap: 24px;
+		margin-top: 26px;
+	}
+	.receipt {
+		width: 292px;
+		padding: 22px 24px 26px;
+		position: relative;
+	}
+	.receipt .lbl {
+		font-size: 17px;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--grey);
+	}
+	.receipt .tot {
+		font-weight: 800;
+		font-size: 48px;
+		margin-top: 6px;
+		letter-spacing: -0.02em;
+	}
+	.receipt .who {
+		font-size: 19px;
+		color: var(--grey);
+		margin-top: 2px;
+	}
+	.zig {
+		position: absolute;
+		left: -1.5px;
+		right: -1.5px;
+		bottom: -11px;
+		height: 12px;
+		background: repeating-linear-gradient(135deg, #fff 0 9px, transparent 9px 18px);
+	}
+	.arrow {
+		font-weight: 800;
+		font-size: 46px;
+		color: var(--ink);
+		opacity: 0.85;
+	}
+	.rows {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 9px;
+	}
+	.row {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		background: #fff;
+		border: 1.5px solid var(--ink);
+		border-radius: 999px;
+		padding: 7px 22px 7px 7px;
+		box-shadow: 4px 4px 0 var(--ink);
+	}
+	.row .nm {
+		font-weight: 800;
+		font-size: 20px;
+		flex: 1;
+	}
+	.row .amt {
+		font-weight: 800;
+		font-size: 24px;
+	}
+</style>
+<div class="stage">
+	<div class="top">
+		<div>
+			<div class="knerd"><span class="fill">SPLIT IT</span><span class="out">SPLIT IT</span></div>
+			<div class="sub">One link. Everyone adds what they paid. The maths sorts itself.</div>
+		</div>
+	</div>
+
+	<div class="board">
+		<div class="card receipt">
+			<div class="lbl">Dinner &middot; Lisbon</div>
+			<div class="tot tnum">€128.40</div>
+			<div class="who">paid by Ana</div>
+			<div class="zig"></div>
+		</div>
+		<div class="arrow">&rarr;</div>
+		<div class="rows">
+			<div class="row">
+				<div class="chip" style="background: var(--yellow)">A</div>
+				<div class="nm">Ana</div>
+				<div class="amt tnum">€32.10</div>
+			</div>
+			<div class="row">
+				<div class="chip" style="background: var(--green)">M</div>
+				<div class="nm">Miguel</div>
+				<div class="amt tnum">€32.10</div>
+			</div>
+			<div class="row">
+				<div class="chip" style="background: var(--lav)">J</div>
+				<div class="nm">Jo</div>
+				<div class="amt tnum">€32.10</div>
+			</div>
+			<div class="row">
+				<div class="chip" style="background: var(--pink)">S</div>
+				<div class="nm">Sam</div>
+				<div class="amt tnum">€32.10</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="foot">
+		<div class="wordmark">Peanut Split</div>
+		<div class="url">no signup &middot; 162 currencies</div>
+	</div>
+</div>
