@@ -146,3 +146,93 @@ jobs:
           --build-arg NEXT_PUBLIC_SPLIT_V2_ENABLED=1
           --build-arg NEXT_PUBLIC_BASE_URL=https://peanutsplit.com
           apps/web
+  e2e-unfurl:
+    runs-on: ubuntu-latest
+    # The suite boots its own `next dev` and compiles routes on demand; without a
+    # ceiling a server that never comes up burns the default six hours.
+    timeout-minutes: 20
+    env:
+      # Playwright reads it for `forbidOnly` and its two retries.
+      CI: true
+      # Two variables, one database, because they are read by different processes.
+      # `prisma migrate deploy` takes DATABASE_URL. The Playwright webServer ignores
+      # it completely and hands `next dev` its own pin — `E2E_DATABASE_URL` falling
+      # back to a local `split:split@localhost:5433`, which does not exist on a
+      # runner. Set only the first and the migrations land in a database the app
+      # under test never opens, and every room-creating spec fails on a refused
+      # connection that reads like an app bug. Same database as the `check` job:
+      # apps/web owns the `split` schema in it, apps/api the `app` one.
+      DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
+      E2E_DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: peanut
+          POSTGRES_PASSWORD: peanut
+          POSTGRES_DB: peanut_split_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U peanut"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Bind a dispatched run to one exact commit
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        shell: bash
+        env:
+          ACTUAL_HEAD_SHA: ${{ github.sha }}
+          EXPECTED_HEAD_SHA: ${{ inputs.expected_head_sha }}
+        run: |
+          set -euo pipefail
+          if [[ ! "${EXPECTED_HEAD_SHA}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo '::error::expected_head_sha must be a lowercase 40-character Git SHA.'
+            exit 1
+          fi
+          if [[ "${ACTUAL_HEAD_SHA}" != "${EXPECTED_HEAD_SHA}" ]]; then
+            echo "::error::Dispatched ref resolved to ${ACTUAL_HEAD_SHA}, not ${EXPECTED_HEAD_SHA}."
+            exit 1
+          fi
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      - run: corepack enable
+
+      - run: pnpm bootstrap
+
+      # apps/web talks to its own database, not to apps/api, so this is the only
+      # migration the browser needs.
+      - run: pnpm --dir apps/web exec prisma migrate deploy
+
+      # `--with-deps` installs the host libraries the downloaded browser links
+      # against, which a runner does not carry. One engine: these specs assert
+      # markup and PNG bytes, and cross-engine rendering is what the nightly is for.
+      - run: pnpm --dir apps/web exec playwright install --with-deps chromium
+
+      # `exec playwright test` rather than the `e2e` script, because the arguments
+      # that narrow the run have to reach Playwright rather than pnpm.
+      - run: >-
+          pnpm --dir apps/web exec playwright test
+          --project=mobile
+          e2e/og-card.spec.ts
+          e2e/link-moment.spec.ts
+          e2e/recap.spec.ts
+
+      # Only on failure. A red X on a metadata assertion is unactionable without
+      # the trace — and on a green run the HTML report is a few megabytes of noise.
+      - name: Keep the report and traces
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: e2e-unfurl-${{ github.sha }}
+          path: |
+            apps/web/playwright-report
+            apps/web/test-results
+          if-no-files-found: ignore
+          retention-days: 7
