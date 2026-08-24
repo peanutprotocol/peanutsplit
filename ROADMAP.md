@@ -899,3 +899,45 @@ debt.)
   `meterRoomLookup` across ~8 write routes (moving it into `loadRoom` would
   double-meter the already-metered routes and every in-transaction reload), so it
   is not worth the blast radius today.
+- **[medium] Nothing audits `ops/` for banned claims.** `content.test.ts` iterates
+  `src/content` and `scripts/marketing-copy-audit.mjs` walks five named paths, so
+  copy written anywhere else ships unchecked. `ops/listings/listing-kit.json` —
+  the text submitted to app directories alongside the social card — carried
+  "free forever", "works offline" and "any currency" until 24 Aug, and one
+  submission went out with them. Fixed by hand and the rules are now written at
+  the top of that file, but the next file outside `src/content` will repeat it.
+  A gate that walked `ops/` and `design/` would close the class.
+- **[medium] A 404 page advertises an `og:image` that 404s.** Any URL under a
+  missing route segment still renders inherited layout metadata, so it emits
+  `og:image` pointing at a hashed route Next never generated — verified on
+  `/alternatives/splitwise-alternative`, which returns 200 for the meta tag and
+  404 for the image. Shared dead links therefore unfurl broken. Only affects
+  shares of URLs that do not exist, which is why it has not mattered.
+- **[medium] The locale content OG routes have no coverage of any kind.** Six
+  files under `es-419/` and `pt-br/` (blog hub, blog `[slug]`, `[page]`) plus the
+  two localized guide routes. Nothing unit-tests or requests one. This matters
+  more than the count suggests: `content-og.tsx`'s `drawable()` sanitizer exists
+  precisely because Satori drops unmapped codepoints, and accented Spanish and
+  Portuguese titles are the only inputs that exercise it. The English routes are
+  equally untested but far less likely to hit the sanitizer.
+- **[low] `ARTICLE_IMAGE_URL` has no cache-buster.** Generated `opengraph-image`
+  routes carry a content hash in the query, so swapping a card changes its URL
+  and the social platforms refetch. `/og-default.png` is a stable path with no
+  version, so a consumer that caches by URL — Google, for structured data — can
+  keep showing the previous card indefinitely after a swap, with every test
+  green. Versioning the filename on change would fix it; nobody has been bitten
+  yet because the card rarely changes.
+- **[low] `roomPreview.test.ts` needs a database and fails without one.** It is an
+  integration test living in the unit suite, so a clean checkout with no local
+  Postgres reports a failure that reads like a code defect. Either move it behind
+  the integration boundary or make the requirement explicit in its failure.
+- **[low] `en.json` ships a rail label the stylebook bans.** `marketing` carries
+  "ANY CURRENCY", which `stylebook.md:479` and `product-truths.md:33` both
+  prohibit — the approved phrasing is "162 room currencies", since 156 convert.
+  `marketing-copy-audit.mjs` does walk `src/i18n/messages`, but its
+  `prohibitedClaims` list only covers lifetime-price and Peanut-attribution, so
+  it does not catch this one.
+- **[low] The locale roots have no landing card.** `/es-419` and `/pt-br`
+  308-redirect to their blog indexes, so there is no localized equivalent of the
+  `/` unfurl. Their metadata is correct for a blog index; it just means a Spanish
+  or Portuguese share of the site root gets the English card.
