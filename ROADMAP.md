@@ -941,3 +941,26 @@ debt.)
   308-redirect to their blog indexes, so there is no localized equivalent of the
   `/` unfurl. Their metadata is correct for a blog index; it just means a Spanish
   or Portuguese share of the site root gets the English card.
+- **[medium] `content-og.tsx`'s sanitizer disagrees with `roomCard.ts`'s, and has
+  none of its guards.** `drawable()` (`content-og.tsx:38`) maps an undrawable
+  character to a space; `sanitizeForFont` (`roomCard.ts:154`) deletes it — so
+  `Split東京Now` is `Split Now` on a content card and `SplitNow` on a room card.
+  It also lacks all three of `sanitizeForFont`'s protections: no NFC normalize,
+  so decomposed accents are destroyed mid-word (`niño` typed NFD renders
+  `nin o`, while the precomposed spelling is fine, and es-419/pt-br is exactly
+  where NFD arrives from); no meaningful-character floor, so a mostly-undrawable
+  title ships as a fragment rather than falling back; and no length cap at all,
+  where every sibling truncates — a 400-character tagline pushes the sheet off
+  the canvas and takes the wordmark with it, measured on real rasters.
+  No live title is decomposed and the longest is 53 characters, so nothing is
+  broken today; all four are pinned as `(bug)` tests in `content-og.test.tsx`.
+  The fix is one call — route `drawable()` through `sanitizeForFont` with
+  `BODY_CHARS`, an NFC normalize and a cap — at which point those tests become
+  the spec to invert.
+- **[low] `content-og.tsx`'s docstring names the wrong font and the wrong
+  coverage.** Lines 19-22 say Sniglet covers Latin-1 and everything past it is
+  dropped. The tagline face is Roboto (`fonts.ts:28`) and `BODY_CHARS` carries
+  Latin Extended-A and the Cyrillic block, so Ukrainian and Polish titles render
+  verbatim. The behaviour is right and is now pinned by a test; only the comment
+  is wrong, and it is the kind of wrong that invites someone to "fix" working
+  code and blank a Ukrainian title.
