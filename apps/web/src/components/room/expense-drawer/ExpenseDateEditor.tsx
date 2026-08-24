@@ -1,10 +1,12 @@
 'use client'
 
+import type { RefObject } from 'react'
 import { Doodle } from '@/components/ui/Doodle'
 import { Icon } from '@/components/ui/Icon'
 import { cn } from '@/lib/cn'
 
 interface ExpenseDateEditorProps {
+    collapseRef: RefObject<HTMLButtonElement | null>
     summary: string
     value: string
     today: string
@@ -23,6 +25,7 @@ interface ExpenseDateEditorProps {
 
 /** The date section is a view over the drawer's ISO-date state. */
 export function ExpenseDateEditor({
+    collapseRef,
     summary,
     value,
     today,
@@ -44,6 +47,7 @@ export function ExpenseDateEditor({
                     <p className="mt-1 text-xs text-grey-1">{summary}</p>
                 </div>
                 <button
+                    ref={collapseRef}
                     type="button"
                     onClick={onClose}
                     aria-label={labels.collapse}

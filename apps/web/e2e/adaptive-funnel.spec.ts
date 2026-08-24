@@ -15,20 +15,121 @@ test.setTimeout(60_000)
 async function createAtRosterCheckpoint(page: Page, roomName: string, door: 'new' | 'hero' = 'new') {
     if (door === 'hero') {
         await page.goto('/')
-        await page.getByTestId('hero-room-name').fill(roomName)
         await page.getByTestId('hero-currency').selectOption('EUR')
+        await page.getByTestId('hero-room-name').fill(roomName)
         await page.getByTestId('hero-creator-name').fill('Ana')
+        await page.getByTestId('hero-room-name').fill(roomName)
+        await expect(page.getByTestId('hero-create-room')).toBeEnabled()
         await page.getByTestId('hero-create-room').click()
     } else {
         await page.goto('/new')
-        await page.getByTestId('room-name').fill(roomName)
         await page.getByTestId('room-currency').selectOption('EUR')
+        await page.getByTestId('room-name').fill(roomName)
         await page.getByTestId('creator-name').fill('Ana')
+        // Cold WebKit hydration can discard the first write to the autofocus
+        // field. Refill it after the companion field proves React owns the form.
+        await page.getByTestId('room-name').fill(roomName)
+        await expect(page.getByTestId('create-room')).toBeEnabled()
         await page.getByTestId('create-room').click()
     }
     await expect(page.getByTestId('roster-checkpoint')).toBeVisible({ timeout: 15_000 })
     await expect(page).toHaveURL(/\/r\/[^/?]+\?roster=1$/)
 }
+
+const isMemberWrite = (request: { method(): string; url(): string }) =>
+    request.method() === 'POST' && /\/api\/rooms\/[^/]+\/members$/.test(new URL(request.url()).pathname)
+
+const roomMemberNames = async (page: Page) => {
+    const slug = new URL(page.url()).pathname.split('/').filter(Boolean).at(-1)!
+    return page.evaluate(async (roomSlug) => {
+        const response = await fetch(`/api/rooms/${encodeURIComponent(roomSlug)}`)
+        if (!response.ok) throw new Error(`room state failed: ${response.status}`)
+        const state = (await response.json()) as { members: Array<{ name: string }> }
+        return state.members.map((member) => member.name)
+    }, slug)
+}
+
+test('the checkpoint bottom action commits a pending name before it leaves the room setup', async ({ page }) => {
+    await createAtRosterCheckpoint(page, `Pending checkpoint ${Date.now()}`)
+
+    let releaseMemberWrite!: () => void
+    const heldMemberWrite = new Promise<void>((resolve) => {
+        releaseMemberWrite = resolve
+    })
+    let observeMemberWrite!: () => void
+    const memberWriteStarted = new Promise<void>((resolve) => {
+        observeMemberWrite = resolve
+    })
+    let writes = 0
+    let submittedBody: unknown = null
+
+    await page.route(/\/api\/rooms\/[^/]+\/members$/, async (route) => {
+        if (!isMemberWrite(route.request())) {
+            await route.continue()
+            return
+        }
+        writes += 1
+        submittedBody = route.request().postDataJSON()
+        observeMemberWrite()
+        await heldMemberWrite
+        await route.continue()
+    })
+
+    const input = page.getByTestId('checkpoint-name')
+    const exit = page.getByTestId('go-to-room')
+    await input.fill('  Bea  ')
+    await exit.click()
+    await memberWriteStarted
+
+    try {
+        // Leaving before this response would unmount the only UI capable of
+        // reporting failure and recreate the original "I added them twice" path.
+        await expect(page).toHaveURL(/\?roster=1$/)
+        await expect(page.getByTestId('roster-checkpoint')).toBeVisible()
+        await expect(exit).toBeDisabled()
+        await expect(input).toHaveValue('  Bea  ')
+        expect(writes).toBe(1)
+        expect(submittedBody).toEqual({ name: 'Bea', intent: 'add' })
+    } finally {
+        releaseMemberWrite()
+    }
+
+    await expect(page).toHaveURL(/\/r\/pending-checkpoint-[^?]*$/)
+    await expect(page.getByTestId('open-room-switcher')).toBeVisible({ timeout: 15_000 })
+    await expect.poll(async () => (await roomMemberNames(page)).filter((name) => name === 'Bea').length).toBe(1)
+    expect(writes).toBe(1)
+})
+
+test('a failed pending-name commit keeps the checkpoint and its recoverable draft', async ({ page }) => {
+    await createAtRosterCheckpoint(page, `Failed checkpoint ${Date.now()}`)
+
+    let writes = 0
+    await page.route(/\/api\/rooms\/[^/]+\/members$/, async (route) => {
+        if (!isMemberWrite(route.request())) {
+            await route.continue()
+            return
+        }
+        writes += 1
+        await route.fulfill({
+            status: 500,
+            contentType: 'application/json',
+            body: JSON.stringify({ error: { code: 'INTERNAL_ERROR', message: 'forced checkpoint failure' } }),
+        })
+    })
+
+    const input = page.getByTestId('checkpoint-name')
+    const exit = page.getByTestId('go-to-room')
+    await input.fill('Bea')
+    await exit.click()
+
+    await expect(page.getByTestId('roster-checkpoint').getByRole('alert')).toBeVisible()
+    await expect(page).toHaveURL(/\?roster=1$/)
+    await expect(page.getByTestId('roster-checkpoint')).toBeVisible()
+    await expect(input).toHaveValue('Bea')
+    await expect(input).toBeFocused()
+    await expect(exit).toBeEnabled()
+    expect(writes).toBe(1)
+})
 
 test('checkpoint → empty room → first shared balance is one adaptive funnel', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 568 })
