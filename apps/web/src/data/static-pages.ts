@@ -1,3 +1,4 @@
+import { TEMPLATE_ROOT, TEMPLATES_PATH } from '@/templates/registry'
 import { TOOL_SLUGS } from '@/tools/registry'
 import { type Locale } from '@/i18n/locales'
 import { PREFIXED_LOCALES } from '@/i18n/paths'
@@ -51,6 +52,15 @@ export const STATIC_PAGES: StaticPage[] = [
         inHub: true,
     },
     {
+        // The template rooms' hub. A listing like /tools: the registry knows what to list, and
+        // this is what gets it a URL, a sitemap row and a reserved segment.
+        href: TEMPLATES_PATH,
+        title: 'Template rooms',
+        description: 'One link each: a room with the name, the currency and the drawing already chosen.',
+        priority: 0.6,
+        inHub: true,
+    },
+    {
         // An app-owned tool, not an editorial guide. Keep it registered to reserve the route,
         // but omit it from the editorial sitemap.
         href: '/import',
@@ -76,6 +86,7 @@ export const RESERVED_ROOT_SEGMENTS = [
     'r',
     'share-target',
     'blog',
+    TEMPLATE_ROOT,
     'api',
     'healthcheck',
     'readiness',

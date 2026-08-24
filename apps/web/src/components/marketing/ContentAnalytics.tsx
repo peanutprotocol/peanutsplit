@@ -34,7 +34,7 @@ import type { Chapter } from '@/lib/split-content/chapter-tokens'
 
 export const SCROLL_MILESTONES = [25, 50, 75, 100] as const
 export type ScrollMilestone = (typeof SCROLL_MILESTONES)[number]
-export type ContentTemplate = Collection | 'guide' | 'tool'
+export type ContentTemplate = Collection | 'guide' | 'tool' | 'room-template'
 
 export function contentPageviewProps(template: ContentTemplate, chapter?: Chapter) {
     return chapter ? { template, chapter } : { template }

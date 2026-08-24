@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { STATIC_PAGES } from '@/data/static-pages'
+import { TEMPLATES, templatePath } from '@/templates/registry'
 import { TOOLS, toolLocales, toolPath } from '@/tools/registry'
 import { MILEAGE_COUNTRY_PAGES } from '@/tools/mileage-split-calculator.countries'
 import { basePathFor, listAllTranslations, localesForSlug, type Collection } from '@/lib/content'
@@ -87,6 +88,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
         priority: 0.8,
     }))
 
+    /**
+     * Template rooms, from the registry. Ranked with the capture pages: each answers a narrow
+     * query typed as-is and the page's real job is the link on it. English only, so no alternates
+     * — hreflang must never advertise a page that is not there.
+     */
+    const templates: MetadataRoute.Sitemap = TEMPLATES.map((template) => ({
+        url: absoluteUrl(templatePath(template)),
+        lastModified: template.updated,
+        changeFrequency: 'monthly' as const,
+        priority: 0.7,
+    }))
+
     // The hub exists in every locale by construction — it lists whatever that locale has, even
     // when that is nothing yet.
     const hubAlternates = absolutise(hreflangAlternates('/blog', [...INDEXED_LOCALES]))
@@ -129,7 +142,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         }
     })
 
-    return [...staticEntries, ...tools, ...countries, ...hubs, ...articles, ...guides]
+    return [...staticEntries, ...tools, ...countries, ...templates, ...hubs, ...articles, ...guides]
 }
 
 /**

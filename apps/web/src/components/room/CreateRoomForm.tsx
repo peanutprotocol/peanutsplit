@@ -13,6 +13,7 @@ import {
     composerSurfaceClassName,
 } from '@/components/ui/composer-style'
 import { Icon } from '@/components/ui/Icon'
+import type { RoomPrefill } from '@/lib/room-prefill'
 import { readCurrencyChoice, rememberCurrencyChoice, useCurrencyHints } from '@/lib/use-currency-hint'
 import { useCurrencies } from '@/lib/queries'
 import { roomDoodleFor } from '@/lib/room-doodle'
@@ -27,8 +28,15 @@ import { RoomEmblem } from './RoomEmblem'
  *  known until after mount — see the effect below. */
 const DEFAULT_CURRENCY = 'EUR'
 
-/** One screen, three fields, no account. */
-export function CreateRoomForm() {
+/**
+ * One screen, three fields, no account.
+ *
+ * `prefill` is what a link already decided (`room-prefill.ts`), validated on the server. It seeds
+ * initial state rather than being held as a second source of truth, so every field stays editable
+ * and the form behaves identically once anybody touches it. A prefilled name also moves the
+ * autofocus down to the one field a link is never allowed to fill in.
+ */
+export function CreateRoomForm({ prefill = {} }: { prefill?: RoomPrefill }) {
     const t = useTranslations('room.create')
     const router = useRouter()
     const { data: currencies } = useCurrencies()
@@ -38,16 +46,18 @@ export function CreateRoomForm() {
     const feedback = useFeedback()
     const motionAllowed = useMotionAllowed()
 
-    const [name, setName] = useState('')
+    const [name, setName] = useState(prefill.name ?? '')
     // null means "follow the name". The emblem used to be rolled at random after mount, which
     // needed an effect purely to dodge a hydration
     // mismatch; reading the name is deterministic and right far more often.
-    const [emblem, setEmblem] = useState<string | null>(null)
-    const [currency, setCurrency] = useState(DEFAULT_CURRENCY)
+    const [emblem, setEmblem] = useState<string | null>(prefill.emblem ?? null)
+    const [currency, setCurrency] = useState(prefill.currency ?? DEFAULT_CURRENCY)
     // A guess is only ever allowed to fill an empty field. The moment someone picks a currency
     // themselves, the inference is done talking — a hint that overwrites a deliberate choice is
     // not smart, it is broken.
-    const [currencyChosen, setCurrencyChosen] = useState(false)
+    // A currency in the link is a choice somebody already made, so the device hint below must not
+    // overwrite it — the same rule that protects a currency picked here by hand.
+    const [currencyChosen, setCurrencyChosen] = useState(prefill.currency !== undefined)
     const [creatorName, setCreatorName] = useState('')
     const [drawingOpen, setDrawingOpen] = useState(false)
     const drawingSummaryRef = useRef<HTMLButtonElement>(null)
@@ -84,7 +94,7 @@ export function CreateRoomForm() {
     const submit = async (event: React.FormEvent) => {
         event.preventDefault()
         if (!canSubmit) return
-        const state = await createRoom({ name, emoji: shownEmblem, currency, creatorName })
+        const state = await createRoom({ name, emoji: shownEmblem, currency, creatorName, template: prefill.template })
         if (state) router.push(`/r/${state.room.slug}?roster=1`)
     }
 
@@ -115,7 +125,7 @@ export function CreateRoomForm() {
                                 placeholder={t('namePlaceholder')}
                                 aria-label={t('name')}
                                 maxLength={80}
-                                autoFocus
+                                autoFocus={prefill.name === undefined}
                                 data-testid="room-name"
                                 className={composerBareInputClassName('h-16 px-1 text-h5 font-extrabold')}
                             />
@@ -141,6 +151,7 @@ export function CreateRoomForm() {
                             placeholder={t('creatorNamePlaceholder')}
                             aria-label={t('creatorName')}
                             maxLength={80}
+                            autoFocus={prefill.name !== undefined}
                             data-testid="creator-name"
                             data-focus-contained
                             className={composerBareInputClassName('h-14 px-4 text-base font-bold md:text-sm')}

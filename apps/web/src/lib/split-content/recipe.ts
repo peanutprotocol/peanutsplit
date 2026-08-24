@@ -13,7 +13,7 @@ export type PageKind = Collection | 'guide'
  * translation silently repaint the page). A slug that is both a blog/* directory and a generated
  * guide must resolve to the same chapter, which a flat map gives for free — see recipe.test.ts.
  *
- * Covers the 25 real slugs live today: the 5 alternatives/*, 9 blog/*, 4 capture/* directory
+ * Covers the 31 real slugs live today: the 5 alternatives/*, 9 blog/*, 10 capture/* directory
  * names, plus the 9 unique guide slugs in src/generated/seo/manifest.json (2 of which —
  * split-a-group-trip-across-countries, split-expenses-across-currencies — are also blog/*
  * directories and share one entry below). recipe.test.ts cross-checks this map against the real
@@ -42,10 +42,16 @@ export const CHAPTER_BY_SLUG: Record<string, Chapter> = {
     'who-pays-for-the-wine': 'table',
 
     // capture/*
+    'bali-trip-costs': 'trips',
     'fair-split-calculator': 'home',
+    'festival-ticket-money': 'getting-paid-back',
     'group-trip-expenses': 'trips',
+    'house-share-bills': 'home',
+    'ski-trip-costs': 'trips',
     'split-airbnb-cost-unequal-rooms': 'trips',
     'split-bill-no-signup': 'table',
+    'split-fuel-costs': 'trips',
+    'villa-share-costs': 'trips',
 
     // guide-only slugs (not also a Collection directory)
     'ask-a-friend-to-pay-you-back': 'getting-paid-back',
