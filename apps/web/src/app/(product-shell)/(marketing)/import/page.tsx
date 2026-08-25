@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { cookies, headers } from 'next/headers'
 import { NextIntlClientProvider } from 'next-intl'
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
+import { SkinFrame } from '@/components/marketing/SkinFrame'
+import { CTA, FAQ, FAQItem, Hero } from '@/components/marketing/mdx/blocks'
 import { marketingCopy } from '@/components/marketing/copy'
 import { SplitwiseImport } from '@/components/import/SplitwiseImport'
-import { buttonClassName } from '@/components/ui/button-style'
 import {
     DEFAULT_LOCALE,
     HREFLANG,
@@ -18,6 +18,8 @@ import {
 } from '@/i18n/locales'
 import { loadMessages } from '@/i18n/messages'
 import { appBreadcrumbSchema, appPageMetadata } from '@/lib/seo'
+import { hashSlug } from '@/lib/split-content/seed'
+import { skinFor } from '@/lib/split-content/skin'
 
 const { importPage } = marketingCopy
 
@@ -77,37 +79,31 @@ async function importToolLocale(): Promise<Locale> {
 export default async function ImportPage() {
     const toolLocale = await importToolLocale()
     const toolMessages = await loadMessages(toolLocale)
+    // Hand-built rather than a registry surface, so the skin is read straight off the one gate and
+    // the wallpaper pool is named here. No map: `toolWallpaperChapter` and its template twin exist
+    // because those are registries with N members, and a one-entry map is a list waiting to drift.
+    // `versus` is the pool the Splitwise comparison pages already draw from, and this is that family.
+    const skin = skinFor('import', 'default')
 
-    return (
-        <main className="flex min-h-dvh flex-col gap-8 bg-background sm:gap-10">
-            <JsonLd data={faqJsonLd} />
-            <JsonLd data={appBreadcrumbSchema(crumbs)} />
+    const body = (
+        <>
+            <Hero eyebrow={importPage.hero.eyebrow} title={importPage.hero.title} subtitle={importPage.hero.body} />
 
-            <Breadcrumbs crumbs={crumbs} />
-
-            <section>
-                <div className="border-b border-n-1 bg-primary-1">
-                    <div className="mx-auto w-full max-w-xl px-5 pb-6 pt-8 sm:pb-8 sm:pt-10">
-                        <span className="inline-flex items-center rounded-sm border border-n-1 bg-white px-3 py-1 text-h9 uppercase tracking-wide text-n-1">
-                            {importPage.hero.eyebrow}
-                        </span>
-                        <h1 className="mt-5 text-h3 leading-tight text-n-1">{importPage.hero.title}</h1>
-                        <p className="mt-4 text-base font-medium leading-6 text-n-1">{importPage.hero.body}</p>
-                    </div>
-                </div>
-            </section>
-
-            <section className="mx-auto w-full max-w-xl px-5" lang={HREFLANG[toolLocale]}>
+            <section className="mx-auto w-full max-w-xl px-5 py-6" lang={HREFLANG[toolLocale]}>
                 <NextIntlClientProvider locale={toolLocale} messages={toolMessages}>
                     <SplitwiseImport />
                 </NextIntlClientProvider>
             </section>
 
-            <section className="mx-auto w-full max-w-xl px-5">
-                <h2 className="text-h5">{importPage.honest.title}</h2>
+            {/* Not `Checklist`: two of these four are caveats, and a green tick on "old exchange
+                rates are not in the file" would read as a promise. Same card as `FAQItem`, so it
+                takes the same hook and joins the sticker group — but it stays a list of statements
+                rather than a `<dl>` of questions nobody asked. */}
+            <section className="mx-auto w-full max-w-xl px-5 py-4">
+                <h2 className="split-block-title text-h5">{importPage.honest.title}</h2>
                 <ul className="mt-4 flex flex-col gap-3">
                     {importPage.honest.items.map((item) => (
-                        <li key={item.title} className="rounded-sm border border-n-1 bg-white p-4">
+                        <li key={item.title} className="split-faq-item rounded-sm border border-n-1 bg-white p-4">
                             <h3 className="text-h7">{item.title}</h3>
                             <p className="mt-2 text-sm leading-5 text-grey-1">{item.body}</p>
                         </li>
@@ -115,30 +111,34 @@ export default async function ImportPage() {
                 </ul>
             </section>
 
-            <section className="mx-auto w-full max-w-xl px-5">
-                <h2 className="text-h5">{importPage.faq.title}</h2>
-                <dl className="mt-4 flex flex-col gap-4">
-                    {importPage.faq.items.map((item) => (
-                        <div key={item.q} className="rounded-sm border border-n-1 bg-white p-4">
-                            <dt className="text-h7">{item.q}</dt>
-                            <dd className="mt-2 text-sm leading-5 text-grey-1">{item.a}</dd>
-                        </div>
-                    ))}
-                </dl>
-            </section>
+            <FAQ title={importPage.faq.title}>
+                {importPage.faq.items.map((item) => (
+                    <FAQItem key={item.q} question={item.q}>
+                        {item.a}
+                    </FAQItem>
+                ))}
+            </FAQ>
 
-            <section className="mx-auto w-full max-w-xl px-5">
-                <div className="rounded-sm border border-n-1 bg-white p-5">
-                    <h2 className="text-h5">{importPage.cta.title}</h2>
-                    <p className="mt-2 text-sm leading-5 text-grey-1">{importPage.cta.body}</p>
-                    <Link
-                        href="/new"
-                        className={buttonClassName({ shadowSize: '4', className: 'mt-4 justify-center text-h6' })}
-                    >
-                        {importPage.cta.button}
-                    </Link>
-                </div>
-            </section>
+            <CTA title={importPage.cta.title} body={importPage.cta.body} text={importPage.cta.button} />
+        </>
+    )
+
+    return (
+        <main className="flex min-h-dvh flex-col bg-background">
+            <JsonLd data={faqJsonLd} />
+            <JsonLd data={appBreadcrumbSchema(crumbs)} />
+
+            <Breadcrumbs crumbs={crumbs} />
+
+            {/* Crumbs above, footer below — the `mt-auto` pin only works while `SiteFooter` is a
+                direct flex child of this column. Same idiom as `ToolPage`. */}
+            {skin === 'none' ? (
+                body
+            ) : (
+                <SkinFrame skin={skin} seed={hashSlug('import')} chapter="versus" className="flex flex-1 flex-col">
+                    {body}
+                </SkinFrame>
+            )}
 
             <SiteFooter showLocaleSwitcher={false} />
         </main>
