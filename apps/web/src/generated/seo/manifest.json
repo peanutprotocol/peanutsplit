@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "source_repository": "peanutprotocol/mono",
-  "source_commit": "32a97bbeb87638f164a312a1f491a799c1f466af",
+  "source_commit": "4b5fcea1d64392b9ed633f5be196a4df4c76f925",
   "content_root": "split-content",
   "locales": [
     "en",
