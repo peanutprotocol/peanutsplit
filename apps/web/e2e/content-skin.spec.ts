@@ -41,6 +41,9 @@ const SKINNED = [
     // on, so they rendered flat: the pair is here to keep the registry surfaces honest.
     '/t/villa-week',
     '/t/flat-monthly',
+    // The last hand-built marketing page. It renders through the shared blocks now, so its hooks
+    // are only live while it keeps its frame.
+    '/import',
 ] as const
 
 /** Chrome, not content: a hub has no frame call site, so it carries no `data-skin` at all. */
