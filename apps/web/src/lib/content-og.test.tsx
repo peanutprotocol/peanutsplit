@@ -225,7 +225,11 @@ describe('the route builders', () => {
 
         expect(
             await cardFor(
-                contentOgImage(['alternatives', 'capture'], 'es-419', 'page')({
+                contentOgImage(
+                    ['alternatives', 'capture'],
+                    'es-419',
+                    'page'
+                )({
                     params: Promise.resolve({ page: 'splitwise-alternative' }),
                 })
             )
