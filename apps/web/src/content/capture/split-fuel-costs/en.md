@@ -11,7 +11,7 @@ claims:
     - offline-creates-only
     - netting-is-bounded-exact
     - settle-is-a-record
-    - hosted-price-and-software-freedom
+    - free-forever
 cast:
     - ana
 faqs:

@@ -863,5 +863,5 @@ test('workflow contracts keep publication manual, split credentials by job, and 
 	assert.match(publisherWorkflow, /Mirror script SHA-256/)
 	assert.match(publisherWorkflow, /gh workflow run ci\.yml[\s\S]*expected_head_sha/)
 	assert.match(ciWorkflow, /workflow_dispatch:[\s\S]*expected_head_sha:/)
-	assert.equal((ciWorkflow.match(/ACTUAL_HEAD_SHA: \$\{\{ github\.sha \}\}/g) ?? []).length, 2)
+	assert.equal((ciWorkflow.match(/ACTUAL_HEAD_SHA: \$\{\{ github\.sha \}\}/g) ?? []).length, 3)
 })

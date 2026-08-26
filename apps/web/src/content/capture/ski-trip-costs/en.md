@@ -11,7 +11,7 @@ claims:
     - netting-is-bounded-exact
     - settle-is-a-record
     - offline-creates-only
-    - hosted-price-and-software-freedom
+    - free-forever
 cast:
     - jules
 faqs:
