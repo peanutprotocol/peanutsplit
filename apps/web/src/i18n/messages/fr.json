@@ -308,7 +308,7 @@
                 "retype": {
                     "q": "Dois-je tout ressaisir depuis la conversation du groupe ?",
                     "a": "Pour un voyage déjà terminé, oui : les dépenses doivent être saisies une fois. C’est plus simple qu’il n’y paraît, car chacun peut ajouter les siennes au lieu que tout repose sur toi.",
-                    "import": "Si tu viens de Splitwise, la page d’importation transfère tout un groupe en une seule étape."
+                    "import": "Si tu viens de Splitwise, la page d’importation transfère tout un groupe, historique et soldes compris."
                 },
                 "access": {
                     "q": "Qui peut voir notre groupe ?",

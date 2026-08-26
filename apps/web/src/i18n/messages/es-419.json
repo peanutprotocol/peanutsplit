@@ -308,7 +308,7 @@
                 "retype": {
                     "q": "¿Tengo que volver a cargar todo lo que está en el chat?",
                     "a": "Para un viaje que ya pasó, sí: los gastos se cargan una vez. Pesa menos de lo que parece porque cada uno en la sala puede cargar los suyos en vez de que caiga todo sobre vos.",
-                    "import": "Si venís de Splitwise, la página de importación trae un grupo entero de una sola vez."
+                    "import": "Si venís de Splitwise, la página de importación trae un grupo entero, con historial y saldos."
                 },
                 "access": {
                     "q": "¿Quién puede ver nuestra sala?",

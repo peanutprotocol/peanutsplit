@@ -308,7 +308,7 @@
                 "retype": {
                     "q": "Czy muszę przepisać wszystko z czatu grupowego?",
                     "a": "Jeśli wyjazd już się odbył, tak: wydatki trzeba wpisać raz. To mniej pracy, niż się wydaje, bo każdy w pokoju może dodać własne wydatki, zamiast zostawiać wszystko tobie.",
-                    "import": "Jeśli przechodzisz ze Splitwise, strona importu przenosi całą grupę za jednym razem."
+                    "import": "Jeśli przechodzisz ze Splitwise, strona importu przenosi całą grupę, razem z historią i saldami."
                 },
                 "access": {
                     "q": "Kto może zobaczyć nasz pokój?",

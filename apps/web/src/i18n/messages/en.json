@@ -308,7 +308,7 @@
                 "retype": {
                     "q": "Do I have to retype everything from the group chat?",
                     "a": "For a trip that already happened, yes — the expenses get typed in once. It is lighter than it sounds, because everyone in the room can add their own instead of it all landing on you.",
-                    "import": "If you are coming from Splitwise, the import page brings a whole group across in one step."
+                    "import": "If you are coming from Splitwise, the import page brings a whole group across, history and balances included."
                 },
                 "access": {
                     "q": "Who can see our room?",
