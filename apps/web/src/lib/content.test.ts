@@ -531,6 +531,12 @@ export const NEVER_STRINGS: readonly StyleRule[] = [
         why: 'we make no claim about room-slug entropy — see product-truths.md#link-is-the-key',
     },
     {
+        id: 'room-speaks-three',
+        target: 'prose',
+        pattern: /whichever of the three|of the three the phone|de esos tres|existe en los tres|existe nos tr[êe]s/i,
+        why: 'the room speaks all seven locales, not three — only this page tree is three (product-truths.md#languages-seven)',
+    },
+    {
         id: 'minimal-transfers',
         target: 'prose',
         pattern:

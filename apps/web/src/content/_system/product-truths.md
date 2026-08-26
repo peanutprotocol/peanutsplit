@@ -45,14 +45,19 @@ static table; the module says "Rates are indicative — surfaces that show one m
 ## room-size-20
 
 **claim:** Copy says up to twenty people. The cap is real per imported source file only: a Splitwise
-import over twenty source members is rejected, and over 500 expenses is truncated. Appending a
+import over twenty source members is rejected. Over 500 expenses is carried, not refused: the room
+holds 500 rows, and anything older folds into "Balance brought forward" opening rows. Appending a
 valid file to an existing room does not impose a 20-person cap on that room's accumulated roster.
 Joining through the room link has no member cap at all — `POST /api/rooms/[slug]/members` does not
 check one.
 
-**safe:** "up to twenty people" · "a group, not a conference"
+**safe:** "up to twenty people" · "a group, not a conference" · "a room holds 500 expenses" ·
+"the most recent come across in full and everything older is folded into a Balance brought forward
+entry"
 
-**unsafe:** "unlimited" · "any size group" · "no limit on people" · a number above twenty
+**unsafe:** "unlimited" · "any size group" · "no limit on people" · a number above twenty ·
+"the newest 500 come across" (carried rows count against the same 500) · any unbounded history
+claim (the file itself is capped at ~5,000 expenses / 1 MB)
 
 **source:** `apps/web/src/lib/splitwise-csv.ts` (`MAX_MEMBERS = 20`, `MAX_EXPENSES = 500`) ·
 `apps/web/src/app/api/import/route.ts` and `apps/web/src/app/api/rooms/[slug]/import/route.ts`
@@ -231,6 +236,23 @@ zdr: true }`, `SPLIT_GEMINI_PAID_TIER_CONFIRMED`, nothing persisted or logged) �
 `apps/web/src/server/receipt.ts` (image never persisted, sum recomputed beside the model's total) ·
 `apps/web/src/lib/shared-receipt.ts` (`SHARE_TTL_MS = 10 min`, `takeSharedReceipt` one-shot,
 `sweepSharedReceipt` on boot)
+
+---
+
+## languages-seven
+
+**claim:** The product UI is translated into seven locales, and a first-time visitor gets theirs
+automatically from the phone. The authored marketing/SEO tree is a different, smaller set: only
+three locales have written pages. Never state one number for both.
+
+**safe:** "seven languages" for the room · naming them: English, Spanish, Portuguese, Polish,
+German, French, Ukrainian · "this page is in English, Spanish and Portuguese" for the page tree
+
+**unsafe:** "three languages" for the room · "whichever of the three" · implying the comparison
+pages exist in all seven
+
+**source:** `apps/web/src/i18n/locales.ts` (`LOCALES` = 7, `INDEXED_LOCALES` = 3) ·
+`apps/web/src/i18n/request.ts` (explicit → proxy header → `ps-locale` cookie → `Accept-Language`)
 
 ---
 

@@ -75,7 +75,7 @@ export const marketingCopy = {
                 },
                 {
                     q: 'How big a group can I import?',
-                    a: 'Up to 20 people and 500 expenses. Groups larger than that are not what Split is for — it is built for a trip, a flat or a dinner.',
+                    a: 'Up to 20 people, and up to about five thousand expenses in the file. Bigger groups are not what Split is for — it is built for a trip, a flat or a dinner. A long history still works: a room holds 500 expenses, so the most recent come across in full and everything older is folded into a “Balance brought forward” entry, which leaves every balance the same.',
                 },
             ],
         },
