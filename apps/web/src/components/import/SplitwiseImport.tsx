@@ -659,16 +659,19 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
                     </p>
                 )}
 
-                <div className="rounded-sm border border-n-1 bg-white p-4">
-                    <h2 className="text-h7">{t('howto.title')}</h2>
+                {/* Privacy before the fold, export steps behind a disclosure: someone with the file
+                    in hand needs the first, and the second costs them a tap instead of a scroll. */}
+                <p className="text-sm leading-5 text-grey-1">{t('drop.privacy')}</p>
+                <p className="text-sm leading-5 text-grey-1">{t('drop.outcome')}</p>
+
+                <details className="rounded-sm border border-n-1 bg-white p-4">
+                    <summary className="cursor-pointer text-h7">{t('howto.title')}</summary>
                     <ol className="mt-3 flex list-decimal flex-col gap-2 pl-5 text-sm leading-5 text-grey-1">
                         <li>{t('howto.step1')}</li>
                         <li>{t('howto.step2')}</li>
                         <li>{t('howto.step3')}</li>
                     </ol>
-                </div>
-
-                <p className="text-sm leading-5 text-grey-1">{t('drop.privacy')}</p>
+                </details>
             </div>
         )
     }

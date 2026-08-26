@@ -1261,10 +1261,11 @@
         "drop": {
             "title": "Solte aqui sua exportação do Splitwise ou Split Pro",
             "cta": "Escolher um arquivo",
-            "privacy": "O arquivo não sai do seu aparelho. As despesas só são enviadas quando você confirma."
+            "privacy": "O arquivo não sai do seu aparelho. As despesas só são enviadas quando você confirma.",
+            "outcome": "Sem conta para você, e sem conta para quem receber o link."
         },
         "howto": {
-            "title": "Exportações aceitas",
+            "title": "Como exporto o grupo?",
             "step1": "Splitwise: abra as configurações de um grupo e escolha “Exportar como planilha”.",
             "step2": "Conta do Split Pro: abra Conta e escolha “Baixar dados do SplitPro”.",
             "step3": "Contato do Split Pro: abra a página de saldos da pessoa e escolha “Exportar”."

@@ -1261,10 +1261,11 @@
         "drop": {
             "title": "Dépose ici ton export Splitwise ou Split Pro",
             "cta": "Choisir un fichier",
-            "privacy": "Le fichier reste sur cet appareil. Les données importées ne sont envoyées qu’après ta confirmation."
+            "privacy": "Le fichier reste sur cet appareil. Les données importées ne sont envoyées qu’après ta confirmation.",
+            "outcome": "Pas de compte pour toi, ni pour ceux à qui tu envoies le lien."
         },
         "howto": {
-            "title": "Exports acceptés",
+            "title": "Comment exporter le groupe ?",
             "step1": "Splitwise : ouvre les réglages d’un groupe et choisis « Exporter comme feuille de calcul ».",
             "step2": "Compte Split Pro : ouvre Compte et choisis « Télécharger les données SplitPro ».",
             "step3": "Ami Split Pro : ouvre la page de solde de cette personne et choisis « Exporter »."

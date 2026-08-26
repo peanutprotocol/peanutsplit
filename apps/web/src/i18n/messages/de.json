@@ -1261,10 +1261,11 @@
         "drop": {
             "title": "Zieh deinen Export aus Splitwise oder Split Pro hierher",
             "cta": "Datei auswählen",
-            "privacy": "Die Datei bleibt auf diesem Gerät. Importdaten werden erst nach deiner Bestätigung gesendet."
+            "privacy": "Die Datei bleibt auf diesem Gerät. Importdaten werden erst nach deiner Bestätigung gesendet.",
+            "outcome": "Kein Konto für dich, und keins für alle, denen du den Link schickst."
         },
         "howto": {
-            "title": "Unterstützte Exporte",
+            "title": "Wie exportiere ich die Gruppe?",
             "step1": "Splitwise: Öffne die Einstellungen einer Gruppe und wähle „Als Tabelle exportieren“.",
             "step2": "Split Pro-Konto: Öffne „Konto“ und wähle „SplitPro-Daten herunterladen“.",
             "step3": "Split Pro-Freund: Öffne die Saldoseite dieser Person und wähle „Exportieren“."

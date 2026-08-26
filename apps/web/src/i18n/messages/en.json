@@ -1261,10 +1261,11 @@
         "drop": {
             "title": "Drop your Splitwise or Split Pro export here",
             "cta": "Choose a file",
-            "privacy": "The file stays on this device. Import data is sent only after you confirm."
+            "privacy": "The file stays on this device. Import data is sent only after you confirm.",
+            "outcome": "No account for you, and none for anyone you send the link to."
         },
         "howto": {
-            "title": "Accepted exports",
+            "title": "How do I export the group?",
             "step1": "Splitwise: open a group’s settings and choose “Export as spreadsheet”.",
             "step2": "Split Pro account: open Account and choose “Download SplitPro data”.",
             "step3": "Split Pro friend: open that person’s balance page and choose “Export”."
