@@ -32,7 +32,7 @@ faqs:
     - question: Funciona sem sinal?
       answer: As despesas funcionam. O que você digita sem conexão fica guardado no seu celular, até trinta delas, e sobe assim que houver conexão. Registrar um acerto espera conexão de propósito, porque um pagamento anotado duas vezes é pior do que um pagamento anotado tarde.
     - question: Tem em inglês ou em espanhol?
-      answer: Tem. Inglês, espanhol e português do Brasil, escolhido pelo idioma do celular que abre o link. Esta página de comparação também existe nos três.
+      answer: Tem. Inglês, espanhol, português do Brasil, polonês, alemão, francês e ucraniano, escolhido pelo idioma do celular que abre o link. Esta página de comparação existe em inglês, espanhol e português.
     - question: Como voltamos para uma sala?
       answer: Deixe o link no grupo do WhatsApp para todo mundo achar lá. O Split também guarda as salas abertas neste aparelho, e você pode colar um link de sala na página inicial para trazer ela de volta.
     - question: Funciona no meu celular?
@@ -125,7 +125,7 @@ O Splitwise lê recibo, importa cartão e desenha gráficos, e tem app nas duas 
 <ChecklistItem title="Conta que fecha">Os saldos somam zero, até o centavo, e o acerto sugere um plano de pagamento curto que zera a sala. Abra qualquer saldo e ele mostra a conta.</ChecklistItem>
 <ChecklistItem title="Todo mundo vê na hora">Alguém lança o táxi no caminho de casa e aquilo já está na tela dos outros antes de eles saírem do carro.</ChecklistItem>
 <ChecklistItem title="Continua funcionando sem sinal">Despesas digitadas no subsolo ou no meio da serra esperam no seu celular e sobem quando o sinal volta. Registrar um acerto espera conexão de propósito: um pagamento anotado duas vezes é pior do que um pagamento anotado tarde.</ChecklistItem>
-<ChecklistItem title="Inglês, espanhol e português">A sala fala a língua do celular que abriu ela. Ninguém precisa achar uma configuração.</ChecklistItem>
+<ChecklistItem title="Sete idiomas">A sala fala a língua do celular que abriu ela: inglês, espanhol, português, polonês, alemão, francês ou ucraniano. Ninguém precisa achar uma configuração.</ChecklistItem>
 <ChecklistItem title="Acerte do jeito que vocês quiserem">Dinheiro, transferência, o app que o grupo já usa. O Split registra de qualquer jeito.</ChecklistItem>
 </Checklist>
 
@@ -140,7 +140,7 @@ O Splitwise lê recibo, importa cartão e desenha gráficos, e tem app nas duas 
 <FAQItem question="Tem limite de quantas despesas dá para lançar?">Não tem. Lance cinquenta numa tarde, se a viagem for desse tipo.</FAQItem>
 <FAQItem question="Precisamos baixar um app?">Não. Abre no navegador como qualquer página. Se você quer que pareça um app, adicione à tela de início: isso é função do celular, não instalação.</FAQItem>
 <FAQItem question="Funciona sem sinal?">As despesas funcionam. O que você digita sem conexão fica guardado no seu celular, até trinta delas, e sobe assim que houver conexão. Registrar um acerto espera conexão de propósito, porque um pagamento anotado duas vezes é pior do que um pagamento anotado tarde.</FAQItem>
-<FAQItem question="Tem em inglês ou em espanhol?">Tem. Inglês, espanhol e português do Brasil, escolhido pelo idioma do celular que abre o link. Esta página de comparação também existe nos três.</FAQItem>
+<FAQItem question="Tem em inglês ou em espanhol?">Tem. Inglês, espanhol, português do Brasil, polonês, alemão, francês e ucraniano, escolhido pelo idioma do celular que abre o link. Esta página de comparação existe em inglês, espanhol e português.</FAQItem>
 <FAQItem question="Como voltamos para uma sala?">Deixe o link no grupo do WhatsApp para todo mundo achar lá. O Split também guarda as salas abertas neste aparelho, e você pode colar um link de sala na página inicial para trazer ela de volta.</FAQItem>
 <FAQItem question="Funciona no meu celular?">É um site, então funciona em qualquer lugar. Dá para adicionar à tela de início e ele abre como um app.</FAQItem>
 </FAQ>
