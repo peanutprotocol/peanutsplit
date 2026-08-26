@@ -38,6 +38,7 @@ describe('privacy-safe analytics', () => {
             autocapture: false,
             capture_pageleave: false,
             capture_pageview: false,
+            custom_campaign_params: ['nl'],
             disable_session_recording: true,
             mask_all_text: true,
             save_referrer: false,
