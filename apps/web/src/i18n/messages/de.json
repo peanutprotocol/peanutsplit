@@ -308,7 +308,7 @@
                 "retype": {
                     "q": "Muss ich alles aus dem Gruppenchat noch einmal eingeben?",
                     "a": "Bei einer Reise, die schon vorbei ist: ja. Die Ausgaben werden einmal eingetragen. Das geht schneller als gedacht, weil alle in der Gruppe ihre eigenen Ausgaben eintragen können und nicht alles an dir hängen bleibt.",
-                    "import": "Wenn du von Splitwise kommst, übernimmt die Importseite eine ganze Gruppe in einem Schritt."
+                    "import": "Wenn du von Splitwise kommst, übernimmt die Importseite eine ganze Gruppe, mit Verlauf und Salden."
                 },
                 "access": {
                     "q": "Wer kann unsere Gruppe sehen?",

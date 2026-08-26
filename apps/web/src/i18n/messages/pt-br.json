@@ -308,7 +308,7 @@
                 "retype": {
                     "q": "Preciso digitar de novo tudo o que está no grupo?",
                     "a": "Para uma viagem que já aconteceu, sim: as despesas são digitadas uma vez. Pesa menos do que parece porque cada um na sala lança as suas em vez de sobrar tudo para você.",
-                    "import": "Se você vem do Splitwise, a página de importação traz um grupo inteiro de uma vez só."
+                    "import": "Se você vem do Splitwise, a página de importação traz um grupo inteiro, com histórico e saldos."
                 },
                 "access": {
                     "q": "Quem consegue ver a nossa sala?",
