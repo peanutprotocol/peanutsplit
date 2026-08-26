@@ -5,7 +5,7 @@ import { Breadcrumbs } from '@/components/marketing/Breadcrumbs'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { SkinFrame } from '@/components/marketing/SkinFrame'
-import { CTA, FAQ, FAQItem, Hero } from '@/components/marketing/mdx/blocks'
+import { CTA, FAQ, FAQItem, Hero, RelatedLink, RelatedPages } from '@/components/marketing/mdx/blocks'
 import { marketingCopy } from '@/components/marketing/copy'
 import { SplitwiseImport } from '@/components/import/SplitwiseImport'
 import {
@@ -119,7 +119,18 @@ export default async function ImportPage() {
                 ))}
             </FAQ>
 
-            <CTA title={importPage.cta.title} body={importPage.cta.body} text={importPage.cta.button} />
+            {/* One side door, after the questions: the comparison argument lives on
+                /splitwise-alternative and is not restated here. */}
+            <RelatedPages title={importPage.related.title}>
+                <RelatedLink href={importPage.related.href}>{importPage.related.label}</RelatedLink>
+            </RelatedPages>
+
+            <CTA
+                title={importPage.cta.title}
+                body={importPage.cta.body}
+                text={importPage.cta.button}
+                href={importPage.cta.href}
+            />
         </>
     )
 
