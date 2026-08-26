@@ -177,6 +177,10 @@ export function initAnalytics(): void {
         disable_session_recording: true,
         persistence: 'localStorage',
         save_referrer: false,
+        // Paved expands `nl` to the newsletter that served the ad. PostHog only reads its own
+        // campaign keys, so without this the per-publisher read is silently lost. It names the
+        // publisher, never the reader.
+        custom_campaign_params: ['nl'],
         // Room slugs are credentials; never let automatic capture lift one out
         // of a URL, title, referrer or DOM interaction.
         mask_all_text: true,
