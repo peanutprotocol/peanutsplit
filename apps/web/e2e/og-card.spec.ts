@@ -68,10 +68,9 @@ test.describe('landing social card', () => {
 
         // twitter:image exists only because Next fills it from openGraph.images; nothing in
         // pageMetadata sets it. This catches someone adding an explicit, diverging twitter.images.
-        await expect(page.locator('meta[name="twitter:image"], meta[property="twitter:image"]').first()).toHaveAttribute(
-            'content',
-            cardUrl
-        )
+        await expect(
+            page.locator('meta[name="twitter:image"], meta[property="twitter:image"]').first()
+        ).toHaveAttribute('content', cardUrl)
 
         const alt = await readFile(
             path.join(process.cwd(), 'src/app/(product-shell)/(marketing)/opengraph-image.alt.txt'),
