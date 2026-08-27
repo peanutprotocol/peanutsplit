@@ -1,4 +1,4 @@
-import { CANONICAL_ORIGIN, isLoopbackHost } from './domains'
+import { CANONICAL_ORIGIN, isLoopbackHost, isProductHost } from './domains'
 
 /**
  * The one origin used by product links and metadata.
@@ -24,7 +24,14 @@ function configuredOrigin(value: string | undefined): string | null {
 }
 
 export function resolveSiteUrl(value: string | undefined): string {
-    return configuredOrigin(value) ?? CANONICAL_ORIGIN
+    const origin = configuredOrigin(value)
+    if (!origin) return CANONICAL_ORIGIN
+    // Every official host collapses onto the canonical apex. Without this, a deployment whose
+    // NEXT_PUBLIC_BASE_URL still says `split.peanut.me` (the legacy alias) canonicalises the
+    // real site onto its own alias the moment that value becomes authoritative — which is
+    // exactly what took peanutsplit.com down on 2026-08-27. A fork's origin is not a product
+    // host and passes through untouched.
+    return isProductHost(new URL(origin).hostname) ? CANONICAL_ORIGIN : origin
 }
 
 export const siteUrl = resolveSiteUrl(process.env.NEXT_PUBLIC_BASE_URL)

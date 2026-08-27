@@ -46,6 +46,14 @@ describe('canonicalRedirect', () => {
         expect(canonicalRedirect('attacker.example', '/app', '', SELF_HOSTED)).toBeNull()
     })
 
+    it('collapses a legacy-alias configured origin onto the canonical apex instead of inverting', () => {
+        expect(canonicalRedirect('peanutsplit.com', '/app', '', 'https://split.peanut.me')).toBeNull()
+        expect(canonicalRedirect('split.peanut.me', '/app', '?from=chat', 'https://split.peanut.me')).toEqual({
+            target: 'https://peanutsplit.com/app?from=chat',
+            status: 308,
+        })
+    })
+
     it('keeps health probes host-local', () => {
         for (const host of ['split.peanut.me', 'www.split.peanut.me', 'www.peanutsplit.com']) {
             expect(canonicalRedirect(host, '/healthcheck', '', SELF_HOSTED)).toBeNull()
