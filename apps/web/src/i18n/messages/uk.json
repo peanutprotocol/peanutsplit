@@ -129,7 +129,9 @@
             "colGuides": "Посібники",
             "allGuides": "Усі посібники",
             "madeByPrefix": "створено з любов’ю командою",
-            "madeByBrand": "Squirrel Labs"
+            "madeByBrand": "Squirrel Labs",
+            "termsLink": "Умови",
+            "privacyLink": "Конфіденційність"
         },
         "appHome": {
             "landingLink": "Що таке Split?"

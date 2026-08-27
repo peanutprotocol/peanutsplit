@@ -10,10 +10,19 @@ import { publicFossReleased } from '@/lib/flags'
  *  column stops being a directory and starts being a second copy of /blog. */
 const GUIDES_SHOWN = 4
 
+/** The official host's Terms and Privacy live on peanut.me; Split has no legal pages of its own.
+ *  These are notices, not promotion: no logo, no UTM, no referral code, and the counted
+ *  Peanut-reference standard exempts them the way it exempts the settlement method's URL. */
+const LEGAL_LINKS = [
+    { key: 'termsLink', href: 'https://peanut.me/en/terms' },
+    { key: 'privacyLink', href: 'https://peanut.me/en/privacy' },
+] as const
+
 /**
  * The site's foot: every public Split page, plus one internal source-and-stewardship receipt.
  *
- * The footer deliberately contains no Peanut logo, referral URL or outbound Peanut link. The
+ * The footer deliberately contains no Peanut logo, referral URL or promotional Peanut link — the
+ * Terms and Privacy notices in the bottom bar are the one, legally required exception. The
  * dedicated internal page explains Squirrel Labs' stewardship and the official host's bounded,
  * contextual Peanut references without turning every page into a promotion surface.
  *
@@ -130,6 +139,20 @@ export function SiteFooter({ showLocaleSwitcher = true }: { showLocaleSwitcher?:
                             {t('madeByBrand')}
                         </a>
                     </p>
+                    <ul className="flex items-center gap-4">
+                        {LEGAL_LINKS.map((entry) => (
+                            <li key={entry.key}>
+                                <a
+                                    href={entry.href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sm text-white/70 transition-colors hover:text-white"
+                                >
+                                    {t(entry.key)}
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
                     {showLocaleSwitcher && <LocaleSwitcher label={tLocale('label')} compact />}
                 </div>
             </div>
