@@ -647,7 +647,7 @@ test('a link holder can export the room without exporting the room credential', 
     const csvDownloadPromise = page.waitForEvent('download')
     await exportSheet.getByRole('button', { name: 'Download CSV' }).click()
     const csvDownload = await csvDownloadPromise
-    expect(csvDownload.suggestedFilename()).toBe('export-room.csv')
+    expect(csvDownload.suggestedFilename()).toBe('split-room.csv')
     const csvPath = await csvDownload.path()
     expect(csvPath).not.toBeNull()
     expect(await readFile(csvPath!, 'utf8')).not.toContain(new URL(url).pathname)
@@ -655,7 +655,7 @@ test('a link holder can export the room without exporting the room credential', 
     const jsonDownloadPromise = page.waitForEvent('download')
     await exportSheet.getByRole('button', { name: 'Download JSON' }).click()
     const jsonDownload = await jsonDownloadPromise
-    expect(jsonDownload.suggestedFilename()).toBe('export-room.json')
+    expect(jsonDownload.suggestedFilename()).toBe('split-room.json')
     const jsonPath = await jsonDownload.path()
     expect(jsonPath).not.toBeNull()
 
