@@ -29,7 +29,17 @@ describe('SiteFooter source receipt', () => {
         const html = renderToStaticMarkup(<SiteFooter showLocaleSwitcher={false} />)
 
         expect(html.match(/href="\/source"/g)).toHaveLength(1)
-        expect(html).not.toContain('peanut.me')
+        expect(html.match(/peanut\.me/g)).toHaveLength(2)
         expect(html).not.toContain('utm_')
+    })
+
+    it('keeps the Terms and Privacy notices with or without the release', () => {
+        delete process.env.NEXT_PUBLIC_FOSS_RELEASED
+        const html = renderToStaticMarkup(<SiteFooter showLocaleSwitcher={false} />)
+
+        expect(html).toContain('href="https://peanut.me/en/terms"')
+        expect(html).toContain('href="https://peanut.me/en/privacy"')
+        expect(html).not.toContain('utm_')
+        expect(html).not.toContain('peanut-logo')
     })
 })

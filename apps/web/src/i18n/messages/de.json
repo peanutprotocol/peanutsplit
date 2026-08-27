@@ -129,7 +129,9 @@
             "colGuides": "Ratgeber",
             "allGuides": "Alle Ratgeber",
             "madeByPrefix": "mit Liebe gemacht von",
-            "madeByBrand": "Squirrel Labs"
+            "madeByBrand": "Squirrel Labs",
+            "termsLink": "Nutzungsbedingungen",
+            "privacyLink": "Datenschutz"
         },
         "appHome": {
             "landingLink": "Was ist Split?"
