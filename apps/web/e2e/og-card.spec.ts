@@ -2,7 +2,6 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { expect, type APIRequestContext } from '@playwright/test'
 import { test } from './fixtures'
-import { CANONICAL_ORIGIN } from '../src/lib/domains'
 import { ARTICLE_IMAGE_URL } from '../src/lib/seo'
 
 /**
@@ -14,7 +13,7 @@ import { ARTICLE_IMAGE_URL } from '../src/lib/seo'
  * drew a different one, and nothing failed.
  *
  * One trap dominates how these tests have to be written. `pageMetadata()` pins
- * `metadataBase: new URL(CANONICAL_ORIGIN)`, so the landing page advertises
+ * `metadataBase: new URL(siteUrl)`, so the landing page advertises
  * `https://peanutsplit.com/opengraph-image-<hash>.png` even when it is served from localhost.
  * Fetching the advertised URL verbatim therefore tests production and never the build in front of
  * you — a local swap of one of the two copies stays green. Every fetch below is rebased onto the
@@ -55,8 +54,10 @@ test.describe('landing social card', () => {
 
         const cardUrl = (await advertised.getAttribute('content'))!
         // A card advertised on the wrong host unfurls dead everywhere, while still fetching fine
-        // from a machine that can reach it. Assert the host explicitly rather than allowing any.
-        expect(new URL(cardUrl).origin, 'og:image is advertised on a non-canonical origin').toBe(CANONICAL_ORIGIN)
+        // from a machine that can reach it. The landing card follows `metadataBase`, which is now
+        // the configured origin (prod: the canonical host; a fork or E2E: its own origin) — so the
+        // guard is that the advertised host is the one actually serving the page.
+        expect(new URL(cardUrl).origin, 'og:image is advertised on a foreign origin').toBe(new URL(page.url()).origin)
 
         const card = await fetchImage(request, onOriginUnderTest(cardUrl, page.url()))
 

@@ -1016,7 +1016,14 @@ test.describe('Pass-the-link default', () => {
                 'href',
                 '/new'
             )
-            await expect(footer.getByRole('link', { name: messages.footer.logoLinkLabel })).toBeVisible()
+            await expect(footer.getByRole('link', { name: messages.footer.madeByBrand })).toHaveAttribute(
+                'href',
+                'https://squirrellabs.dev/'
+            )
+            await expect(footer.getByRole('link', { name: messages.footer.termsLink })).toHaveAttribute(
+                'href',
+                'https://peanut.me/en/terms'
+            )
         })
     }
 
