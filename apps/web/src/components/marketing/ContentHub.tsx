@@ -4,6 +4,7 @@ import { Breadcrumbs } from '@/components/marketing/Breadcrumbs'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { LanguageLinks } from '@/components/marketing/LanguageLinks'
+import { newRoomHref } from '@/components/marketing/mdx/blocks'
 import { buttonClassName } from '@/components/ui/button-style'
 import { STATIC_PAGES } from '@/data/static-pages'
 import { listAllDocs } from '@/lib/content'
@@ -133,10 +134,12 @@ export async function ContentHub({ locale }: { locale: Locale }) {
                     </ul>
                 )}
 
-                {/* `/new` is app shell too — one URL, cookie decides the language. `/es-419/new` and
-                    `/pt-br/new` are not routes, so prefixing this made the hub's only CTA a 404. */}
+                {/* `/new` is app shell too — one URL, and the language rides in the query rather
+                    than the path: `/es-419/new` and `/pt-br/new` are not routes, so prefixing this
+                    made the hub's only CTA a 404, while the cookie alone sent a Spanish reader to
+                    an English room creator (`locale-handoff.ts`). */}
                 <Link
-                    href="/new"
+                    href={newRoomHref('/new', undefined, locale)}
                     className={buttonClassName({ shadowSize: '4', className: 'mt-8 justify-center text-h6' })}
                 >
                     {t('startRoom')}

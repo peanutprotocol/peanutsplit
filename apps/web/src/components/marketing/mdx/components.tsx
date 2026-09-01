@@ -16,6 +16,7 @@ import {
     RelatedPages,
     Step,
     Steps,
+    newRoomHref,
     type ContentRenderContext,
 } from './blocks'
 import { Calc } from './Calc'
@@ -179,9 +180,14 @@ export function localizedMdxComponents(
             <RelatedPages title={title ?? labels.related}>{children}</RelatedPages>
         ),
         RelatedLink: ({ href, children }: { href: string; children: ReactNode }) => (
-            <RelatedLink href={href} context={context}>
+            <RelatedLink href={href} locale={locale} context={context}>
                 {children}
             </RelatedLink>
+        ),
+        // A prose link is the one room-creation link a page can carry without a block around it
+        // (fair-split-calculator sends its reader on mid-sentence), so it takes the same handoff.
+        a: ({ href = '', ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) => (
+            <ProseLink href={newRoomHref(href, context?.slug, locale)} {...props} />
         ),
         // A page with a `<Hero>` gets its h1 from the hero. A capture page has no hero by
         // stylebook, so its h1 is a markdown `#` — same typography, and the same ShortVersion slot
@@ -202,7 +208,7 @@ export function localizedMdxComponents(
         // `/new` campaign code, `Share` reads the canonical too. A guide calls this with no context
         // and gets exactly the behaviour it had before — an uncoded `/new` and no share block.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        CTA: (props: any) => <CTA {...props} context={context} />,
+        CTA: (props: any) => <CTA {...props} locale={locale} context={context} />,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Share: (props: any) => <Share {...props} context={context} />,
     }

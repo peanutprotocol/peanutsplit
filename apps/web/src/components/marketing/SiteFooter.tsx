@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { useLocale, useTranslations } from 'next-intl'
+import { newRoomHref } from '@/components/marketing/mdx/blocks'
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
 import { INDEXED_LOCALES, asLocale, type Locale } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
@@ -58,7 +59,9 @@ export function SiteFooter({ showLocaleSwitcher = true }: { showLocaleSwitcher?:
                         <h2 className="text-h9 uppercase tracking-wide text-white">{t('colSplit')}</h2>
                         <ul className="mt-2 flex flex-col gap-1.5">
                             <li>
-                                <Link href="/new" className={linkClass}>
+                                {/* The page states its language in its URL; `/new` reads a cookie
+                                    it never set, so the link says it (`locale-handoff.ts`). */}
+                                <Link href={newRoomHref('/new', undefined, locale)} className={linkClass}>
                                     {t('createSplit')}
                                 </Link>
                             </li>

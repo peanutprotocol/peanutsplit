@@ -114,8 +114,9 @@ export async function ToolPage({
             </section>
 
             {/*
-             * Straight to `/new`, campaign-coded like an article's CTA (`withCampaign` in
-             * blocks.tsx) but with none of the calculator's numbers carried across.
+             * Straight to `/new`, campaign-coded and locale-pinned like an article's CTA
+             * (`newRoomHref` in blocks.tsx) but with none of the calculator's numbers carried
+             * across.
              * `CreateRoomForm` holds its three
              * fields in local state and reads no search params, and `POST /api/rooms` takes a body
              * rather than a query — so there is nothing to prefill against today, and inventing a
@@ -132,6 +133,7 @@ export async function ToolPage({
                 body={tool.copy.cta.body}
                 text={tool.copy.cta.label}
                 href={`/new?campaign=content-${source}`}
+                locale={locale}
             />
 
             <FAQ title={tool.copy.faqTitle}>
