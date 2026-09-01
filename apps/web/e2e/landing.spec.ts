@@ -3,7 +3,7 @@ import { test } from './fixtures'
 import enMessages from '../src/i18n/messages/en.json'
 import esMessages from '../src/i18n/messages/es-419.json'
 import ptBRMessages from '../src/i18n/messages/pt-br.json'
-import { HREFLANG } from '../src/i18n/locales'
+import { DEFAULT_LOCALE, HREFLANG } from '../src/i18n/locales'
 import { CURRENCY_CATALOG } from '../src/lib/currency-catalog'
 import { COMMON_COUNT } from '../src/components/room/CurrencySelect'
 import { CANONICAL_LAUNCH_MARKER_KEY } from '../src/lib/install'
@@ -1012,9 +1012,14 @@ test.describe('Pass-the-link default', () => {
             await expect(returnFold).toContainText(messages.readMore.faq.lost.a)
 
             const footer = page.locator('footer')
+            // The footer hands the reader's language to `/new`, which otherwise reads a cookie a
+            // prefixed page never set (`newRoomHref`). English is the one language that must NOT
+            // say it: unprefixed pages already are what the cookie decides, and stating `locale=en`
+            // re-languages a Portuguese reader on prefetch. Pin the exact href per locale — a
+            // pattern loose enough to accept both spellings is how that bug shipped.
             await expect(footer.getByRole('link', { name: messages.footer.createSplit })).toHaveAttribute(
                 'href',
-                '/new'
+                locale === DEFAULT_LOCALE ? '/new' : `/new?locale=${locale}`
             )
             await expect(footer.getByRole('link', { name: messages.footer.madeByBrand })).toHaveAttribute(
                 'href',
