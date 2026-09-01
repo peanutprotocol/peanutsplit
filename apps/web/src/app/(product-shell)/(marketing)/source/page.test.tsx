@@ -26,15 +26,19 @@ describe('/source release boundary', () => {
         expect(() => SourceAndStewardshipPage()).toThrow('NEXT_NOT_FOUND')
     })
 
-    // A deployment that cannot say which commit it runs cannot make an AGPL section 13 offer, so
-    // the flag alone must not open the page.
-    it('404s when the deployment supplies no build commit', () => {
+    // A build that cannot name its own commit still has a public repository to offer, which is the
+    // customary means AGPL section 13 asks for. It links the branch and says the branch moves —
+    // rather than pinning a commit that a later deploy would silently make wrong.
+    it('falls back to the deploy branch, and says so, when no build commit is supplied', () => {
         process.env.NEXT_PUBLIC_FOSS_RELEASED = '1'
         const priorCommit = process.env.NEXT_PUBLIC_BUILD_COMMIT
         delete process.env.NEXT_PUBLIC_BUILD_COMMIT
         try {
-            expect(() => generateMetadata()).toThrow('NEXT_NOT_FOUND')
-            expect(() => SourceAndStewardshipPage()).toThrow('NEXT_NOT_FOUND')
+            const html = renderToStaticMarkup(SourceAndStewardshipPage())
+            expect(html).toContain('/tree/main')
+            expect(html).toContain('/blob/main/LICENSE')
+            expect(html).toContain('The branch this service deploys from')
+            expect(html).not.toContain('Exact deployed source commit')
         } finally {
             process.env.NEXT_PUBLIC_BUILD_COMMIT = priorCommit
         }

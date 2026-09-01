@@ -28,7 +28,14 @@ ARG NEXT_PUBLIC_SPLIT_V2_ENABLED
 # plus the ordinary main deploy.
 ENV NEXT_PUBLIC_SPLIT_V2_ENABLED=1
 ARG NEXT_PUBLIC_FOSS_RELEASED
-ENV NEXT_PUBLIC_FOSS_RELEASED=$NEXT_PUBLIC_FOSS_RELEASED
+# The repository went public under AGPL-3.0-or-later on 2026-09-01, so the FOSS claims are true and
+# /source has something to point at. Baked on here, the same way receipt scanning was, rather than
+# left to a Dokploy build arg: the fact it gates is a property of this source tree, not of one
+# deployment's settings. Rollback is this one-line revert plus the ordinary main deploy.
+ENV NEXT_PUBLIC_FOSS_RELEASED=1
+# Optional. A build that can name its own commit gets pinned source links on /source; without it the
+# page links the branch and says so. Deliberately not required — a hand-set value here would go
+# stale on the next deploy and name the wrong tree while calling itself exact.
 ARG NEXT_PUBLIC_BUILD_COMMIT
 ENV NEXT_PUBLIC_BUILD_COMMIT=$NEXT_PUBLIC_BUILD_COMMIT
 ARG NEXT_PUBLIC_LANDING_VARIANT

@@ -102,11 +102,10 @@ not per-commit, so they are generated at release time — see
    and still carries an older copy of `ops/steward`.
 2. Finish the Dependabot backlog. Upgrading `next` to 16.2.11 cleared 44 of the 79 alerts; the rest
    are `fastify`, `undici`, `postcss`, `nanoid` and `brace-expansion`, mostly transitive.
-3. Wire `NEXT_PUBLIC_BUILD_COMMIT` to the commit Dokploy actually builds, then set
-   `NEXT_PUBLIC_FOSS_RELEASED=1`. Both are build args. **A hand-set commit goes stale on the next
-   deploy**, and `/source` would then link the wrong tree while calling it the exact deployed
-   commit, which is worse than not making the claim. If Dokploy cannot inject the SHA per build,
-   link the branch and drop the word "exact" instead.
+3. Optionally teach the build pipeline to derive `NEXT_PUBLIC_BUILD_COMMIT` per build, which
+   upgrades `/source` from a branch link to a commit-pinned one. Not required, and deliberately not
+   hand-set: a typed-in value goes stale on the next deploy and would name the wrong tree while
+   calling itself exact.
 4. A formal CycloneDX or SPDX SBOM, if a partner or store listing ever asks for one. The notice
    bundle above is what the licences themselves require; an SBOM is a different artifact.
 

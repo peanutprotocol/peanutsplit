@@ -16,18 +16,21 @@ export const splitV2Enabled = (): boolean => process.env.NEXT_PUBLIC_SPLIT_V2_EN
  */
 
 /**
- * The commit this build was made from. AGPL section 13 asks a network service to offer the source
- * that corresponds to the version people are actually using, so the deployment supplies its own
- * build commit and `/source` links the immutable tree at exactly that commit. A mutable `main` link
- * would drift away from the running code between deploys; a 40-hex commit cannot.
+ * The commit this build was made from, when the deployment can say. Optional on purpose.
+ *
+ * AGPL section 13 asks a network service to offer the corresponding source through a customary
+ * means. A public repository is that; a commit-pinned tree link is a sharper version of it, not a
+ * requirement. Making the surface depend on the pin meant depending on a value a human types into
+ * the deploy platform once — which goes stale on the very next deploy and then names the wrong tree
+ * while calling itself exact. A stale pin is a false statement; a branch link is a true, weaker one.
+ * So the page prefers the pin when a build genuinely supplies one, and stays honest without it.
  */
 export function publicSourceCommit(): string | null {
     const commit = process.env.NEXT_PUBLIC_BUILD_COMMIT ?? ''
     return /^[0-9a-f]{40}$/.test(commit) ? commit : null
 }
 
-export const publicFossReleased = (): boolean =>
-    process.env.NEXT_PUBLIC_FOSS_RELEASED === '1' && publicSourceCommit() !== null
+export const publicFossReleased = (): boolean => process.env.NEXT_PUBLIC_FOSS_RELEASED === '1'
 
 /**
  * The landing experiment is deliberately deployment-wide rather than tied to

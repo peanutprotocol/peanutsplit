@@ -34,28 +34,25 @@ describe('publicFossReleased', () => {
         expect(publicFossReleased()).toBe(true)
     })
 
-    it('stays closed without a well-formed corresponding-source commit', () => {
+    // The build commit sharpens the source link; it does not gate the surface. Requiring it made a
+    // true claim depend on a hand-typed deploy setting, which goes stale on the next deploy and then
+    // names the wrong tree. The page falls back to the branch and says so instead.
+    it('does not depend on the deployment naming its build commit', () => {
         process.env.NEXT_PUBLIC_FOSS_RELEASED = '1'
 
         delete process.env.NEXT_PUBLIC_BUILD_COMMIT
         expect(publicSourceCommit()).toBeNull()
-        expect(publicFossReleased()).toBe(false)
+        expect(publicFossReleased()).toBe(true)
+    })
 
-        // A branch name is exactly the mutable pointer the commit requirement exists to reject.
-        process.env.NEXT_PUBLIC_BUILD_COMMIT = 'main'
-        expect(publicSourceCommit()).toBeNull()
-        expect(publicFossReleased()).toBe(false)
-
-        process.env.NEXT_PUBLIC_BUILD_COMMIT = COMMIT.slice(0, 12)
-        expect(publicSourceCommit()).toBeNull()
-        expect(publicFossReleased()).toBe(false)
-
-        process.env.NEXT_PUBLIC_BUILD_COMMIT = COMMIT.toUpperCase()
-        expect(publicSourceCommit()).toBeNull()
+    it('accepts only a full lowercase commit as a pinned source reference', () => {
+        for (const value of ['main', COMMIT.slice(0, 12), COMMIT.toUpperCase(), '', 'HEAD']) {
+            process.env.NEXT_PUBLIC_BUILD_COMMIT = value
+            expect(publicSourceCommit(), value || '(empty)').toBeNull()
+        }
 
         process.env.NEXT_PUBLIC_BUILD_COMMIT = COMMIT
         expect(publicSourceCommit()).toBe(COMMIT)
-        expect(publicFossReleased()).toBe(true)
     })
 
     it('keeps the source page out of the sitemap until the same gate opens', () => {

@@ -32,9 +32,12 @@ const externalLink = 'font-semibold text-n-1 underline decoration-2 underline-of
 
 export default function SourceAndStewardshipPage() {
     if (!publicFossReleased()) notFound()
-    const commit = publicSourceCommit()!
-    const sourceAtCommit = `${REPOSITORY}/tree/${commit}`
-    const fileAtCommit = (path: string) => `${REPOSITORY}/blob/${commit}/${path}`
+    // A build that names its commit gets pinned links; one that does not falls back to the branch
+    // this service deploys from. Both are true statements — only the first is also reproducible.
+    const commit = publicSourceCommit()
+    const ref = commit ?? 'main'
+    const sourceAtRef = `${REPOSITORY}/tree/${ref}`
+    const fileAtRef = (path: string) => `${REPOSITORY}/blob/${ref}/${path}`
 
     return (
         <main className="flex min-h-dvh flex-col bg-background">
@@ -78,13 +81,13 @@ export default function SourceAndStewardshipPage() {
                         Source and technical receipts
                     </h2>
                     <p className="mt-4 text-base leading-7">
-                        The public repository is the source of truth for releases. A deployment should point to the
-                        exact immutable source release it runs, not only to a moving branch.
+                        The public repository is the source of truth. You can read, download or clone everything this
+                        service runs on, and nothing here is a promise you have to take on trust.
                     </p>
                     <p className="mt-3 text-base leading-7">
-                        This page opens only when the deployment supplies the commit it was built from. The link below
-                        is that exact tree, so you can read, download or clone the code this service is running rather
-                        than whatever has since landed on the branch.
+                        {commit
+                            ? 'This build names the commit it was made from, so the link below is that exact tree rather than whatever has since landed on the branch.'
+                            : 'This build does not name its own commit, so the link below is the branch it deploys from. That branch moves, and we would rather say so than pin a commit that quietly goes stale.'}
                     </p>
                     <ul className="mt-4 grid gap-2 text-base leading-6">
                         <li>
@@ -93,33 +96,33 @@ export default function SourceAndStewardshipPage() {
                             </a>
                         </li>
                         <li>
-                            <a className={externalLink} href={sourceAtCommit}>
-                                Exact deployed source commit
+                            <a className={externalLink} href={sourceAtRef}>
+                                {commit ? 'Exact deployed source commit' : 'The branch this service deploys from'}
                             </a>{' '}
-                            <code className="break-all text-sm">{commit}</code>
+                            <code className="break-all text-sm">{ref}</code>
                         </li>
                         <li>
-                            <a className={externalLink} href={fileAtCommit('LICENSE')}>
+                            <a className={externalLink} href={fileAtRef('LICENSE')}>
                                 AGPL-3.0-or-later license
                             </a>
                         </li>
                         <li>
-                            <a className={externalLink} href={fileAtCommit('docs/current/DATA-MODEL.md')}>
+                            <a className={externalLink} href={fileAtRef('docs/current/DATA-MODEL.md')}>
                                 Data model and schema
                             </a>
                         </li>
                         <li>
-                            <a className={externalLink} href={fileAtCommit('docs/current/API.md')}>
+                            <a className={externalLink} href={fileAtRef('docs/current/API.md')}>
                                 HTTP API reference
                             </a>
                         </li>
                         <li>
-                            <a className={externalLink} href={fileAtCommit('docs/current/SELF-HOSTING.md')}>
+                            <a className={externalLink} href={fileAtRef('docs/current/SELF-HOSTING.md')}>
                                 Self-hosting guide and limitations
                             </a>
                         </li>
                         <li>
-                            <a className={externalLink} href={fileAtCommit('docs/current/SECURITY-MODEL.md')}>
+                            <a className={externalLink} href={fileAtRef('docs/current/SECURITY-MODEL.md')}>
                                 Security and capability model
                             </a>
                         </li>

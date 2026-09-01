@@ -56,13 +56,14 @@ tree being built is publicly readable and carries its license, notices, security
 self-hosting documents. It exposes `/source`, its footer/sitemap entry, and copy that makes positive
 FOSS claims; it is not a generic indexing switch.
 
-The gate also requires a lowercase 40-character `NEXT_PUBLIC_BUILD_COMMIT`, which is the commit the
-image was built from. `/source` links the public tree at exactly that commit, and that link is how
-the running service offers its corresponding source under AGPL section 13. A branch name, a short
-SHA, or an absent value closes the gate — a mutable pointer drifts away from the running code between
-deploys, which is the failure the requirement exists to prevent. A fork must publish its own modified
-source and point `NEXT_PUBLIC_BUILD_COMMIT` at a commit in a repository its users can actually read;
-the string check cannot tell whether the commit resolves, so the operator owns that.
+`NEXT_PUBLIC_BUILD_COMMIT` is optional and only sharpens the source link. Supply a lowercase
+40-character commit and `/source` links the public tree at exactly that commit; leave it unset and
+the page links the branch and says the branch moves. It is not required, on purpose: a value typed
+into a deploy platform by hand goes stale on the very next deploy, and `/source` would then name the
+wrong tree while calling it exact. A stale pin is a false statement; a branch link is a true, weaker
+one. Set it only if your pipeline can derive it per build. A fork must point it at a commit in a
+repository its own users can read — the string check cannot tell whether the commit resolves, so the
+operator owns that.
 
 The configured origin owns product metadata, room-share links, install handoff origin checks, and
 the PWA manifest/service-worker surface. The reverse proxy must remove client-supplied `Host`/
