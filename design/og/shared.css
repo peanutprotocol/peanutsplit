@@ -1,10 +1,7 @@
 @font-face {
-	font-family: 'Knerd Filled';
-	src: url('../../apps/web/public/fonts/knerd-filled.woff2') format('woff2');
-}
-@font-face {
-	font-family: 'Knerd Outline';
-	src: url('../../apps/web/public/fonts/knerd-outline.woff2') format('woff2');
+	font-family: 'Gluten';
+	src: url('../../apps/web/public/fonts/gluten-latin-400.woff2') format('woff2');
+	font-weight: 400;
 }
 @font-face {
 	font-family: 'Sniglet';
@@ -74,21 +71,24 @@ body::before {
 	box-shadow: 7px 7px 0 var(--ink);
 }
 
-/* correct Knerd: white filled shifted +3px, outline on top at 0 (mirrors Title.tsx) */
-.knerd {
+/* Hero display lockup: white fill shifted +3px, stroked copy on top at 0 (mirrors Title.tsx).
+   Knerd shipped a drawn outline companion; Gluten is one face, so the top layer strokes the same
+   glyphs rather than loading a second file. */
+.hero-display {
 	position: relative;
 	display: inline-block;
 	line-height: 0.82;
 }
-.knerd .fill {
-	font-family: 'Knerd Filled';
+.hero-display .fill {
+	font-family: 'Gluten';
 	color: #fff;
 	transform: translateX(3px);
 	display: block;
 }
-.knerd .out {
-	font-family: 'Knerd Outline';
-	color: var(--ink);
+.hero-display .out {
+	font-family: 'Gluten';
+	color: transparent;
+	-webkit-text-stroke: 2px var(--ink);
 	position: absolute;
 	left: 0;
 	top: 0;

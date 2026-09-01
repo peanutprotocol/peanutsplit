@@ -31,7 +31,7 @@ export const ROOM_FALLBACK_DESCRIPTION = 'Split expenses with one link. No signu
  * that was always English at somebody who does not read it.
  *
  * Unlike the OG image, this is HTML — no glyph budget, no sanitizing. The image
- * has to pick Knerd or the Cyrillic-capable Roboto face explicitly, which is why
+ * has to pick Gluten or the Cyrillic-capable Roboto face explicitly, which is why
  * `roomCard.ts` handles that end.
  */
 const roomDescription = async (locale: string | null): Promise<string> =>

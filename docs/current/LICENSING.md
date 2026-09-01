@@ -12,7 +12,7 @@ Peanut Split is licensed. The granting entity is **Squirrel Labs Ltd**, ruled by
 | Artwork, icons, mascots, generated image assets           | `CC-BY-4.0`, marks reserved   |
 | Lucide-derived doodle geometry                            | `ISC`, with `MIT` for Feather |
 | Sniglet                                                   | `OFL-1.1-no-RFN`              |
-| Knerd                                                     | Proprietary, not sublicensed  |
+| Gluten                                                    | `OFL-1.1-no-RFN`              |
 | Competitor quotations and names                           | Excluded from the grant       |
 
 The root [`LICENSE`](../../LICENSE) is the AGPL text, byte-identical to the FSF's published
@@ -31,9 +31,9 @@ license text for long-term compatibility, and is a deliberate choice rather than
 
 ## Why not one blanket license
 
-The tree is mixed-origin. A single unqualified grant would claim rights over the Lucide geometry, the
-Sniglet binaries, and the Knerd faces that Squirrel Labs Ltd does not have to give — and would drag a
-program license across prose that reads better under CC-BY. REUSE annotations record what is true per
+The tree is mixed-origin. A single unqualified grant would claim rights over the Lucide geometry and
+the Sniglet binaries that Squirrel Labs Ltd does not have to give — and would drag a program license
+across prose that reads better under CC-BY. REUSE annotations record what is true per
 path instead of averaging it.
 
 Prose and artwork are `CC-BY-4.0` for a practical reason: someone quoting a Split guide or reusing a

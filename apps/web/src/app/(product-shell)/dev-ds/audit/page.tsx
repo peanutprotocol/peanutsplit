@@ -668,7 +668,7 @@ const findings: Finding[] = [
         horizon: 'Later',
         title: 'Four font families are attached at root scope',
         summary:
-            'Roboto Flex, Sniglet and two Knerd faces are configured globally. Knerd files alone are about 210KB uncompressed and serve a rare wordmark treatment.',
+            'Roboto Flex, Sniglet and Gluten are configured globally. Gluten is about 42KB across three unicode-range subsets, and only the Latin one is preloaded, for a rare wordmark treatment.',
         impact: 'Product routes may preload display assets they rarely render.',
         action: 'Inspect the production waterfall; move display/wordmark fonts to layouts/components that use them or disable unnecessary preload.',
         evidence: [

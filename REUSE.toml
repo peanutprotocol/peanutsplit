@@ -101,19 +101,15 @@ SPDX-FileCopyrightText = [
 ]
 SPDX-License-Identifier = "OFL-1.1-no-RFN"
 
-# Knerd is Any-Type Foundry's commercial font. Squirrel Labs Ltd is licensed to use it, not to
-# sublicense it, so the files are NOT in this repository and are gitignored — see .gitignore and
-# LICENSES/LicenseRef-Knerd-Commercial.txt. The annotation stays so that a copy dropped in locally to
-# build the official look is never mistaken for AGPL material.
+# Gluten, the hero display face, under the OFL with no Reserved Font Name. Only the three
+# unicode-range subsets the browser needs are committed; the Open Graph renderer reads its own copy
+# out of the pinned @fontsource/gluten package. It replaced the proprietary Knerd, which could not
+# be redistributed once this repository went public.
 [[annotations]]
-path = [
-  "apps/web/public/fonts/knerd-filled.ttf",
-  "apps/web/public/fonts/knerd-filled.woff2",
-  "apps/web/public/fonts/knerd-outline.woff2",
-]
+path = "apps/web/public/fonts/gluten-*.woff2"
 precedence = "override"
-SPDX-FileCopyrightText = "Any-Type Foundry"
-SPDX-License-Identifier = "LicenseRef-Knerd-Commercial"
+SPDX-FileCopyrightText = "2020 The Gluten Project Authors (https://github.com/Etcetera-Type-Co/Gluten)"
+SPDX-License-Identifier = "OFL-1.1-no-RFN"
 
 # Build output and lockfiles carry no separate grant of their own.
 [[annotations]]

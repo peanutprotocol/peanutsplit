@@ -24,7 +24,7 @@ The outbound license map is implemented in [`REUSE.toml`](../../REUSE.toml), the
 | Munin-derived doodle build code                   | `design/doodles/build.py` names its source         | Same owner under the ruling; AGPL                              | Resolved |
 | Lucide/Feather-derived doodles                    | Generator provenance, ISC/MIT text in tree         | ISC AND MIT; notices in the file header and the bundle         | Resolved |
 | Sniglet fonts                                     | Font name tables carry authors and the OFL URL     | `OFL-1.1-no-RFN`, full text and copyright shipped              | Resolved |
-| Knerd font files                                  | Any-Type Foundry typeface, licensed for use only   | Deleted before publication and gitignored; see below           | Resolved |
+| Gluten display face                               | Upstream `OFL.txt` names the authors and the OFL   | `OFL-1.1-no-RFN`; loaded from packages, no file committed      | Resolved |
 | Peanut logo, mascots, background, illustration    | Byte-identical to peanut-ui blobs, runtime imports | `CC-BY-4.0` grant, trademarks reserved separately              | Resolved |
 | Portraits and generated portrait variants         | Two founder portraits; 13 exploration variants     | Variants deleted; the two founder portraits stay, see below    | Resolved |
 | PWA/OG/favicon/background/badge assets            | Tracked generated assets                           | `CC-BY-4.0` as Squirrel Labs Ltd work                          | Resolved |
@@ -36,22 +36,24 @@ The outbound license map is implemented in [`REUSE.toml`](../../REUSE.toml), the
 
 ## Notes on the entries that are not a plain grant
 
-**Knerd is out of the tree.** The typeface is **Any-Type Foundry's** (confirmed by the project owner,
-2026-09-01). Squirrel Labs Ltd bought a license to _use_ it, which is not a right to sublicense.
-Knerd is sold through Creative Market, Creative Fabrica, YouWorkForThem and the foundry's own
-Gumroad; Creative Market's font terms prohibit redistributing a font with a website's source code and
-prohibit sharing it so a third party can download or extract the file. A public repository does both,
-and git history is permanent, so the five Knerd files were **deleted before publication** and the
-paths are gitignored.
+**The display face is Gluten, under the OFL.** The CSS side loads it through `next/font/google`; the
+Open Graph rasteriser loads it from the `@fontsource/gluten` package. No Gluten file is committed, so
+this repository redistributes no display-font binary. The copyright line is in
+[`THIRD_PARTY_NOTICES.md`](../../THIRD_PARTY_NOTICES.md) and the license text in
+[`LICENSES/OFL-1.1-no-RFN.txt`](../../LICENSES/OFL-1.1-no-RFN.txt).
 
-The site therefore renders its display face in Roboto until a replacement lands: share cards, recap
-and achievement card art, and the control-variant hero. `apps/web/src/server/og/fonts.ts` falls back
-rather than failing, so nothing breaks. A replacement openly licensed display face was being chosen
-at the time of publication (1 Sep 2026) and is the fix.
+**The display face used to be proprietary.** Until 1 Sep 2026 it was Knerd, a commercial typeface by
+Any-Type Foundry. Squirrel Labs Ltd bought a license to _use_ it, which is not a right to sublicense,
+so the five Knerd files were deleted before publication. They were never published from this
+repository, and Gluten replaced them the same day. Nothing here needs a Knerd license.
 
-To restore the official look before then, drop a licensed copy into `apps/web/public/fonts/` — it is
-gitignored and cannot be committed by accident. Redistributing it still needs written permission from
-Any-Type Foundry.
+**`ops/steward/` stays in this repository.** The box-resident supervisor's incident log stays, by the
+owner's ruling of 1 Sep 2026 and by the original design: the ax41 box holds no mono credential and
+should not get one, so a `peanutsplit`-scoped token pushing here is the only route its record has. It
+was briefly purged from history that day and restored; the rewrite stands, so the box's clone
+diverges and needs a re-fetch. Nothing in it is a credential. **Standing rule for future entries: do
+not publish an unfixed security finding while it is still exploitable — record it by reference and
+write it up here once it is fixed.**
 
 **Peanut artwork carries an open copyright grant and reserved marks.** Ruled 2026-09-01: the mascots,
 logo, background and hand illustration ship under `CC-BY-4.0`, so a fork may copy and modify them,
@@ -71,31 +73,31 @@ mono with a deploy key held as a repository secret. That is a credentialed path 
 repository and must not exist in a public one. Future content updates have to be pushed from mono
 rather than pulled from here.
 
-**Dependency SBOM is the one open item.** Notices for the npm and container layers are per-artifact,
+**Dependency notices are per-artifact.** Notices for the npm and container layers are per-artifact,
 not per-commit, so they are generated at release time — see
 [`THIRD_PARTY_NOTICES.md`](../../THIRD_PARTY_NOTICES.md).
 
-## Before the repository goes public
+## Publication work
 
-1. ~~Remove Knerd.~~ Done — the files are deleted and gitignored.
-2. ~~Scan every retained ref and the full history for secrets, tokens, and personal data.~~ Done,
-   1 Sep 2026: 6,319 blobs across all refs. Every match was a `localhost` development or CI database
-   URL. No `.env`, key, certificate or credentials file was ever added, and the
-   `MONO_SPLIT_CONTENT_READ_KEY` value was never committed — it existed only as a GitHub environment
-   secret reference.
-3. Delete the now-unused `MONO_SPLIT_CONTENT_READ_KEY` environment secret and its
-   `split-content-publisher-read` environment. Its workflow is gone, so the key is dead weight rather
-   than an exposure.
-4. `ops/steward/` — the box-resident supervisor's incident log — stays in this repository, by the
-   owner's ruling of 1 Sep 2026 and by the original design: the ax41 box holds no mono credential and
-   should not get one, so a `peanutsplit`-scoped token pushing here is the only route its record has.
-   It was briefly purged from history that day and restored; the rewrite stands, so the box's clone
-   diverges and needs a re-fetch. Nothing in it is a credential. **Standing rule for future entries:
-   do not publish an unfixed security finding while it is still exploitable — record it by reference
-   and write it up here once it is fixed.**
-5. Generate the dependency SBOM and attach it to the first public build.
-6. Triage the 79 Dependabot alerts (44 high) that became publicly visible on publication.
+### Done before the repository went public, 1 Sep 2026
+
+1. Removed the proprietary display face. The Knerd files were deleted, and Gluten replaced them under
+   the OFL.
+2. Scanned every retained ref and the full history for secrets, tokens, and personal data: 6,319
+   blobs across all refs. Every match was a `localhost` development or CI database URL. No `.env`,
+   key, certificate or credentials file was ever added, and the `MONO_SPLIT_CONTENT_READ_KEY` value
+   was never committed — it existed only as a GitHub environment secret reference.
+3. Deleted the now-unused `MONO_SPLIT_CONTENT_READ_KEY` environment secret and its
+   `split-content-publisher-read` environment. Its workflow was already gone, so the key was dead
+   weight rather than an exposure.
+
+### Still open
+
+1. Ask GitHub Support to garbage-collect `refs/pull/26/head`. That ref survives the history rewrite
+   and still carries an older copy of `ops/steward`.
+2. Generate the dependency SBOM and attach it to the first public build.
+3. Triage the 79 Dependabot alerts (44 high) that are now publicly visible.
 
 A history-free repository would protect private history; it does not cure a notice or ownership
-defect, and it is not what this project chose. History stays, which makes step 2 a precondition
-rather than a formality.
+defect, and it is not what this project chose. History stays, which made the secret scan a
+precondition rather than a formality.

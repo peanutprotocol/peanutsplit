@@ -321,7 +321,7 @@ export default function DesignSystemPage() {
                 <Section
                     id="type"
                     eyebrow="03 · foundations"
-                    title="Roboto for facts. Sniglet for warmth. Knerd for the mark."
+                    title="Roboto for facts. Sniglet for warmth. Gluten for the mark."
                     intro="Typography separates bookkeeping from personality. Amounts and interface copy stay exceptionally legible; display faces are reserved for moments that can tolerate character."
                 >
                     <div className="grid gap-6 lg:grid-cols-3">
@@ -345,13 +345,15 @@ export default function DesignSystemPage() {
                             </p>
                         </Specimen>
                         <Specimen
-                            title="Wordmark · Knerd"
+                            title="Wordmark · Gluten"
                             note="Outlined/filled paired artwork, not a general heading face."
                         >
                             <div className="rounded-sm bg-n-1 p-4">
                                 <div className="relative inline-block text-4xl">
-                                    <p className="relative translate-x-[3px] font-knerd-filled text-white">PEANUT</p>
-                                    <p className="absolute left-0 top-0 font-knerd-outline text-primary-1">PEANUT</p>
+                                    <p className="relative translate-x-[3px] font-display-hero text-white">PEANUT</p>
+                                    <p className="absolute left-0 top-0 font-display-hero text-primary-1 [-webkit-text-stroke:2px_currentColor] [color:transparent]">
+                                        PEANUT
+                                    </p>
                                 </div>
                             </div>
                             <p className="mt-3 text-sm leading-6 text-grey-1">

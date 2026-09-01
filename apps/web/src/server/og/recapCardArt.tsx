@@ -43,7 +43,7 @@ const FIELD = '#98E9AB'
 const FIELD_TINT = '#B2F0C1'
 const FIELD_INK = '#1F5B31'
 
-/** Knerd is wide; step the name down rather than let it wrap under the stamp. */
+/** Gluten is wide; step the name down rather than let it wrap under the stamp. */
 function nameFontSize(name: string): number {
     if (name.length <= 14) return 52
     if (name.length <= 24) return 42

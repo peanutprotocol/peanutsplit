@@ -136,8 +136,7 @@ module.exports = {
             fontFamily: {
                 sans: ['var(--font-roboto)', ...fontFamily.sans],
                 display: ['var(--font-sniglet)', ...fontFamily.sans],
-                'knerd-outline': ['var(--font-knerd-outline)', ...fontFamily.sans],
-                'knerd-filled': ['var(--font-knerd-filled)', ...fontFamily.sans],
+                'display-hero': ['var(--font-display-hero)', ...fontFamily.sans],
                 roboto: ['var(--font-roboto)', ...fontFamily.sans],
             },
             fontSize: {

@@ -13,7 +13,7 @@ import type { Locale } from '@/i18n/locales'
  *
  * An article shared into a group chat is the whole distribution mechanism, so a linkless grey box
  * is a share that does not get clicked. The title goes in the tagline slot rather than the two
- * display lines: those are Knerd at 108px, sized for "SPLIT ANYTHING", and a sentence would
+ * display lines: those are Gluten at 108px, sized for "SPLIT ANYTHING", and a sentence would
  * overflow them. The display lines stay ASCII for the same reason they always were.
  *
  * Accents are safe here — Sniglet, the tagline face, covers all of Latin-1, so Spanish and
@@ -73,7 +73,7 @@ export function hubOgImage(locale: Locale) {
 
 /**
  * Unfurl for a generated guide. The title rides the tagline slot for the same reason a blog
- * post's does: the display lines are Knerd at 108px and a sentence overflows them.
+ * post's does: the display lines are Gluten at 108px and a sentence overflows them.
  *
  * A slug the manifest does not list is a 404, like the page it decorates — a card that renders
  * for any slug is an image endpoint the page contract never promised.

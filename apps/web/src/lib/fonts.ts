@@ -14,6 +14,6 @@ const sniglet = Sniglet({
     variable: '--font-sniglet',
 })
 
-// The knerd faces live in globals.css (@font-face over public/fonts woff2), not here:
-// next/font would hash their URLs, and Title.tsx preloads them by stable URL.
+// Gluten, the hero display face, lives in globals.css (@font-face over public/fonts woff2), not
+// here: next/font would hash its URL, and Title.tsx preloads it by stable URL.
 export const bodyFontClassName = `${roboto.variable} ${sniglet.variable} font-sans`

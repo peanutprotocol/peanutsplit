@@ -36,17 +36,22 @@ distributed under the OFL. The copyright line below is read verbatim from the fo
 Because there is no Reserved Font Name, a fork may rename and redistribute modified Sniglet builds,
 provided the whole font stays under the OFL and the notice above is preserved.
 
-## Knerd — proprietary, not redistributed under this repository's license
+## Gluten — SIL Open Font License 1.1
 
-The Knerd display faces are a commercial typeface by **Any-Type Foundry**. Squirrel Labs Ltd holds a
-purchased license to use them in Peanut Split; that license is **not** passed on to recipients of
-this repository, and the AGPL grant in `LICENSE` does not extend to these files.
+Gluten is the display face, and replaced the proprietary Knerd when this repository went public.
+The browser loads three unicode-range subsets committed under `apps/web/public/fonts/gluten-*.woff2`
+— by hand rather than through `next/font`, because the hero preloads the Latin subset by a stable
+URL. Open Graph image rendering reads its own `.woff` copy from the pinned `@fontsource/gluten`
+package, since the rasteriser cannot decode WOFF2. The copyright line below is read verbatim from
+the font's upstream `OFL.txt`.
 
-**The Knerd files are not in this repository.** They were removed before publication and the paths
-are gitignored, because git history is permanent and a public repository would redistribute them.
-Until a replacement display face lands, share cards and the control-variant hero render in Roboto;
-`apps/web/src/server/og/fonts.ts` falls back rather than failing. See
-[`LICENSES/LicenseRef-Knerd-Commercial.txt`](LICENSES/LicenseRef-Knerd-Commercial.txt).
+> Copyright 2020 The Gluten Project Authors (https://github.com/Etcetera-Type-Co/Gluten)
+>
+> Licensed under the SIL Open Font License, Version 1.1.
+> See [`LICENSES/OFL-1.1-no-RFN.txt`](LICENSES/OFL-1.1-no-RFN.txt) and <https://scripts.sil.org/OFL>.
+
+Gluten names no Reserved Font Name, so a fork may rename and redistribute modified Gluten builds,
+provided the whole font stays under the OFL and the notice above is preserved.
 
 ## Roboto — Apache License 2.0
 
@@ -63,15 +68,20 @@ the Squirrel Labs Ltd content grant**. Nothing here implies affiliation or endor
 
 ## npm dependencies and container packages
 
-Runtime and build dependencies keep their own licenses. The exact set for any build is fixed by
-`pnpm-lock.yaml` and `apps/web/pnpm-lock.yaml`; the container adds Node and Alpine packages that an
-npm-only report does not cover.
+Runtime and build dependencies keep their own licenses. Every installed package and its license is
+inventoried in [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md) — 915 packages across both
+lockfiles, regenerated with `pnpm licenses:generate` and gated by `pnpm licenses:check`, which the
+test script runs so the file cannot drift from the lockfiles.
 
-Generate the per-build notice bundle before shipping an artifact:
+Two entries there are worth knowing about rather than looking up:
 
-```bash
-pnpm licenses list --json > third-party-npm-licenses.json
-```
+- `@img/sharp-libvips-*` is **LGPL-3.0-or-later**. It is a separate shared library that `sharp`
+  links against, which is the ordinary LGPL arrangement and compatible with the AGPL grant.
+- `@sentry/cli` is **FSL-1.1-MIT**, which is source-available rather than OSI open source: it
+  forbids building a competing product with it, and converts to MIT two years after each release.
+  It is a build-time tool for uploading source maps and is not part of the running application, but
+  a self-hoster does install it. Drop it from the build if that matters to you.
 
-The built service worker at `apps/web/public/sw.js` embeds dependency code directly; it is annotated
-in `REUSE.toml` as an aggregate for that reason.
+The container adds Node and Alpine packages that an npm-only report does not cover. The built
+service worker at `apps/web/public/sw.js` embeds dependency code directly, and is annotated in
+`REUSE.toml` as an aggregate for that reason.

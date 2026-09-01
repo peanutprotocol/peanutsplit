@@ -222,7 +222,7 @@ export async function toAlterEgoCard(
         theme: themeFor(room.theme),
         title: headlineSafe(await t('card.alterego.title')),
         line: bodySafe(await t('card.alterego.line')),
-        // Set in the body face by the art, not in Knerd: `Leyenda de la cuenta` is four
+        // Set in the body face by the art, not in Gluten: `Leyenda de la cuenta` is four
         // words, and the display face stops being a headline past two.
         award: bodySafe(await t(`card.award.${params.award}`)),
         persona: params.persona,

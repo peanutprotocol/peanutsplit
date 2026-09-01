@@ -9,24 +9,41 @@
     --secondary-color: #211c17;
     --accent-color: #ff90e8;
     --split-ink: #211c17;
-    --font-knerd-outline: 'Knerd Outline';
-    --font-knerd-filled: 'Knerd Filled';
+    --font-display-hero: 'Gluten';
 }
 
-/* Knerd is declared by hand, not through next/font: Next 16.2 drops font preload links
-   from dynamic-page HTML (the hint rides only the RSC payload), and preloading the LCP
-   H1's faces needs stable URLs Title.tsx can <link rel="preload"> itself. The TTF
-   originals stay on disk for the OG renderer. */
+/* Gluten (SIL OFL 1.1) is declared by hand, not through next/font: Next 16.2 drops font preload
+   links from dynamic-page HTML (the hint rides only the RSC payload), and preloading the LCP H1's
+   face needs a stable URL Title.tsx can <link rel="preload"> itself. It replaced the proprietary
+   Knerd on 2026-09-01. Split by unicode-range the way Fontsource ships it, so a Latin headline
+   fetches 22KB and never pays for Vietnamese; the OG renderer reads its own copy out of
+   node_modules. */
 @font-face {
-    font-family: 'Knerd Outline';
-    src: url('/fonts/knerd-outline.woff2') format('woff2');
+    font-family: 'Gluten';
+    src: url('/fonts/gluten-latin-400.woff2') format('woff2');
     font-display: swap;
+    font-weight: 400;
+    unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
+        U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @font-face {
-    font-family: 'Knerd Filled';
-    src: url('/fonts/knerd-filled.woff2') format('woff2');
+    font-family: 'Gluten';
+    src: url('/fonts/gluten-latin-ext-400.woff2') format('woff2');
     font-display: swap;
+    font-weight: 400;
+    unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF,
+        U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+    font-family: 'Gluten';
+    src: url('/fonts/gluten-vietnamese-400.woff2') format('woff2');
+    font-display: swap;
+    font-weight: 400;
+    unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+1EA0-1EF9, U+20AB;
 }
 
 @layer base {

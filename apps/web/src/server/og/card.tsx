@@ -21,7 +21,7 @@ import { AVATAR_COLORS, ENGLISH_CARD_COPY, type OgAvatar, type RoomCardData } fr
  *  that already read them off this module keep one import each. */
 export { OG_CACHE_CONTROL, OG_CONTENT_TYPE, OG_SIZE } from '@/server/og/frame'
 
-/** Knerd is wide; step the name down rather than let it wrap to three lines. */
+/** Gluten is wide; step the name down rather than let it wrap to three lines. */
 export function nameFontSize(name: string): number {
     if (name.length <= 10) return 92
     if (name.length <= 16) return 76

@@ -93,7 +93,7 @@ export async function cardCopy(locale: string | null | undefined): Promise<CardC
 }
 
 export interface RoomCardData {
-    /** Headline-font-safe, already truncated. Knerd for Latin, Roboto for Cyrillic. */
+    /** Headline-font-safe, already truncated. Gluten for Latin, Roboto for Cyrillic. */
     name: string
     /** The room's drawing, already resolved — a stored emblem, or the one its name gives. */
     emblem: string
@@ -173,7 +173,7 @@ export const sanitizeDisplayName = (raw: string): string =>
 export const sanitizeMemberName = (raw: string): string =>
     sanitizeForFont(raw, { charset: BODY_CHARS, fallback: MEMBER_FALLBACK, max: MAX_MEMBER_CHARS })
 
-/** First drawable letter of a member's name. Latin diacritics fold to Knerd's
+/** First drawable letter of a member's name. Latin diacritics fold to Gluten's
  * base letter; Cyrillic stays intact and the art selects Roboto for that disc. */
 export function avatarLetter(name: string): string {
     const folded = name.normalize('NFD').replace(/\p{M}/gu, '')
@@ -255,7 +255,7 @@ export const fontSafe = (value: string, charset: ReadonlySet<string>): string =>
 
 export const bodySafe = (value: string): string => fontSafe(value, BODY_CHARS)
 
-/** Localized headline copy. Knerd remains the first choice in the artwork;
+/** Localized headline copy. Gluten remains the first choice in the artwork;
  * this wider sanitizer lets the targeted Roboto fallback keep Cyrillic whole. */
 export const headlineSafe = (value: string): string => fontSafe(value, HEADLINE_CHARS)
 

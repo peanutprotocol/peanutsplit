@@ -36,6 +36,7 @@
         ]
     },
     "dependencies": {
+        "@fontsource/gluten": "4.5.12",
         "@fontsource/roboto": "4.5.8",
         "@headlessui/tailwindcss": "^0.2.1",
         "@number-flow/react": "^0.5.10",
@@ -47,7 +48,7 @@
         "gray-matter": "^4.0.3",
         "https-proxy-agent": "^9.1.0",
         "motion": "^12.23.12",
-        "next": "16.2.3",
+        "next": "16.2.11",
         "next-intl": "^4.3.4",
         "next-mdx-remote": "^6.0.0",
         "nuqs": "^2.4.3",

@@ -63,7 +63,7 @@ describe('sanitizeDisplayName', () => {
         }
     })
 
-    it('keeps Knerd for its supported alphabet and targets Roboto at Cyrillic', () => {
+    it('keeps the display face for its supported alphabet and targets Roboto at Cyrillic', () => {
         expect(headlineFont('Ski trip')).toBe(DISPLAY_FONT)
         expect(headlineWeight('Ski trip')).toBe(400)
         expect(headlineFont('Київ')).toBe(BODY_FONT)

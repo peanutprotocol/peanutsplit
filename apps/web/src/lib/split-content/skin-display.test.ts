@@ -30,15 +30,16 @@ describe('the sticker skin display face', () => {
         expect(call.slice(0, call.indexOf('})'))).toContain("axes: ['wdth']")
     })
 
-    it('adds no font: two Google families and nothing else — knerd ships from globals.css', () => {
+    it('adds no font: two Google families and nothing else — the hero face ships from globals.css', () => {
         expect(fontsSource).not.toContain('localFont(')
         expect(fontsSource).toContain("import { Roboto_Flex, Sniglet } from 'next/font/google'")
         expect(fontsSource.match(/from 'next\/font\/google'/g)).toHaveLength(1)
     })
 
-    // Knerd was the only thing that ever lived here, and it left with the licence: it is Any-Type
-    // Foundry's and cannot be redistributed in a public repository. Nothing may take its place —
-    // a local font asset is a redistribution question, so it goes through the rights register first.
+    // Knerd was the only thing that ever lived here, and it left with the licence: it was Any-Type
+    // Foundry's and could not be redistributed once this repository went public. Its replacement
+    // sits in public/fonts because the OFL allows exactly that. A font asset here is a
+    // redistribution question, so it goes through the rights register first.
     it('adds no font asset on disk', () => {
         const dir = path.resolve(__dirname, '../../assets/fonts')
         const assets = existsSync(dir) ? readdirSync(dir).sort() : []
@@ -52,8 +53,7 @@ describe('the sticker skin display face', () => {
             `fontFamily: {
                 sans: ['var(--font-roboto)', ...fontFamily.sans],
                 display: ['var(--font-sniglet)', ...fontFamily.sans],
-                'knerd-outline': ['var(--font-knerd-outline)', ...fontFamily.sans],
-                'knerd-filled': ['var(--font-knerd-filled)', ...fontFamily.sans],
+                'display-hero': ['var(--font-display-hero)', ...fontFamily.sans],
                 roboto: ['var(--font-roboto)', ...fontFamily.sans],
             `
         )

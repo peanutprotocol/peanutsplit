@@ -12,7 +12,7 @@
  * `achievementCard.ts`. Nothing in this file reads a catalog, a database or a
  * locale — it draws what it is handed.
  *
- * Knerd carries one or two words and nothing longer (`ROADMAP.md`: "at three
+ * Gluten carries one or two words and nothing longer (`ROADMAP.md`: "at three
  * words it stops being a headline and becomes a texture"), so the only display
  * type on these cards is the title and the numerals. The award name, four words
  * long in Spanish, is set in the body face.
@@ -384,7 +384,7 @@ function AlterEgoCard(card: Extract<AchievementCardData, { kind: 'alterego' }>):
                     <PersonaDisc avatar={card.persona} palette={card.palette} size={250} />
                     <div style={{ display: 'flex', flexDirection: 'column', marginLeft: 44 }}>
                         <Title text={card.title} size={72} />
-                        {/* Body face, not Knerd: `Leyenda de la cuenta` is four words,
+                        {/* Body face, not Gluten: `Leyenda de la cuenta` is four words,
                             and the display face stops being a headline past two. */}
                         <div
                             style={{

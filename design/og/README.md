@@ -21,7 +21,7 @@ The card lives in two places and they must stay byte-identical:
 
 ## Why this is a static PNG and not a BrandCard
 
-The OG renderer is Satori, and its font pipeline ships Knerd plus a static Roboto with an explicit cmap per face and no fallback chain. This design is Roboto Flex at weight 950 with the `.pass-link-chat-frame` panel and the generated avatar art. Satori cannot draw it, so composing it there would mean approximating a design signed off on exact pixels.
+The OG renderer is Satori, and its font pipeline ships Gluten plus a static Roboto with an explicit cmap per face and no fallback chain. This design is Roboto Flex at weight 950 with the `.pass-link-chat-frame` panel and the generated avatar art. Satori cannot draw it, so composing it there would mean approximating a design signed off on exact pixels.
 
 The avatars in `assets/` are the real generated art, captured from the live hero at 4x and masked to circles — not redrawn.
 
