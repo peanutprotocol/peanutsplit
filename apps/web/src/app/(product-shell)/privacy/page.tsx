@@ -143,7 +143,10 @@ export default function PrivacyPage() {
                         settings live in your browser&rsquo;s local storage. They are not sent to us. Clearing site data
                         loses them, and a room you have no link to is a room you cannot get back.
                     </p>
-                    <p className="mt-4 text-base leading-7">Split itself sets two cookies:</p>
+                    <p className="mt-4 text-base leading-7">
+                        Split itself sets four cookies. Each one is needed for the product to work. None of them
+                        measures you or advertises to you.
+                    </p>
                     <ul className="mt-4 grid gap-2 text-base leading-6">
                         <li>
                             <code className="text-sm">ps-locale</code> &mdash; the language you chose. One year.
@@ -151,9 +154,23 @@ export default function PrivacyPage() {
                         <li>
                             <code className="text-sm">device-id</code> &mdash; a random value with no meaning outside
                             this site, used to keep an installed home-screen app recognised as the same anonymous device
-                            rather than a new one. It is not tied to a name, an email or a room.
+                            rather than a new one. It is not tied to a name, an email or a room. Ten years.
+                        </li>
+                        <li>
+                            <code className="text-sm">__Host-ps-install-handoff</code> &mdash; written only when you
+                            start adding Split to an iPhone home screen. iOS copies cookies into the new app but not
+                            local storage, so this random secret is the one thing that tells the new app which room you
+                            were already in. The page cannot read it; only our server can. 24 hours.
+                        </li>
+                        <li>
+                            <code className="text-sm">__Host-ps-install-handoff-ready</code> &mdash; written at the same
+                            moment, and says only that a handoff is waiting. The page reads this one to know whether to
+                            ask for it. 24 hours.
                         </li>
                     </ul>
+                    <p className="mt-4 text-base leading-7">
+                        Both handoff cookies are cleared as soon as the new app has the room.
+                    </p>
                 </section>
 
                 <section aria-labelledby="analytics">
@@ -260,18 +277,30 @@ export default function PrivacyPage() {
                     </h2>
                     <div className="mt-4 grid gap-4 text-base leading-7">
                         <p>
-                            A room stays until it is deleted. Nothing expires it on a timer today, which means a room
-                            nobody has opened in a year is still there for whoever still holds the link. Deleting an
-                            expense or a room deletes it.
+                            A room is kept for as long as the service runs. The app has no way to delete a room, and
+                            nothing expires one on a timer, so a room nobody has opened in a year is still there for
+                            whoever still holds the link.
                         </p>
                         <p>
-                            A feedback report you choose to send is deleted after {FEEDBACK_RETENTION_DAYS} days. The
-                            handoff token used when you add Split to an iPhone home screen expires in minutes and is
-                            then removed.
+                            Deleting an expense or a settlement hides it rather than removing it. The row stays, with
+                            its description, its amount and how it was split, because the six-second Undo needs it back
+                            and the room history is a record of what changed. Nothing removes those rows later. Removing
+                            a member works the same way: the person is marked former, and their name and their part of
+                            past expenses stay.
                         </p>
-                        {/* TODO(konrad): the retention period for room data. The paragraph above is what the code
-                            does, which is "forever until someone deletes it". Whether that is also what we want to
-                            promise — and whether dormant rooms should be swept — is a product and legal decision. */}
+                        {/* TODO(konrad): room deletion. There is no delete — no DELETE on /api/rooms/[slug], no
+                            Room.deletedAt — and an expense or settlement delete only sets deletedAt. The paragraphs
+                            above say so plainly, which is the honest thing to publish today. Whether to build real
+                            deletion, and what it should erase, is a product and legal call, not an engineering one. */}
+                        <p>
+                            A feedback report you choose to send is deleted after {FEEDBACK_RETENTION_DAYS} days. The
+                            handoff record written when you add Split to an iPhone home screen holds a room id and a
+                            hashed member token. It is deleted as soon as the new app confirms it has the room. If that
+                            never happens, it lasts 24 hours and is then swept.
+                        </p>
+                        {/* TODO(konrad): the retention period for room data. The paragraphs above are what the code
+                            does, which is "kept forever". Whether that is also what we want to promise — and whether
+                            dormant rooms should be swept — is a product and legal decision. */}
                     </div>
                 </section>
 
@@ -297,9 +326,14 @@ export default function PrivacyPage() {
                             credential.
                         </p>
                         <p>
-                            Everyone in a room can already see everything in it. Deleting your own name and expenses
-                            from a shared room changes what the rest of the group sees, so tell them rather than
-                            surprising them.
+                            Erasure is a request to us, not a button. Nothing in the app removes anything: deleting an
+                            expense or a settlement hides the row and keeps it, and there is no delete for a room at
+                            all. Write to the address at the end of this page, send the room link, and say what you want
+                            removed. We then remove it from the database by hand.
+                        </p>
+                        <p>
+                            Everyone in a room can already see everything in it. Removing your name or your expenses
+                            changes what the rest of the group sees, so tell them rather than surprising them.
                         </p>
                     </div>
                 </section>
