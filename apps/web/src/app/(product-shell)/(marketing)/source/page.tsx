@@ -5,7 +5,7 @@ import { Breadcrumbs } from '@/components/marketing/Breadcrumbs'
 import { JsonLd } from '@/components/marketing/JsonLd'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { breadcrumbSchema, pageMetadata, pageTitle } from '@/lib/seo'
-import { publicFossReleased, publicSourceReceipt } from '@/lib/flags'
+import { publicFossReleased, publicSourceCommit } from '@/lib/flags'
 
 const PATH = '/source'
 const REPOSITORY = 'https://github.com/peanutprotocol/peanutsplit'
@@ -32,9 +32,9 @@ const externalLink = 'font-semibold text-n-1 underline decoration-2 underline-of
 
 export default function SourceAndStewardshipPage() {
     if (!publicFossReleased()) notFound()
-    const receipt = publicSourceReceipt()!
-    const sourceAtCommit = `${REPOSITORY}/tree/${receipt.commit}`
-    const fileAtCommit = (path: string) => `${REPOSITORY}/blob/${receipt.commit}/${path}`
+    const commit = publicSourceCommit()!
+    const sourceAtCommit = `${REPOSITORY}/tree/${commit}`
+    const fileAtCommit = (path: string) => `${REPOSITORY}/blob/${commit}/${path}`
 
     return (
         <main className="flex min-h-dvh flex-col bg-background">
@@ -82,9 +82,9 @@ export default function SourceAndStewardshipPage() {
                         exact immutable source release it runs, not only to a moving branch.
                     </p>
                     <p className="mt-3 text-base leading-7">
-                        This page opens only when its embedded build and source commit fields match and its archive
-                        receipt is well formed. Release audit and deployment controls must establish that those fields
-                        are truthful; the SHA-256 below lets anyone verify the downloaded bytes.
+                        This page opens only when the deployment supplies the commit it was built from. The link below
+                        is that exact tree, so you can read, download or clone the code this service is running rather
+                        than whatever has since landed on the branch.
                     </p>
                     <ul className="mt-4 grid gap-2 text-base leading-6">
                         <li>
@@ -96,13 +96,7 @@ export default function SourceAndStewardshipPage() {
                             <a className={externalLink} href={sourceAtCommit}>
                                 Exact deployed source commit
                             </a>{' '}
-                            <code className="break-all text-sm">{receipt.commit}</code>
-                        </li>
-                        <li>
-                            <a className={externalLink} href={receipt.archiveUrl}>
-                                Immutable corresponding-source archive
-                            </a>{' '}
-                            <span className="block break-all text-sm">SHA-256: {receipt.archiveSha256}</span>
+                            <code className="break-all text-sm">{commit}</code>
                         </li>
                         <li>
                             <a className={externalLink} href={fileAtCommit('LICENSE')}>

@@ -190,9 +190,9 @@ host stays online or free, or that every future release has identical scope.
 AGPL-3.0-or-later" · "self-hostable" · "released versions keep their license rights"
 
 **unsafe:** any positive open-source, FOSS, AGPL, public-repository, or self-hosting-availability
-claim before the root license, clean public source, immutable release receipt, rights/notice review,
-security gates, and custom-origin smoke test all pass · "the hosted service is FOSS" · "open source
-means free of charge" · "all future versions will be open source"
+claim before the root license, a publicly readable repository, a build-commit source link,
+rights/notice review, security gates, and custom-origin smoke test all pass · "the hosted service is
+FOSS" · "open source means free of charge" · "all future versions will be open source"
 
 **source after release:** the exact immutable public source release and receipt, rooted at the
 deployed commit, plus `LICENSE`, `docs/current/DATA-MODEL.md`, `docs/current/API.md`, and

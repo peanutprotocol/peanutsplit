@@ -50,17 +50,19 @@ still drift for some optional variables. Until a generated environment-contract 
 compare all three before enabling a feature. Changing any effective `NEXT_PUBLIC_*` value only at
 runtime does nothing to an existing build; rebuild when this origin changes.
 
-`NEXT_PUBLIC_FOSS_RELEASED` is a separate build-time publication receipt. Leave it unset in a
+`NEXT_PUBLIC_FOSS_RELEASED` is a separate build-time publication switch. Leave it unset in a
 private, incomplete, or locally modified snapshot. Set it to the literal `1` only when the exact
-tree being built has a public license, notices, immutable corresponding-source release, security
-review, and these self-hosting documents. It exposes `/source`, its footer/sitemap entry, and copy
-that makes positive FOSS claims; it is not a generic indexing switch. The gate also requires a
-lowercase 40-character `NEXT_PUBLIC_SOURCE_COMMIT`, an HTTPS
-`NEXT_PUBLIC_SOURCE_ARCHIVE_URL`, and the archive's lowercase 64-character
-`NEXT_PUBLIC_SOURCE_ARCHIVE_SHA256`. `NEXT_PUBLIC_BUILD_COMMIT` must independently identify the
-checked-out build commit and match the source receipt. Missing, malformed, or mismatched data closes
-the gate. The string checks do not prove the values are truthful: a release audit, immutable archive,
-and deployment controls must establish that binding before an operator enables the surface.
+tree being built is publicly readable and carries its license, notices, security review, and these
+self-hosting documents. It exposes `/source`, its footer/sitemap entry, and copy that makes positive
+FOSS claims; it is not a generic indexing switch.
+
+The gate also requires a lowercase 40-character `NEXT_PUBLIC_BUILD_COMMIT`, which is the commit the
+image was built from. `/source` links the public tree at exactly that commit, and that link is how
+the running service offers its corresponding source under AGPL section 13. A branch name, a short
+SHA, or an absent value closes the gate — a mutable pointer drifts away from the running code between
+deploys, which is the failure the requirement exists to prevent. A fork must publish its own modified
+source and point `NEXT_PUBLIC_BUILD_COMMIT` at a commit in a repository its users can actually read;
+the string check cannot tell whether the commit resolves, so the operator owns that.
 
 The configured origin owns product metadata, room-share links, install handoff origin checks, and
 the PWA manifest/service-worker surface. The reverse proxy must remove client-supplied `Host`/

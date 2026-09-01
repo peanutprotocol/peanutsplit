@@ -6,16 +6,28 @@ payment app.
 
 ## Publication status
 
-This repository is still private and is **not yet an open-source release**. The recommended code
-license is `AGPL-3.0-or-later`, but Squirrel Labs has not approved or applied that grant. Licensing
-and publication are gated on the rights, asset, history, and release checks in
-[the public-release plan](docs/current/PUBLIC-RELEASE.md). Do not change this repository's visibility
-or describe it as FOSS until that gate is complete.
+The code is licensed and the licensing work is done. **The repository is still private**, so it is not
+yet published, and the site's FOSS surface stays closed until it is.
 
-The durable promise we are preparing is about released software: recipients of an AGPL release keep
-the license permissions to run, inspect, modify, and share that version, subject to the AGPL terms.
-That would not guarantee that Squirrel Labs will operate `peanutsplit.com` forever, or that every
-future release or hosted feature will have the same terms.
+Squirrel Labs Ltd is the granting entity. Code is `AGPL-3.0-or-later` ([`LICENSE`](LICENSE));
+documentation, content and artwork are `CC-BY-4.0`; third-party material keeps its own terms. The
+per-path map is [`REUSE.toml`](REUSE.toml), the notices are
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md), and the marks policy is
+[`TRADEMARKS.md`](TRADEMARKS.md). Reasoning in
+[the licensing decision](docs/current/LICENSING.md); evidence in
+[the rights register](docs/current/RIGHTS-REGISTER.md).
+
+Four things must still happen before the repository is made public, all listed at the end of the
+rights register: confirm the Knerd font EULA allows redistributing the files in a public tree, scan
+every ref and the full history for secrets and personal data, rotate the secrets that history has
+seen, and generate the dependency SBOM. Until then, do not change this repository's visibility and do
+not describe the service as open source — `NEXT_PUBLIC_FOSS_RELEASED` keeps `/source` and every FOSS
+claim off the live site.
+
+The durable promise is about released software: recipients of an AGPL release keep the license
+permissions to run, inspect, modify, and share that version, subject to the AGPL terms. It does not
+guarantee that Squirrel Labs will operate `peanutsplit.com` forever, or that every future release or
+hosted feature has the same terms.
 
 ## Stewardship
 
@@ -79,8 +91,8 @@ to a network.
 - [Security and data lifecycle](docs/current/SECURITY-MODEL.md)
 - [Self-hosting](docs/current/SELF-HOSTING.md)
 - [Testing](docs/current/TESTING.md)
-- [Licensing decision and rights gate](docs/current/LICENSING.md)
-- [Public-release plan](docs/current/PUBLIC-RELEASE.md)
+- [Licensing decision](docs/current/LICENSING.md)
+- [Rights register](docs/current/RIGHTS-REGISTER.md)
 
 Current schema and route inventories are generated from source. Run:
 

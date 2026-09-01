@@ -1,0 +1,128 @@
+version = 1
+SPDX-PackageName = "Peanut Split"
+SPDX-PackageSupplier = "Squirrel Labs Ltd"
+SPDX-PackageDownloadLocation = "https://github.com/peanutprotocol/peanutsplit"
+
+# Peanut Split is mixed-origin. One blanket license would misdescribe it, so the corpora below are
+# annotated separately. Squirrel Labs Ltd is the granting entity for everything it authored; the
+# remaining entries record third-party terms that travel with the files and cannot be overridden
+# here. See docs/current/RIGHTS-REGISTER.md for the evidence behind each block.
+
+# ---------------------------------------------------------------------------
+# Squirrel Labs Ltd work
+# ---------------------------------------------------------------------------
+
+# Application code, migrations, tests, build and run configuration, scripts.
+[[annotations]]
+path = "**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Squirrel Labs Ltd"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# Documentation and authored product content. Prose is not a program: CC-BY-4.0 lets people quote,
+# translate and republish the guides without dragging a copyleft program license across an article.
+[[annotations]]
+path = [
+  "docs/**",
+  "README.md",
+  "CONTRIBUTING.md",
+  "MAINTAINERS.md",
+  "ROADMAP.md",
+  "SECURITY.md",
+  "STEWARDSHIP.md",
+  "TRADEMARKS.md",
+  "THIRD_PARTY_NOTICES.md",
+  "apps/web/src/content/**",
+  "apps/web/src/generated/seo/**",
+  "apps/web/src/i18n/messages/**",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "Squirrel Labs Ltd"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+# Artwork. The copyright grant is open; the marks themselves are not — see TRADEMARKS.md. A fork may
+# copy, modify and redistribute these files, and may not use them to imply it is Peanut or Split.
+[[annotations]]
+path = [
+  "apps/web/src/assets/mascot/**",
+  "apps/web/src/assets/logos/**",
+  "apps/web/src/assets/bg/**",
+  "apps/web/src/assets/illustrations/**",
+  "apps/web/public/icons/**",
+  "apps/web/public/press/**",
+  "apps/web/public/doodles/**",
+  "apps/web/public/og-default.png",
+  "apps/web/public/icon.png",
+  "apps/web/public/favicon.ico",
+  "design/**",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "Squirrel Labs Ltd"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+# ---------------------------------------------------------------------------
+# Third-party material — these terms come with the files
+# ---------------------------------------------------------------------------
+
+# 300 expense-subject geometries traced from Lucide, part of which Lucide itself derives from
+# Feather. Both notices must travel with any distribution that includes them.
+[[annotations]]
+path = "design/doodles/parts/14-expense-subjects.json"
+precedence = "override"
+SPDX-FileCopyrightText = [
+  "Lucide Contributors",
+  "2013-2017 Cole Bemis",
+]
+SPDX-License-Identifier = "ISC AND MIT"
+
+# The generated doodle module aggregates Squirrel Labs drawings with the Lucide-derived geometries
+# above, so it carries all three licenses at once. Regenerate with design/doodles/build.py.
+[[annotations]]
+path = "apps/web/src/components/ui/doodles.ts"
+precedence = "override"
+SPDX-FileCopyrightText = [
+  "Squirrel Labs Ltd",
+  "Lucide Contributors",
+  "2013-2017 Cole Bemis",
+]
+SPDX-License-Identifier = "AGPL-3.0-or-later AND ISC AND MIT"
+
+# Sniglet, with no Reserved Font Name. Copyright strings are read from the fonts' own name tables.
+[[annotations]]
+path = [
+  "apps/web/public/fonts/sniglet-regular.ttf",
+  "apps/web/public/fonts/sniglet-extrabold.ttf",
+]
+precedence = "override"
+SPDX-FileCopyrightText = [
+  "2008 Haley Fiege <haley@kingdomofawesome.com>",
+  "2012 Brenda Gallo <gbrenda1987@gmail.com>",
+  "2013 Pablo Impallari <impallari@gmail.com>",
+]
+SPDX-License-Identifier = "OFL-1.1-no-RFN"
+
+# Knerd is a purchased commercial font, not an open one. Squirrel Labs Ltd holds a license to use it;
+# that license is not sublicensed to recipients of this repository, and nothing in the AGPL grant
+# extends to these files. A fork must hold its own Knerd license or substitute another display face.
+[[annotations]]
+path = [
+  "apps/web/public/fonts/knerd-filled.ttf",
+  "apps/web/public/fonts/knerd-filled.woff2",
+  "apps/web/public/fonts/knerd-outline.woff2",
+  "apps/web/src/assets/fonts/knerd-filled.ttf",
+  "apps/web/src/assets/fonts/knerd-outline.ttf",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "Knerd (commercial license held by Squirrel Labs Ltd)"
+SPDX-License-Identifier = "LicenseRef-Knerd-Commercial"
+
+# Build output and lockfiles carry no separate grant of their own.
+[[annotations]]
+path = [
+  "pnpm-lock.yaml",
+  "apps/web/pnpm-lock.yaml",
+  "apps/web/public/sw.js",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "Squirrel Labs Ltd and the authors of the bundled dependencies"
+SPDX-License-Identifier = "AGPL-3.0-or-later AND LicenseRef-Bundled-Dependencies"

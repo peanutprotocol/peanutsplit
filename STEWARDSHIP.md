@@ -16,30 +16,24 @@ The intended public release exists for user freedom, inspectability, and self-ho
 volunteer contributor funnel. Bug reports and private security reports are useful. External feature
 pull requests are not solicited, and submitting one creates no response, review, or merge promise.
 
-The current recommendation is to release cleared code under `AGPL-3.0-or-later` after the release
-gate. Squirrel Labs has not yet approved or applied that grant. Peanut references on the official
-service will not be a license condition. Downstream operators will not owe Peanut or Squirrel Labs
-promotion; ordinary license notices and separate trademark rules still apply.
+Code is licensed `AGPL-3.0-or-later` by Squirrel Labs Ltd; the repository itself is not public yet.
+Peanut references on the official service are not a license condition. Downstream operators owe
+Peanut and Squirrel Labs no promotion; ordinary license notices and separate trademark rules still
+apply.
 
-## Release-candidate official-host Peanut budget
+## Official-host Peanut references
 
-This is the smallest auditable interpretation of “limited, contextual, non-intrusive, never spammy
-or forced.” It is implemented on the local release-candidate branch and remains unpublic until the
-maintainer gives the final publication approval:
+Peanut references on the official service are held to a good-UX standard rather than a counted
+budget (ruled 2026-08-25). A mention is allowed where it is non-intrusive and factual. It is not
+allowed where it slows, blocks, or confuses somebody trying to split a bill.
 
-1. **Settlement:** one user-initiated “Pay with Peanut” option, presented among equal settlement
-   methods, never preselected and never making another method worse.
-2. **Source and stewardship:** up to two factual Peanut mentions and one outbound `peanut.me` link
-   on the dedicated explanation page.
-3. **Global footer:** one text-only internal link named “Source & stewardship.” The footer itself
-   contains no Peanut logo, mascot, referral link, or standalone Peanut promotion.
-4. **Every other surface:** no standalone Peanut promotion unless this budget is explicitly revised.
+What that rules out, concretely: no ribbons, interstitials, modals, onboarding steps, notifications,
+nags, forced clicks, feature gates, badge walls, or license riders. “Pay with Peanut” is one
+settlement option among equals — never preselected, and never making another method worse.
 
-There are no Peanut ribbons, interstitials, modals, onboarding steps, notifications, nags, forced
-clicks, feature gates, badge walls, or license riders. Forks may remove the official-host references.
-
-The product name “Peanut Split” is not counted as a separate promotional placement. Trademark and
-non-affiliation rules remain separate from this editorial budget.
+Forks may remove every official-host reference. Nothing here is a license condition, and the product
+name “Peanut Split” is not a promotional placement. Trademark and non-affiliation rules are separate;
+see [TRADEMARKS.md](TRADEMARKS.md).
 
 ## No governance theater
 

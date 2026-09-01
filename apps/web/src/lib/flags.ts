@@ -10,39 +10,24 @@ export const splitV2Enabled = (): boolean => process.env.NEXT_PUBLIC_SPLIT_V2_EN
 
 /**
  * Positive FOSS claims are a release boundary, not an editorial toggle. The source page stays
- * unroutable and the Splitwise comparison keeps only its established non-FOSS copy until the clean
- * public source, license, notices, security checks and immutable release receipt exist. Defaulting
- * closed removes unsupported legal claims without sacrificing the comparison's canonical URL.
+ * unroutable and the Splitwise comparison keeps only its established non-FOSS copy until the public
+ * repository, license and notices exist. Defaulting closed removes unsupported legal claims without
+ * sacrificing the comparison's canonical URL.
  */
-export interface PublicSourceReceipt {
-    commit: string
-    archiveUrl: string
-    archiveSha256: string
-}
 
-/** Machine-readable corresponding-source receipt compiled into an approved public build. */
-export function publicSourceReceipt(): PublicSourceReceipt | null {
-    const commit = process.env.NEXT_PUBLIC_SOURCE_COMMIT ?? ''
-    const buildCommit = process.env.NEXT_PUBLIC_BUILD_COMMIT ?? ''
-    const archiveUrl = process.env.NEXT_PUBLIC_SOURCE_ARCHIVE_URL ?? ''
-    const archiveSha256 = process.env.NEXT_PUBLIC_SOURCE_ARCHIVE_SHA256 ?? ''
-    if (!/^[0-9a-f]{40}$/.test(commit) || buildCommit !== commit || !/^[0-9a-f]{64}$/.test(archiveSha256)) return null
-
-    try {
-        const parsed = new URL(archiveUrl)
-        if (parsed.protocol !== 'https:' || parsed.username || parsed.password || parsed.hash) return null
-        // A syntactically valid `/latest.tar.gz` can move after this build ships. Bind the path
-        // itself to either the public commit or the audited archive digest; query parameters do
-        // not count because mutable download endpoints commonly put version hints there.
-        if (!parsed.pathname.includes(commit) && !parsed.pathname.includes(archiveSha256)) return null
-    } catch {
-        return null
-    }
-    return { commit, archiveUrl, archiveSha256 }
+/**
+ * The commit this build was made from. AGPL section 13 asks a network service to offer the source
+ * that corresponds to the version people are actually using, so the deployment supplies its own
+ * build commit and `/source` links the immutable tree at exactly that commit. A mutable `main` link
+ * would drift away from the running code between deploys; a 40-hex commit cannot.
+ */
+export function publicSourceCommit(): string | null {
+    const commit = process.env.NEXT_PUBLIC_BUILD_COMMIT ?? ''
+    return /^[0-9a-f]{40}$/.test(commit) ? commit : null
 }
 
 export const publicFossReleased = (): boolean =>
-    process.env.NEXT_PUBLIC_FOSS_RELEASED === '1' && publicSourceReceipt() !== null
+    process.env.NEXT_PUBLIC_FOSS_RELEASED === '1' && publicSourceCommit() !== null
 
 /**
  * The landing experiment is deliberately deployment-wide rather than tied to

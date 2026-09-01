@@ -14,7 +14,6 @@ product. When source and prose disagree, source wins and the documentation is a 
 - [Self-hosting](current/SELF-HOSTING.md)
 - [Testing](current/TESTING.md)
 - [Licensing decision](current/LICENSING.md)
-- [Public-release gate](current/PUBLIC-RELEASE.md)
 - [Rights register](current/RIGHTS-REGISTER.md)
 - [FOSS-posture audit](audits/2026-08-24-foss-posture.md)
 

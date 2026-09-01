@@ -31,7 +31,11 @@ coordinate a private fix and release process when the report is actionable.
 
 ## Public-release controls
 
-Before publication, the repository must enable and verify private vulnerability reporting, secret
-scanning/push protection, read-only default Actions permissions, pinned/allowlisted actions, and a
-deploy gate bound to an exact successful commit. See
-[PUBLIC-RELEASE.md](docs/current/PUBLIC-RELEASE.md).
+Before this repository is made public, enable and verify private vulnerability reporting, secret
+scanning with push protection, read-only default Actions permissions, and pinned or allowlisted
+actions.
+
+History goes public with the code, so scan every retained ref for secrets and personal data first,
+and rotate anything the history has seen — `MONO_SPLIT_CONTENT_READ_KEY` in particular, which was a
+deploy key into the private mono. The remaining publication steps are listed at the end of
+[the rights register](docs/current/RIGHTS-REGISTER.md).

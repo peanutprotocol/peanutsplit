@@ -26,7 +26,21 @@ describe('/source release boundary', () => {
         expect(() => SourceAndStewardshipPage()).toThrow('NEXT_NOT_FOUND')
     })
 
-    it('publishes the receipts and exact stewardship deal after release', () => {
+    // A deployment that cannot say which commit it runs cannot make an AGPL section 13 offer, so
+    // the flag alone must not open the page.
+    it('404s when the deployment supplies no build commit', () => {
+        process.env.NEXT_PUBLIC_FOSS_RELEASED = '1'
+        const priorCommit = process.env.NEXT_PUBLIC_BUILD_COMMIT
+        delete process.env.NEXT_PUBLIC_BUILD_COMMIT
+        try {
+            expect(() => generateMetadata()).toThrow('NEXT_NOT_FOUND')
+            expect(() => SourceAndStewardshipPage()).toThrow('NEXT_NOT_FOUND')
+        } finally {
+            process.env.NEXT_PUBLIC_BUILD_COMMIT = priorCommit
+        }
+    })
+
+    it('publishes the corresponding source and exact stewardship deal after release', () => {
         process.env.NEXT_PUBLIC_FOSS_RELEASED = '1'
         expect(generateMetadata()).toMatchObject({
             description: expect.stringContaining('AGPL'),
@@ -38,10 +52,10 @@ describe('/source release boundary', () => {
         expect(html).toContain('maintainer work hours')
         expect(html).toContain('Open source without contributor theatre')
         expect(html).toContain('href="https://github.com/peanutprotocol/peanutsplit"')
-        expect(html).toContain(process.env.NEXT_PUBLIC_SOURCE_COMMIT)
-        expect(html).toContain(process.env.NEXT_PUBLIC_SOURCE_ARCHIVE_URL)
-        expect(html).toContain(process.env.NEXT_PUBLIC_SOURCE_ARCHIVE_SHA256)
+        expect(html).toContain(`/tree/${process.env.NEXT_PUBLIC_BUILD_COMMIT}`)
+        expect(html).toContain(`/blob/${process.env.NEXT_PUBLIC_BUILD_COMMIT}/LICENSE`)
         expect(html).not.toContain('/blob/main/')
+        expect(html).not.toContain('/tree/main')
         expect(html.match(/href="https:\/\/peanut\.me"/g)).toHaveLength(1)
         expect(html).not.toContain('utm_')
     })

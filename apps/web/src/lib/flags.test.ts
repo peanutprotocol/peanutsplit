@@ -1,14 +1,11 @@
 import { afterAll, describe, expect, it } from 'vitest'
 import { STATIC_PAGES, staticPageIsSitemapped } from '@/data/static-pages'
-import { landingVariant, publicFossReleased, publicSourceReceipt, splitV2Enabled } from './flags'
+import { landingVariant, publicFossReleased, publicSourceCommit, splitV2Enabled } from './flags'
 
 const prior = process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED
 const priorLandingVariant = process.env.NEXT_PUBLIC_LANDING_VARIANT
 const priorFossRelease = process.env.NEXT_PUBLIC_FOSS_RELEASED
 const priorBuildCommit = process.env.NEXT_PUBLIC_BUILD_COMMIT
-const priorSourceCommit = process.env.NEXT_PUBLIC_SOURCE_COMMIT
-const priorSourceArchiveUrl = process.env.NEXT_PUBLIC_SOURCE_ARCHIVE_URL
-const priorSourceArchiveSha256 = process.env.NEXT_PUBLIC_SOURCE_ARCHIVE_SHA256
 
 afterAll(() => {
     if (prior === undefined) delete process.env.NEXT_PUBLIC_SPLIT_V2_ENABLED
@@ -22,17 +19,13 @@ afterAll(() => {
 
     if (priorBuildCommit === undefined) delete process.env.NEXT_PUBLIC_BUILD_COMMIT
     else process.env.NEXT_PUBLIC_BUILD_COMMIT = priorBuildCommit
-
-    if (priorSourceCommit === undefined) delete process.env.NEXT_PUBLIC_SOURCE_COMMIT
-    else process.env.NEXT_PUBLIC_SOURCE_COMMIT = priorSourceCommit
-    if (priorSourceArchiveUrl === undefined) delete process.env.NEXT_PUBLIC_SOURCE_ARCHIVE_URL
-    else process.env.NEXT_PUBLIC_SOURCE_ARCHIVE_URL = priorSourceArchiveUrl
-    if (priorSourceArchiveSha256 === undefined) delete process.env.NEXT_PUBLIC_SOURCE_ARCHIVE_SHA256
-    else process.env.NEXT_PUBLIC_SOURCE_ARCHIVE_SHA256 = priorSourceArchiveSha256
 })
 
+const COMMIT = '0123456789abcdef0123456789abcdef01234567'
+
 describe('publicFossReleased', () => {
-    it('fails closed unless the release pipeline opts in literally', () => {
+    it('fails closed unless the release opts in literally', () => {
+        process.env.NEXT_PUBLIC_BUILD_COMMIT = COMMIT
         delete process.env.NEXT_PUBLIC_FOSS_RELEASED
         expect(publicFossReleased()).toBe(false)
         process.env.NEXT_PUBLIC_FOSS_RELEASED = 'true'
@@ -41,41 +34,33 @@ describe('publicFossReleased', () => {
         expect(publicFossReleased()).toBe(true)
     })
 
-    it('stays closed when any corresponding-source receipt field is absent or malformed', () => {
+    it('stays closed without a well-formed corresponding-source commit', () => {
         process.env.NEXT_PUBLIC_FOSS_RELEASED = '1'
-        const commit = process.env.NEXT_PUBLIC_SOURCE_COMMIT!
-        const archiveUrl = process.env.NEXT_PUBLIC_SOURCE_ARCHIVE_URL!
-        const archiveSha256 = process.env.NEXT_PUBLIC_SOURCE_ARCHIVE_SHA256!
 
-        delete process.env.NEXT_PUBLIC_SOURCE_COMMIT
-        expect(publicSourceReceipt()).toBeNull()
+        delete process.env.NEXT_PUBLIC_BUILD_COMMIT
+        expect(publicSourceCommit()).toBeNull()
         expect(publicFossReleased()).toBe(false)
-        process.env.NEXT_PUBLIC_SOURCE_COMMIT = commit
 
-        process.env.NEXT_PUBLIC_BUILD_COMMIT = 'fedcba9876543210fedcba9876543210fedcba98'
-        expect(publicSourceReceipt()).toBeNull()
+        // A branch name is exactly the mutable pointer the commit requirement exists to reject.
+        process.env.NEXT_PUBLIC_BUILD_COMMIT = 'main'
+        expect(publicSourceCommit()).toBeNull()
         expect(publicFossReleased()).toBe(false)
-        process.env.NEXT_PUBLIC_BUILD_COMMIT = commit
 
-        process.env.NEXT_PUBLIC_SOURCE_ARCHIVE_URL = 'http://example.com/source.tar.gz'
-        expect(publicSourceReceipt()).toBeNull()
+        process.env.NEXT_PUBLIC_BUILD_COMMIT = COMMIT.slice(0, 12)
+        expect(publicSourceCommit()).toBeNull()
+        expect(publicFossReleased()).toBe(false)
 
-        process.env.NEXT_PUBLIC_SOURCE_ARCHIVE_URL = `https://example.com/latest.tar.gz?commit=${commit}`
-        expect(publicSourceReceipt()).toBeNull()
-        process.env.NEXT_PUBLIC_SOURCE_ARCHIVE_URL = archiveUrl
+        process.env.NEXT_PUBLIC_BUILD_COMMIT = COMMIT.toUpperCase()
+        expect(publicSourceCommit()).toBeNull()
 
-        process.env.NEXT_PUBLIC_SOURCE_ARCHIVE_SHA256 = 'not-a-sha256'
-        expect(publicSourceReceipt()).toBeNull()
-        process.env.NEXT_PUBLIC_SOURCE_ARCHIVE_SHA256 = archiveSha256
-        expect(publicSourceReceipt()).toEqual({
-            commit,
-            archiveUrl,
-            archiveSha256,
-        })
+        process.env.NEXT_PUBLIC_BUILD_COMMIT = COMMIT
+        expect(publicSourceCommit()).toBe(COMMIT)
+        expect(publicFossReleased()).toBe(true)
     })
 
-    it('keeps the source receipt out of the sitemap until the same gate opens', () => {
+    it('keeps the source page out of the sitemap until the same gate opens', () => {
         const source = STATIC_PAGES.find((page) => page.href === '/source')!
+        process.env.NEXT_PUBLIC_BUILD_COMMIT = COMMIT
         delete process.env.NEXT_PUBLIC_FOSS_RELEASED
         expect(staticPageIsSitemapped(source)).toBe(false)
         process.env.NEXT_PUBLIC_FOSS_RELEASED = '1'

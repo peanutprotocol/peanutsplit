@@ -4,8 +4,8 @@ This Next.js application is the current Peanut Split product. Its route handlers
 schema in [`prisma/schema.prisma`](prisma/schema.prisma) directly; no current request is proxied to
 the separate Fastify application under `../api`.
 
-The repository is being prepared for an AGPL release, but it is not a public FOSS release yet. See
-the root [publication plan](../../docs/current/PUBLIC-RELEASE.md).
+The code is licensed `AGPL-3.0-or-later`, but the repository is still private, so this is not a public
+FOSS release yet. See the root [publication status](../../README.md#publication-status).
 
 ## Local development
 

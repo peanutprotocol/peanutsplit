@@ -1,0 +1,13 @@
+Bundled dependencies
+====================
+
+Some generated files in this repository — chiefly the built service worker at
+apps/web/public/sw.js — embed code from third-party npm packages. That code stays under its own
+license; the AGPL grant in LICENSE covers only the Squirrel Labs Ltd portions.
+
+The exact set and versions are fixed by pnpm-lock.yaml and apps/web/pnpm-lock.yaml. To produce the
+notice bundle for a given build:
+
+    pnpm licenses list --json
+
+See THIRD_PARTY_NOTICES.md for the summary and for the license classes present in the lockfiles.

@@ -1,5 +1,0 @@
-blank_issues_enabled: false
-contact_links:
-  - name: Private security report
-    url: https://github.com/peanutprotocol/peanutsplit/security/advisories/new
-    about: Report vulnerabilities privately. Never put exploit or live-room details in an issue.
