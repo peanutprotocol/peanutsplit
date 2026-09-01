@@ -23,7 +23,7 @@
             "locale": "en",
             "public_path": "/guides/synthetic-guide",
             "output_path": "split-content/published/guides/synthetic-guide/en.md",
-            "output_sha256": "30b77ab566f01f3042813c23073311b78bc85a0c10a5dc8f257c95f96527b209",
+            "output_sha256": "cd76532e732eb5814fb6d407b122df9d5d9a0eccac2ab15e8f363330d047693e",
             "source_input_paths": [
                 "split-content/_system/generation-templates/guide.md",
                 "split-content/_system/data/guides/synthetic-guide.md",

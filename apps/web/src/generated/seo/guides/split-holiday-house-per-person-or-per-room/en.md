@@ -180,7 +180,7 @@ its place when several people paid for different things and the settling happens
 driven home. It does not make anybody pay and it does not decide what a child is worth; it keeps
 the working where both families can check it.
 
-<CTA text="Start a split" subtitle="Open one Split room for the cottage, the shopping and the wine." href="https://peanutsplit.com/new?locale=en&utm_medium=content&utm_source=split-guide&utm_campaign=split-holiday-house-per-person-or-per-room&utm_content=final-cta" variant="card" />
+<CTA text="Start a split" subtitle="Open one Split room for the cottage, the shopping and the wine." href="https://peanutsplit.com/new?utm_medium=content&utm_source=split-guide&utm_campaign=split-holiday-house-per-person-or-per-room&utm_content=final-cta" variant="card" />
 
 <RelatedPages title="Related guide">
 <RelatedLink href="/guides/someone-drops-out-of-a-group-trip">What happens if someone drops out of a holiday</RelatedLink>

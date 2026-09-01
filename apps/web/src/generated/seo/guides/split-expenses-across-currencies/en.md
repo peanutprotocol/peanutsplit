@@ -82,7 +82,7 @@ If two people share one receipt in one currency and settle immediately, one calc
 they need. A Split room is useful when receipts arrive over time, currencies differ, or several
 people need to check the same running balance.
 
-<CTA text="Start a split" subtitle="Keep the receipts and the shared calculation together." href="https://peanutsplit.com/new?locale=en&utm_medium=content&utm_source=split-guide&utm_campaign=split-expenses-across-currencies&utm_content=final-cta" variant="card" />
+<CTA text="Start a split" subtitle="Keep the receipts and the shared calculation together." href="https://peanutsplit.com/new?utm_medium=content&utm_source=split-guide&utm_campaign=split-expenses-across-currencies&utm_content=final-cta" variant="card" />
 
 <RelatedPages title="Related guide">
 <RelatedLink href="/guides/split-a-group-trip-across-countries">How to split a group trip across countries</RelatedLink>

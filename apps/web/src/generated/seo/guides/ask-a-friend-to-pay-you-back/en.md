@@ -122,7 +122,7 @@ what each one asks of the people who did not pick it. A room does not make anyon
 the money moves is still a decision a person makes. What it does is take the asking out of your
 hands and keep the figure somewhere neither of you has to hold in their head.
 
-<CTA text="Start a split" subtitle="Open the room the night you pay for something shared." href="https://peanutsplit.com/new?locale=en&utm_medium=content&utm_source=split-guide&utm_campaign=ask-a-friend-to-pay-you-back&utm_content=final-cta" variant="card" />
+<CTA text="Start a split" subtitle="Open the room the night you pay for something shared." href="https://peanutsplit.com/new?utm_medium=content&utm_source=split-guide&utm_campaign=ask-a-friend-to-pay-you-back&utm_content=final-cta" variant="card" />
 
 <RelatedPages title="Related guide">
 <RelatedLink href="/guides/someone-drops-out-of-a-group-trip">When someone drops out of a group trip</RelatedLink>

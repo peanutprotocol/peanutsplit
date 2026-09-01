@@ -143,7 +143,7 @@ out the new share, send it once, and it is settled before anyone opens a browser
 opening when the trip has several paid lines and several payers, and when the settling happens
 weeks after everyone is home.
 
-<CTA text="Start a split" subtitle="Put the trip's expenses and the new shares in one room." href="https://peanutsplit.com/new?locale=en&utm_medium=content&utm_source=split-guide&utm_campaign=someone-drops-out-of-a-group-trip&utm_content=final-cta" variant="card" />
+<CTA text="Start a split" subtitle="Put the trip's expenses and the new shares in one room." href="https://peanutsplit.com/new?utm_medium=content&utm_source=split-guide&utm_campaign=someone-drops-out-of-a-group-trip&utm_content=final-cta" variant="card" />
 
 <RelatedPages title="Related guide">
 <RelatedLink href="/guides/ask-a-friend-to-pay-you-back">How to ask a friend to pay you back</RelatedLink>

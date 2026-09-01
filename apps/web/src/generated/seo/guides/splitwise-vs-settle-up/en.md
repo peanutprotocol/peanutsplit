@@ -232,7 +232,7 @@ room; Split does not verify with any bank and cannot.
 The official Split service is free to use and has no paid tier. That describes the service
 today; it is not a promise about its price or availability for its entire lifetime.
 
-<CTA text="Start a split" subtitle="Send the room link to the group and add the receipts as they arrive." href="https://peanutsplit.com/new?locale=en&utm_medium=content&utm_source=split-guide&utm_campaign=splitwise-vs-settle-up&utm_content=final-cta" variant="card" />
+<CTA text="Start a split" subtitle="Send the room link to the group and add the receipts as they arrive." href="https://peanutsplit.com/new?utm_medium=content&utm_source=split-guide&utm_campaign=splitwise-vs-settle-up&utm_content=final-cta" variant="card" />
 
 <RelatedPages title="Related guide">
 <RelatedLink href="/guides/splitwise-currency-conversion">What Splitwise does with more than one currency</RelatedLink>

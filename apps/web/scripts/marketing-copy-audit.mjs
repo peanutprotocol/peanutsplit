@@ -472,12 +472,64 @@ function auditTypescript(path, options = {}) {
     visit(sourceFile)
 }
 
-for (const path of filesBelow(resolve(root, 'src/i18n/messages'), new Set(['.json']))) auditJson(path)
-for (const path of filesBelow(resolve(root, 'src/content'), new Set(['.md', '.mdx']), isInputLayer)) auditMarkdown(path)
-if (includeGenerated) {
-    for (const path of filesBelow(resolve(root, 'src/generated/seo'), new Set(['.md', '.mdx']))) {
-        auditMarkdown(path)
+// Keep this in lockstep with src/i18n/locales.ts. The audit runs without the TypeScript loader.
+const DEFAULT_LOCALE = 'en'
+
+/**
+ * A `/new` link may only carry the `locale` param of the page that authors it, and the default
+ * locale may not carry one at all.
+ *
+ * `proxy.ts` writes `?locale=` into the `ps-locale` cookie for a year without comparing it to the
+ * one already stored, and `room.locale` is stamped from that cookie once and never re-inferred. So
+ * an English page emitting `/new?locale=en` silently resets a Spanish or Portuguese reader's
+ * language and turns their room — and its unfurl — English. `newRoomHref` already refuses to append
+ * the default locale, but it only rewrites a bare `/new` pathname, which leaves an absolute CTA
+ * authored inside generated content free to reintroduce the bug. This is that backstop.
+ */
+function auditNewLinkLocale(path, pageLocale) {
+    const local = relative(root, path).replaceAll('\\', '/')
+    const source = readFileSync(path, 'utf8')
+    const lines = source.split('\n')
+    lines.forEach((text, index) => {
+        for (const match of text.matchAll(/(?:https?:\/\/[^\s"'<>]*peanutsplit\.com)?\/new\?[^\s"'<>)]*/gu)) {
+            const query = match[0].slice(match[0].indexOf('?') + 1)
+            const carried = new URLSearchParams(query.replaceAll('&amp;', '&')).get('locale')
+            if (carried === null) continue
+            const line = `${local}:${index + 1}`
+            if (pageLocale === DEFAULT_LOCALE) {
+                failures.push(
+                    `${line} a ${DEFAULT_LOCALE} page puts locale= on a /new link, which overwrites the reader's stored language: “${match[0]}”`
+                )
+            } else if (carried !== pageLocale) {
+                failures.push(`${line} a ${pageLocale} page puts locale=${carried} on a /new link: “${match[0]}”`)
+            }
+        }
+    })
+}
+
+/** The generated artifact names its locale in frontmatter; the filename is the mirror's own key. */
+function localeOfGeneratedPage(path) {
+    const source = readFileSync(path, 'utf8')
+    try {
+        const declared = matter(source).data?.lang
+        if (typeof declared === 'string' && declared.length > 0) return declared
+    } catch {
+        // Fall through to the filename, which the mirror guarantees.
     }
+    return basename(path, extname(path))
+}
+
+for (const path of filesBelow(resolve(root, 'src/i18n/messages'), new Set(['.json']))) auditJson(path)
+for (const path of filesBelow(resolve(root, 'src/content'), new Set(['.md', '.mdx']), isInputLayer)) {
+    auditMarkdown(path)
+    auditNewLinkLocale(path, basename(path, extname(path)))
+}
+// The posture audit over generated SEO stays behind the flag — it is mono's artifact and mono owns
+// its wording. The /new locale check does not: those bytes are what production serves, the bug is
+// invisible to a reader, and it costs one regex per line.
+for (const path of filesBelow(resolve(root, 'src/generated/seo'), new Set(['.md', '.mdx']))) {
+    if (includeGenerated) auditMarkdown(path)
+    auditNewLinkLocale(path, localeOfGeneratedPage(path))
 }
 
 const publicSourcePage = resolve(root, 'src/app/(product-shell)/(marketing)/source/page.tsx')

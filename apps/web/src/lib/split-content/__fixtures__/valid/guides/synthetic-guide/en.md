@@ -35,7 +35,7 @@ This is synthetic body copy. It is not an authored Peanut Split page.
 
 The page layout owns the only top-level heading.
 
-<CTA text="Start a split" subtitle="Synthetic CTA compatibility proof." href="https://peanutsplit.com/new?locale=en&utm_source=synthetic" variant="card" />
+<CTA text="Start a split" subtitle="Synthetic CTA compatibility proof." href="https://peanutsplit.com/new?utm_source=synthetic" variant="card" />
 
 <RelatedPages title="Synthetic related pages">
 <RelatedLink href="/guides/synthetic-guide">Synthetic English guide</RelatedLink>

@@ -55,7 +55,10 @@ describe('Split guide route contract', () => {
         expect(html.match(/<h1\b/g)).toHaveLength(1)
         expect(html).toContain('Synthetic English guide</h1>')
         expect(html).toContain('Synthetic CTA compatibility proof.')
-        expect(html).toContain('href="https://peanutsplit.com/new?locale=en&amp;utm_source=synthetic"')
+        // No `locale=en`: proxy.ts would write it into a year-long ps-locale cookie and reset a
+        // Spanish or Portuguese reader's language. The param is for non-default locales only.
+        expect(html).toContain('href="https://peanutsplit.com/new?utm_source=synthetic"')
+        expect(html).not.toContain('locale=en')
         expect(html).not.toMatch(/href="\/new/)
         expect(html).toContain('href="/guides/synthetic-guide"')
     })

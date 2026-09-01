@@ -1,4 +1,4 @@
-import type { Locale } from '@/i18n/locales'
+import { DEFAULT_LOCALE, type Locale } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
 import { CANONICAL_ORIGIN, isProductHost } from '@/lib/domains'
 
@@ -182,6 +182,16 @@ function checkedCommentExpression(node: MdxNode): void {
     }
 }
 
+/**
+ * The CTA's `locale` param is a language *switch*, not a label.
+ *
+ * `proxy.ts` writes `?locale=` into the `ps-locale` cookie for a year without comparing it to the
+ * one already stored, and a room's locale is stamped from that cookie once and never re-inferred.
+ * A non-default guide therefore needs the param — it is what puts a Spanish or Portuguese reader
+ * into their own language. The default locale must NOT carry it: `locale=en` on an English guide
+ * silently resets a Spanish or Portuguese reader's stored language and turns the room they open —
+ * and its unfurl — English. Omitting it leaves whatever they already chose alone.
+ */
 function checkedCtaHref(href: string, locale: Locale, node: MdxNode): void {
     let url: URL
     try {
@@ -190,16 +200,24 @@ function checkedCtaHref(href: string, locale: Locale, node: MdxNode): void {
         policyError('Split MDX CTA href must be an absolute product URL', node)
     }
 
+    const carried = url.searchParams.getAll('locale')
+    const localeIsCorrect =
+        locale === DEFAULT_LOCALE ? carried.length === 0 : carried.length === 1 && carried[0] === locale
+
     if (
         url.origin !== CANONICAL_ORIGIN ||
         url.pathname !== '/new' ||
         url.username ||
         url.password ||
         url.hash ||
-        url.searchParams.getAll('locale').length !== 1 ||
-        url.searchParams.get('locale') !== locale
+        !localeIsCorrect
     ) {
-        policyError('Split MDX CTA must point to the canonical /new in the guide locale', node)
+        policyError(
+            locale === DEFAULT_LOCALE
+                ? 'Split MDX CTA must point to the canonical /new with no locale param on the default locale'
+                : 'Split MDX CTA must point to the canonical /new in the guide locale',
+            node
+        )
     }
 }
 
