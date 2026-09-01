@@ -70,6 +70,15 @@ export const STATIC_PAGES: StaticPage[] = [
         inHub: true,
     },
     {
+        // Split's own privacy notice. Registered here for the route reservation and the sitemap
+        // row; it is not a guide, so it never shows on the hub.
+        href: '/privacy',
+        title: 'Privacy',
+        description: 'What Split stores, what it measures, and what its advertising tag does.',
+        priority: 0.3,
+        inHub: false,
+    },
+    {
         // An app-owned tool, not an editorial guide. Keep it registered to reserve the route,
         // but omit it from the editorial sitemap.
         href: '/import',

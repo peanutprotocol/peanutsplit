@@ -83,7 +83,8 @@ describe('official-host Peanut reference budget', () => {
                     file: 'app/(product-shell)/(marketing)/source/page.tsx',
                     value: 'https://peanut.me',
                 },
-                { file: 'components/marketing/SiteFooter.tsx', value: 'https://peanut.me/en/privacy' },
+                { file: 'app/(product-shell)/privacy/page.tsx', value: 'https://peanut.me/en/privacy' },
+                { file: 'app/(product-shell)/privacy/page.tsx', value: 'mailto:support@peanut.me' },
                 { file: 'components/marketing/SiteFooter.tsx', value: 'https://peanut.me/en/terms' },
                 {
                     file: 'components/room/SettleDrawer.tsx',

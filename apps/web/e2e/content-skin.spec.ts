@@ -113,10 +113,28 @@ test.describe('content SEO loops', () => {
         })
     }
 
-    test('the fronting hero CTA points at a campaign-coded /new', async ({ page }) => {
+    test('the fronting hero CTA points at a campaign-coded, locale-pinned /new', async ({ page }) => {
         await page.goto('/blog/fronting-a-group-trip')
-        await expect(page.locator('a[href="/new?campaign=content-fronting-a-group-trip"]').first()).toBeVisible()
+        await expect(
+            page.locator('a[href="/new?campaign=content-fronting-a-group-trip&locale=en"]').first()
+        ).toBeVisible()
     })
+
+    // A6: a paid Spanish click landed in an English room creator, because `/new` reads a cookie
+    // the landing never sets. Both localized landings state their language in the link itself.
+    for (const [path, locale] of [
+        ['/es-419/splitwise-alternative', 'es-419'],
+        ['/pt-br/splitwise-alternative', 'pt-br'],
+    ]) {
+        test(`the ${locale} switcher landing hands its language to /new`, async ({ page }) => {
+            await page.goto(path)
+            const links = page.locator('a[href^="/new"]')
+            await expect(links.first()).toBeVisible()
+            for (const href of await links.evaluateAll((all) => all.map((a) => a.getAttribute('href')))) {
+                expect(href).toContain(`locale=${locale}`)
+            }
+        })
+    }
 })
 
 test.describe('tool page footer pin', () => {

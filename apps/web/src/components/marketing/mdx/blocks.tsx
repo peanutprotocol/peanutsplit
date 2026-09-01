@@ -54,23 +54,32 @@ export interface ContentRenderContext {
 }
 
 /**
- * The room-creation link, campaign-coded when we know which article it is on (SEO loop A).
+ * The room-creation link: campaign-coded when we know which article it is on (SEO loop A), and
+ * always carrying the page's own language.
  *
- * Only the bare `/new` is rewritten: an authored `ctaHref` that already carries a query is a
- * deliberate destination, and appending a second `?` would break it. The result is one plain link
- * attribute — no text node, deterministic per slug and identical in every locale — which is what
- * lets a content-sourced room be counted without any app-side change to `/new`. Precedent:
- * `SettleDrawer`'s `campaign=split`.
+ * The locale is not decoration. `/new` reads the language off a cookie, and an article states its
+ * language in its URL and never sets that cookie — so a Spanish landing handed its reader to an
+ * English room creator. `locale-handoff.ts` is the receiving end, and the generated guides have
+ * pointed at `/new?locale=…` since they shipped; the authored pages are the ones that did not.
  *
- * Guides never reach here with a context (their CTA is `ContentCTA`), so the generated corpus is
- * untouched.
+ * Only a `/new` href is rewritten, and an authored query survives — `ToolPage` writes its own
+ * `campaign` — so the result stays one plain link attribute, deterministic per slug and language,
+ * which is what lets a content-sourced room be counted without any app-side change to `/new`.
+ * Precedent: `SettleDrawer`'s `campaign=split`.
  *
- * Every block an article can point at `/new` calls this: `Hero`, `CTA`, and `RelatedLink` — the
- * last because who-pays-for-the-wine ends its related list with one, and a single uncoded link on
- * a pilot page is a hole in the only number this loop exists to produce.
+ * Every block an article can point at `/new` calls this: `Hero`, `CTA`, `RelatedLink` and the
+ * prose `a` — the last two because who-pays-for-the-wine ends its related list with one and
+ * fair-split-calculator sends its reader on mid-sentence, and a single uncoded link on a paid
+ * page is a hole in the only number this loop exists to produce.
  */
-function withCampaign(href: string, slug: string | undefined): string {
-    return slug && href === '/new' ? `${href}?campaign=content-${slug}` : href
+export function newRoomHref(href: string, slug: string | undefined, locale: Locale): string {
+    const [pathname, query] = href.split('?')
+    if (pathname !== '/new') return href
+
+    const params = new URLSearchParams(query)
+    if (slug && !params.has('campaign')) params.set('campaign', `content-${slug}`)
+    if (!params.has('locale')) params.set('locale', locale)
+    return `${pathname}?${params}`
 }
 
 export function Hero({
@@ -115,7 +124,7 @@ export function Hero({
             {cta && (
                 <div className={`${COLUMN} pt-6`}>
                     <Link
-                        href={withCampaign(ctaHref, context?.slug)}
+                        href={newRoomHref(ctaHref, context?.slug, locale)}
                         className={buttonClassName({ shadowSize: '4', className: 'split-btn justify-center text-h6' })}
                     >
                         {cta}
@@ -132,12 +141,15 @@ export function CTA({
     href = '/new',
     title,
     body,
+    locale = 'en',
     context,
 }: {
     text: string
     href?: string
     title?: string
     body?: string
+    /** Not MDX-authored — bound in `localizedMdxComponents`. */
+    locale?: Locale
     /** Not MDX-authored — bound in `localizedMdxComponents`. */
     context?: ContentRenderContext
 }) {
@@ -147,7 +159,7 @@ export function CTA({
                 {title && <h2 className="split-block-title text-h5">{title}</h2>}
                 {body && <p className="mt-2 text-sm leading-5 text-grey-1">{body}</p>}
                 <Link
-                    href={withCampaign(href, context?.slug)}
+                    href={newRoomHref(href, context?.slug, locale)}
                     className={buttonClassName({ shadowSize: '4', className: 'split-btn mt-4 justify-center text-h6' })}
                 >
                     {text}
@@ -383,10 +395,13 @@ export function RelatedPages({ title = 'Keep reading', children }: { title?: str
 export function RelatedLink({
     href,
     children,
+    locale = 'en',
     context,
 }: {
     href: string
     children: ReactNode
+    /** Not MDX-authored — bound in `localizedMdxComponents`. */
+    locale?: Locale
     /** Not MDX-authored — bound in `localizedMdxComponents`. A related list is the one other place
      *  an article authors `/new` (who-pays-for-the-wine does), so loop A has to reach it too. */
     context?: ContentRenderContext
@@ -394,7 +409,7 @@ export function RelatedLink({
     return (
         <li>
             <Link
-                href={withCampaign(href, context?.slug)}
+                href={newRoomHref(href, context?.slug, locale)}
                 data-focus-contained
                 className="flex min-h-11 items-center gap-2 bg-white px-4 py-3 hover:bg-grey-3"
             >

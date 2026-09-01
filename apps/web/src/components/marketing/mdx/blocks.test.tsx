@@ -63,7 +63,7 @@ describe('Hero hooks', () => {
     it("puts split-btn on the hero's CTA link", () => {
         const button = tagWith(html, 'split-btn')
         expect(button).toMatch(/^<a/)
-        expect(button).toContain('href="/new"')
+        expect(button).toContain('href="/new?locale=en"')
     })
 
     /**
@@ -80,11 +80,11 @@ describe('Hero hooks', () => {
 })
 
 /**
- * SEO loop A. The campaign code is a link attribute and nothing else — no text node, no locale in
- * it, and nothing at all without a context, which is what keeps the generated guide corpus and
- * every `renderArticle` call that passes none exactly as they were.
+ * SEO loop A plus the locale handoff. Both are link attributes and nothing else — no text node —
+ * and the campaign half still needs a context, which is what keeps every `renderArticle` call
+ * that passes none reporting as one uncoded page.
  */
-describe('the /new campaign code', () => {
+describe('the /new link', () => {
     const context: ContentRenderContext = {
         chapter: 'trips',
         seed: 7,
@@ -94,24 +94,47 @@ describe('the /new campaign code', () => {
     }
 
     it("codes the hero's CTA with the page slug", () => {
-        expect(hero({ context })).toContain('href="/new?campaign=content-fronting-a-group-trip"')
+        expect(hero({ context })).toContain('href="/new?campaign=content-fronting-a-group-trip&amp;locale=en"')
     })
 
     it('codes the CTA card the same way, from the same slug', () => {
         const html = renderToStaticMarkup(<CTA text="Start a split" title="Open the room" context={context} />)
-        expect(html).toContain('href="/new?campaign=content-fronting-a-group-trip"')
+        expect(html).toContain('href="/new?campaign=content-fronting-a-group-trip&amp;locale=en"')
     })
 
-    it('leaves /new bare with no context — a guide CTA is unchanged', () => {
-        expect(hero()).toContain('href="/new"')
-        expect(renderToStaticMarkup(<CTA text="Start a split" />)).toContain('href="/new"')
+    /** A6: `/new` reads a cookie, so a Spanish page that stated its language only in its own URL
+     *  handed its reader to an English room creator. Every block carries the page's language. */
+    it('carries the page language on every block a localized landing can use', () => {
+        expect(hero({ context, locale: 'es-419' })).toContain(
+            'href="/new?campaign=content-fronting-a-group-trip&amp;locale=es-419"'
+        )
+        expect(renderToStaticMarkup(<CTA text="Crear un split" locale="es-419" context={context} />)).toContain(
+            'locale=es-419'
+        )
+        expect(
+            renderToStaticMarkup(
+                <RelatedPages title="Sigue leyendo">
+                    <RelatedLink href="/new" locale="pt-br" context={context}>
+                        Abra uma sala
+                    </RelatedLink>
+                </RelatedPages>
+            )
+        ).toContain('locale=pt-br')
     })
 
-    /** An authored href that is not the bare `/new` is a deliberate destination; appending a second
-     *  `?` to one that already carries a query would break it. */
-    it('never touches an href that is not the bare /new', () => {
+    it('carries the language with no context — an uncoded page still lands in its own language', () => {
+        expect(hero({ locale: 'pt-br' })).toContain('href="/new?locale=pt-br"')
+        expect(renderToStaticMarkup(<CTA text="Start a split" />)).toContain('href="/new?locale=en"')
+    })
+
+    /** An authored href that is not `/new` is a deliberate destination, and an authored `locale`
+     *  or `campaign` on `/new` wins over the page's own — `ToolPage` writes its own campaign. */
+    it('never touches an href that is not /new, and never overwrites an authored param', () => {
         expect(hero({ context, ctaHref: '/blog' })).toContain('href="/blog"')
-        expect(hero({ context, ctaHref: '/new?locale=es-419' })).toContain('href="/new?locale=es-419"')
+        expect(hero({ context, ctaHref: '/new?locale=es-419' })).toContain('locale=es-419')
+        expect(hero({ ctaHref: '/new?campaign=content-rent-split-calculator', locale: 'es-419' })).toContain(
+            'href="/new?campaign=content-rent-split-calculator&amp;locale=es-419"'
+        )
     })
 
     it('is a link attribute, never a word on the page', () => {
@@ -230,7 +253,7 @@ const HERO_ON_MAIN =
     '<h1 class="mt-5 text-h3 leading-tight text-n-1">When every booking lands on your card</h1>' +
     '<p class="mt-4 text-base font-medium leading-6 text-n-1">The deposit leaves your account in March.</p></div></div>' +
     '<div class="mx-auto w-full max-w-xl px-5 pt-6"><a class="btn flex items-center gap-2 transition-all duration-100 ' +
-    'active:translate-x-[3px] active:shadow-none w-full btn-primary btn-shadow-primary-4 justify-center text-h6" href="/new">Start a split</a>' +
+    'active:translate-x-[3px] active:shadow-none w-full btn-primary btn-shadow-primary-4 justify-center text-h6" href="/new?locale=en">Start a split</a>' +
     '<p class="mt-3 text-center text-sm text-grey-1">Takes ten seconds.</p></div></section>'
 
 /** Drops every `split-*` token and re-joins on single spaces, applied to both sides. */

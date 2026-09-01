@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { useLocale, useTranslations } from 'next-intl'
+import { newRoomHref } from '@/components/marketing/mdx/blocks'
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
 import { INDEXED_LOCALES, asLocale, type Locale } from '@/i18n/locales'
 import { localizedPath } from '@/i18n/paths'
@@ -10,12 +11,14 @@ import { publicFossReleased } from '@/lib/flags'
  *  column stops being a directory and starts being a second copy of /blog. */
 const GUIDES_SHOWN = 4
 
-/** The official host's Terms and Privacy live on peanut.me; Split has no legal pages of its own.
+/** Terms still live on peanut.me; privacy is Split's own page, because peanut.me's policy
+ *  describes a wallet with accounts, passkeys and identity documents, and Split has none of that
+ *  while it does have an advertising tag peanut.me's policy never mentions.
  *  These are notices, not promotion: no logo, no UTM, no referral code, and the counted
  *  Peanut-reference standard exempts them the way it exempts the settlement method's URL. */
 const LEGAL_LINKS = [
     { key: 'termsLink', href: 'https://peanut.me/en/terms' },
-    { key: 'privacyLink', href: 'https://peanut.me/en/privacy' },
+    { key: 'privacyLink', href: '/privacy' },
 ] as const
 
 /**
@@ -58,7 +61,9 @@ export function SiteFooter({ showLocaleSwitcher = true }: { showLocaleSwitcher?:
                         <h2 className="text-h9 uppercase tracking-wide text-white">{t('colSplit')}</h2>
                         <ul className="mt-2 flex flex-col gap-1.5">
                             <li>
-                                <Link href="/new" className={linkClass}>
+                                {/* The page states its language in its URL; `/new` reads a cookie
+                                    it never set, so the link says it (`locale-handoff.ts`). */}
+                                <Link href={newRoomHref('/new', undefined, locale)} className={linkClass}>
                                     {t('createSplit')}
                                 </Link>
                             </li>
@@ -142,14 +147,25 @@ export function SiteFooter({ showLocaleSwitcher = true }: { showLocaleSwitcher?:
                     <ul className="flex items-center gap-4">
                         {LEGAL_LINKS.map((entry) => (
                             <li key={entry.key}>
-                                <a
-                                    href={entry.href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-sm text-white/70 transition-colors hover:text-white"
-                                >
-                                    {t(entry.key)}
-                                </a>
+                                {/* Split's own page is same-origin, so it opens in place; the
+                                    notices that still live on peanut.me open in a new tab. */}
+                                {entry.href.startsWith('/') ? (
+                                    <Link
+                                        href={entry.href}
+                                        className="text-sm text-white/70 transition-colors hover:text-white"
+                                    >
+                                        {t(entry.key)}
+                                    </Link>
+                                ) : (
+                                    <a
+                                        href={entry.href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-sm text-white/70 transition-colors hover:text-white"
+                                    >
+                                        {t(entry.key)}
+                                    </a>
+                                )}
                             </li>
                         ))}
                     </ul>
