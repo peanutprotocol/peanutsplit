@@ -74,4 +74,13 @@ RUN chmod +x ./docker-entrypoint.sh
 
 USER nextjs
 EXPOSE 3000
+
+# Swarm's deploy order here is start-first, but without a healthcheck it routes
+# to the new task the moment the process exists - before Next listens - so every
+# deploy served a few seconds of 502s (observed 2026-09-01, 11:08Z). With this,
+# the task only becomes healthy once /healthcheck (static, no DB, microseconds)
+# answers, and the old task keeps serving until then. A probe that can never
+# pass triggers the service's FailureAction=rollback rather than an outage.
+HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:3000/healthcheck').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 ENTRYPOINT ["./docker-entrypoint.sh"]
