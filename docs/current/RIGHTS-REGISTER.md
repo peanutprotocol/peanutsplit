@@ -90,13 +90,25 @@ not per-commit, so they are generated at release time — see
 3. Deleted the now-unused `MONO_SPLIT_CONTENT_READ_KEY` environment secret and its
    `split-content-publisher-read` environment. Its workflow was already gone, so the key was dead
    weight rather than an exposure.
+4. Inventoried every dependency licence in
+   [`THIRD_PARTY_LICENSES.md`](../../THIRD_PARTY_LICENSES.md) — 915 packages, 15 licence classes
+   across both lockfiles. `pnpm licenses:check` runs in the test script, so it cannot drift from the
+   lockfiles. Nothing there is incompatible with the AGPL grant; the two entries worth knowing about
+   are called out in [`THIRD_PARTY_NOTICES.md`](../../THIRD_PARTY_NOTICES.md).
 
 ### Still open
 
 1. Ask GitHub Support to garbage-collect `refs/pull/26/head`. That ref survives the history rewrite
    and still carries an older copy of `ops/steward`.
-2. Generate the dependency SBOM and attach it to the first public build.
-3. Triage the 79 Dependabot alerts (44 high) that are now publicly visible.
+2. Finish the Dependabot backlog. Upgrading `next` to 16.2.11 cleared 44 of the 79 alerts; the rest
+   are `fastify`, `undici`, `postcss`, `nanoid` and `brace-expansion`, mostly transitive.
+3. Wire `NEXT_PUBLIC_BUILD_COMMIT` to the commit Dokploy actually builds, then set
+   `NEXT_PUBLIC_FOSS_RELEASED=1`. Both are build args. **A hand-set commit goes stale on the next
+   deploy**, and `/source` would then link the wrong tree while calling it the exact deployed
+   commit, which is worse than not making the claim. If Dokploy cannot inject the SHA per build,
+   link the branch and drop the word "exact" instead.
+4. A formal CycloneDX or SPDX SBOM, if a partner or store listing ever asks for one. The notice
+   bundle above is what the licences themselves require; an SBOM is a different artifact.
 
 A history-free repository would protect private history; it does not cure a notice or ownership
 defect, and it is not what this project chose. History stays, which made the secret scan a
