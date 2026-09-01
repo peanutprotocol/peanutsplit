@@ -86,8 +86,14 @@ not per-commit, so they are generated at release time — see
 3. Delete the now-unused `MONO_SPLIT_CONTENT_READ_KEY` environment secret and its
    `split-content-publisher-read` environment. Its workflow is gone, so the key is dead weight rather
    than an exposure.
-4. Generate the dependency SBOM and attach it to the first public build.
-5. Triage the 79 Dependabot alerts (44 high) that became publicly visible on publication.
+4. `ops/steward/` — the box-resident supervisor's incident log — was **purged from every branch's
+   history** before publication (1 Sep 2026, `git filter-repo`). It named Hetzner paths, bot token
+   scopes and production monitoring gaps. Two loose ends: `refs/pull/26/head` is server-side and
+   still carries it, so ask GitHub Support to garbage-collect unreachable objects; and the supervisor
+   on the box must stop committing that directory — its next push would put it back. The path is
+   gitignored, and the history rewrite makes its existing clone diverge, so it fails safe until then.
+5. Generate the dependency SBOM and attach it to the first public build.
+6. Triage the 79 Dependabot alerts (44 high) that became publicly visible on publication.
 
 A history-free repository would protect private history; it does not cure a notice or ownership
 defect, and it is not what this project chose. History stays, which makes step 2 a precondition
