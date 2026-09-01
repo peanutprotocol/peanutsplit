@@ -5,7 +5,7 @@ import { buttonClassName } from '@/components/ui/button-style'
 import { Doodle } from '@/components/ui/Doodle'
 import type { DoodleName } from '@/components/ui/doodles'
 import { Icon } from '@/components/ui/Icon'
-import type { Locale } from '@/i18n/locales'
+import { DEFAULT_LOCALE, type Locale } from '@/i18n/locales'
 import { castPersona } from '@/lib/cast'
 import type { Faq } from '@/lib/content'
 import { publicFossReleased } from '@/lib/flags'
@@ -55,12 +55,18 @@ export interface ContentRenderContext {
 
 /**
  * The room-creation link: campaign-coded when we know which article it is on (SEO loop A), and
- * always carrying the page's own language.
+ * carrying the page's own language when — and only when — the page is on a locale-prefixed URL.
  *
- * The locale is not decoration. `/new` reads the language off a cookie, and an article states its
- * language in its URL and never sets that cookie — so a Spanish landing handed its reader to an
- * English room creator. `locale-handoff.ts` is the receiving end, and the generated guides have
- * pointed at `/new?locale=…` since they shipped; the authored pages are the ones that did not.
+ * The locale is not decoration. `/new` reads the language off a cookie, and a Spanish or
+ * Portuguese page states its language in its URL and never sets that cookie — so a Spanish
+ * landing handed its reader to an English room creator. `locale-handoff.ts` is the receiving end.
+ *
+ * English is the one language that must NOT say it, and this is the same rule
+ * `providers.tsx` applies on the client: `/new?locale=…` is written to `ps-locale` for a year, so
+ * an English page that stated `locale=en` re-languaged a Portuguese reader who never asked for it
+ * — on prefetch, from the site footer, before any click. English pages are unprefixed
+ * (`i18n/paths.ts`), so they already are what the cookie decides; only a prefixed URL carries
+ * language the cookie cannot know.
  *
  * Only a `/new` href is rewritten, and an authored query survives — `ToolPage` writes its own
  * `campaign` — so the result stays one plain link attribute, deterministic per slug and language,
@@ -78,8 +84,9 @@ export function newRoomHref(href: string, slug: string | undefined, locale: Loca
 
     const params = new URLSearchParams(query)
     if (slug && !params.has('campaign')) params.set('campaign', `content-${slug}`)
-    if (!params.has('locale')) params.set('locale', locale)
-    return `${pathname}?${params}`
+    if (locale !== DEFAULT_LOCALE && !params.has('locale')) params.set('locale', locale)
+    const search = params.toString()
+    return search ? `${pathname}?${search}` : pathname
 }
 
 export function Hero({

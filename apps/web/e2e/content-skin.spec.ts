@@ -113,12 +113,28 @@ test.describe('content SEO loops', () => {
         })
     }
 
-    test('the fronting hero CTA points at a campaign-coded, locale-pinned /new', async ({ page }) => {
+    test('the fronting hero CTA points at a campaign-coded /new', async ({ page }) => {
         await page.goto('/blog/fronting-a-group-trip')
-        await expect(
-            page.locator('a[href="/new?campaign=content-fronting-a-group-trip&locale=en"]').first()
-        ).toBeVisible()
+        await expect(page.locator('a[href="/new?campaign=content-fronting-a-group-trip"]').first()).toBeVisible()
     })
+
+    /**
+     * The other half of the A6 handoff, and the regression it shipped with: `/new?locale=…` is
+     * written to `ps-locale` for a year by `proxy.ts`, and the emitter sits in the site footer, so
+     * an English page that stated `locale=en` re-languaged a Portuguese reader on prefetch alone.
+     * English URLs are unprefixed, so they state nothing and the cookie stays the reader's.
+     * Both an article and a hub, because the footer and `ContentHub` are separate call sites.
+     */
+    for (const path of ['/', '/splitwise-alternative', '/split-bill-no-signup', '/blog']) {
+        test(`an English page at ${path} emits a bare /new, with no locale param`, async ({ page }) => {
+            await page.goto(path)
+            const links = page.locator('a[href^="/new"]')
+            await expect(links.first()).toBeVisible()
+            for (const href of await links.evaluateAll((all) => all.map((a) => a.getAttribute('href')))) {
+                expect(href).not.toContain('locale=')
+            }
+        })
+    }
 
     // A6: a paid Spanish click landed in an English room creator, because `/new` reads a cookie
     // the landing never sets. Both localized landings state their language in the link itself.

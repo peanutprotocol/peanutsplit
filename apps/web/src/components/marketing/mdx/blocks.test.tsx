@@ -14,6 +14,7 @@ import {
     RelatedPages,
     Step,
     Steps,
+    newRoomHref,
     type ContentRenderContext,
 } from './blocks'
 import { localizedMdxComponents, mdxComponents } from './components'
@@ -63,7 +64,7 @@ describe('Hero hooks', () => {
     it("puts split-btn on the hero's CTA link", () => {
         const button = tagWith(html, 'split-btn')
         expect(button).toMatch(/^<a/)
-        expect(button).toContain('href="/new?locale=en"')
+        expect(button).toContain('href="/new"')
     })
 
     /**
@@ -94,12 +95,12 @@ describe('the /new link', () => {
     }
 
     it("codes the hero's CTA with the page slug", () => {
-        expect(hero({ context })).toContain('href="/new?campaign=content-fronting-a-group-trip&amp;locale=en"')
+        expect(hero({ context })).toContain('href="/new?campaign=content-fronting-a-group-trip"')
     })
 
     it('codes the CTA card the same way, from the same slug', () => {
         const html = renderToStaticMarkup(<CTA text="Start a split" title="Open the room" context={context} />)
-        expect(html).toContain('href="/new?campaign=content-fronting-a-group-trip&amp;locale=en"')
+        expect(html).toContain('href="/new?campaign=content-fronting-a-group-trip"')
     })
 
     /** A6: `/new` reads a cookie, so a Spanish page that stated its language only in its own URL
@@ -124,7 +125,26 @@ describe('the /new link', () => {
 
     it('carries the language with no context — an uncoded page still lands in its own language', () => {
         expect(hero({ locale: 'pt-br' })).toContain('href="/new?locale=pt-br"')
-        expect(renderToStaticMarkup(<CTA text="Start a split" />)).toContain('href="/new?locale=en"')
+        expect(renderToStaticMarkup(<CTA text="Start a split" locale="pt-br" />)).toContain('href="/new?locale=pt-br"')
+    })
+
+    /**
+     * The regression this exists for: `/new?locale=…` is persisted to `ps-locale` for a year, and
+     * the emitter is bound into the site footer, so a `locale=en` on an unprefixed page re-languaged
+     * a Portuguese reader on prefetch alone. English URLs carry no prefix, so they state nothing and
+     * the cookie stays the reader's. `providers.tsx` refuses the same write on the client.
+     */
+    it('emits a bare /new on an English page — no locale param at all', () => {
+        expect(hero()).toContain('href="/new"')
+        expect(hero()).not.toContain('locale=')
+        expect(renderToStaticMarkup(<CTA text="Start a split" />)).toContain('href="/new"')
+        expect(renderToStaticMarkup(<CTA text="Start a split" />)).not.toContain('locale=')
+        expect(hero({ context })).not.toContain('locale=')
+        expect(newRoomHref('/new', undefined, 'en')).toBe('/new')
+        expect(newRoomHref('/new', 'fronting-a-group-trip', 'en')).toBe('/new?campaign=content-fronting-a-group-trip')
+        expect(newRoomHref('/new', 'fronting-a-group-trip', 'pt-br')).toBe(
+            '/new?campaign=content-fronting-a-group-trip&locale=pt-br'
+        )
     })
 
     /** An authored href that is not `/new` is a deliberate destination, and an authored `locale`
@@ -135,6 +155,8 @@ describe('the /new link', () => {
         expect(hero({ ctaHref: '/new?campaign=content-rent-split-calculator', locale: 'es-419' })).toContain(
             'href="/new?campaign=content-rent-split-calculator&amp;locale=es-419"'
         )
+        // An authored `locale=en` is the author's word, not the emitter's guess.
+        expect(hero({ ctaHref: '/new?locale=en' })).toContain('href="/new?locale=en"')
     })
 
     it('is a link attribute, never a word on the page', () => {
@@ -253,7 +275,7 @@ const HERO_ON_MAIN =
     '<h1 class="mt-5 text-h3 leading-tight text-n-1">When every booking lands on your card</h1>' +
     '<p class="mt-4 text-base font-medium leading-6 text-n-1">The deposit leaves your account in March.</p></div></div>' +
     '<div class="mx-auto w-full max-w-xl px-5 pt-6"><a class="btn flex items-center gap-2 transition-all duration-100 ' +
-    'active:translate-x-[3px] active:shadow-none w-full btn-primary btn-shadow-primary-4 justify-center text-h6" href="/new?locale=en">Start a split</a>' +
+    'active:translate-x-[3px] active:shadow-none w-full btn-primary btn-shadow-primary-4 justify-center text-h6" href="/new">Start a split</a>' +
     '<p class="mt-3 text-center text-sm text-grey-1">Takes ten seconds.</p></div></section>'
 
 /** Drops every `split-*` token and re-joins on single spaces, applied to both sides. */
