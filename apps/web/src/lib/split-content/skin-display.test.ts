@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { SKIN_TOKENS } from './skin'
@@ -36,9 +36,13 @@ describe('the sticker skin display face', () => {
         expect(fontsSource.match(/from 'next\/font\/google'/g)).toHaveLength(1)
     })
 
+    // Knerd was the only thing that ever lived here, and it left with the licence: it is Any-Type
+    // Foundry's and cannot be redistributed in a public repository. Nothing may take its place —
+    // a local font asset is a redistribution question, so it goes through the rights register first.
     it('adds no font asset on disk', () => {
-        const assets = readdirSync(path.resolve(__dirname, '../../assets/fonts')).sort()
-        expect(assets).toEqual(['knerd-filled.ttf', 'knerd-outline.ttf'])
+        const dir = path.resolve(__dirname, '../../assets/fonts')
+        const assets = existsSync(dir) ? readdirSync(dir).sort() : []
+        expect(assets).toEqual([])
     })
 
     it('leaves tailwind’s fontFamily alone — the display face is a painted var, not a utility', () => {

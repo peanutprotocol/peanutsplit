@@ -24,7 +24,7 @@ The outbound license map is implemented in [`REUSE.toml`](../../REUSE.toml), the
 | Munin-derived doodle build code                   | `design/doodles/build.py` names its source         | Same owner under the ruling; AGPL                              | Resolved |
 | Lucide/Feather-derived doodles                    | Generator provenance, ISC/MIT text in tree         | ISC AND MIT; notices in the file header and the bundle         | Resolved |
 | Sniglet fonts                                     | Font name tables carry authors and the OFL URL     | `OFL-1.1-no-RFN`, full text and copyright shipped              | Resolved |
-| Knerd font files                                  | Any-Type Foundry typeface, licensed for use only   | Not sublicensed; must not ship in a public tree, see below     | Open     |
+| Knerd font files                                  | Any-Type Foundry typeface, licensed for use only   | Deleted before publication and gitignored; see below           | Resolved |
 | Peanut logo, mascots, background, illustration    | Byte-identical to peanut-ui blobs, runtime imports | `CC-BY-4.0` grant, trademarks reserved separately              | Resolved |
 | Portraits and generated portrait variants         | Two founder portraits; 13 exploration variants     | Variants deleted; the two founder portraits stay, see below    | Resolved |
 | PWA/OG/favicon/background/badge assets            | Tracked generated assets                           | `CC-BY-4.0` as Squirrel Labs Ltd work                          | Resolved |
@@ -36,32 +36,22 @@ The outbound license map is implemented in [`REUSE.toml`](../../REUSE.toml), the
 
 ## Notes on the entries that are not a plain grant
 
-**Knerd is proprietary and cannot ship in a public tree.** The typeface is **Any-Type Foundry's**
-(confirmed by the project owner, 2026-09-01). Squirrel Labs Ltd bought a license to _use_ it, which
-is not a right to sublicense: recipients of this repository get no rights to the files, and the AGPL
-grant does not reach them. The files are annotated `LicenseRef-Knerd-Commercial`.
-
+**Knerd is out of the tree.** The typeface is **Any-Type Foundry's** (confirmed by the project owner,
+2026-09-01). Squirrel Labs Ltd bought a license to _use_ it, which is not a right to sublicense.
 Knerd is sold through Creative Market, Creative Fabrica, YouWorkForThem and the foundry's own
-Gumroad. Creative Market's font terms — the likeliest purchase route — prohibit redistributing the
-fonts with any website's source code, and prohibit sharing them in any way that lets a third party
-download or extract the file on its own. A public repository does both. Any-Type Foundry publishes no
-separate EULA that was findable, so absent written permission from the foundry, **the Knerd files
-must not be committed to a public repository.**
+Gumroad; Creative Market's font terms prohibit redistributing a font with a website's source code and
+prohibit sharing it so a third party can download or extract the file. A public repository does both,
+and git history is permanent, so the five Knerd files were **deleted before publication** and the
+paths are gitignored.
 
-Three ways out, in the order they cost least:
+The site therefore renders its display face in Roboto until a replacement lands: share cards, recap
+and achievement card art, and the control-variant hero. `apps/web/src/server/og/fonts.ts` falls back
+rather than failing, so nothing breaks. A replacement openly licensed display face was being chosen
+at the time of publication (1 Sep 2026) and is the fix.
 
-1. **Keep Knerd off the public tree and inject it in the official build.** The files stay out of Git;
-   the official Dokploy image supplies them. peanutsplit.com looks unchanged and forks get the
-   fallback face. `apps/web/src/server/og/fonts.ts` now degrades instead of throwing when the display
-   face is absent, so this works today.
-2. **Ask Any-Type Foundry in writing** for permission to redistribute the files inside an AGPL public
-   repository. Small foundries sometimes grant this, occasionally for a fee. Keeps everything as it is.
-3. **Replace the display face** with an openly licensed one. Changes every share card, the recap and
-   achievement card art, and the control-variant hero.
-
-Option 1 does not weaken the AGPL offer: the corresponding source of Peanut Split does not include a
-third-party typeface Squirrel Labs Ltd has no right to convey, and the program builds and runs
-without it.
+To restore the official look before then, drop a licensed copy into `apps/web/public/fonts/` — it is
+gitignored and cannot be committed by accident. Redistributing it still needs written permission from
+Any-Type Foundry.
 
 **Peanut artwork carries an open copyright grant and reserved marks.** Ruled 2026-09-01: the mascots,
 logo, background and hand illustration ship under `CC-BY-4.0`, so a fork may copy and modify them,
@@ -87,11 +77,17 @@ not per-commit, so they are generated at release time — see
 
 ## Before the repository goes public
 
-1. Decide the Knerd route: inject at build time, get the foundry's written permission, or replace
-   the face. Do not publish with the files committed.
-2. Scan every retained ref and the full history for secrets, tokens, and personal data.
-3. Rotate `MONO_SPLIT_CONTENT_READ_KEY` and any other secret the repository's history has seen.
+1. ~~Remove Knerd.~~ Done — the files are deleted and gitignored.
+2. ~~Scan every retained ref and the full history for secrets, tokens, and personal data.~~ Done,
+   1 Sep 2026: 6,319 blobs across all refs. Every match was a `localhost` development or CI database
+   URL. No `.env`, key, certificate or credentials file was ever added, and the
+   `MONO_SPLIT_CONTENT_READ_KEY` value was never committed — it existed only as a GitHub environment
+   secret reference.
+3. Delete the now-unused `MONO_SPLIT_CONTENT_READ_KEY` environment secret and its
+   `split-content-publisher-read` environment. Its workflow is gone, so the key is dead weight rather
+   than an exposure.
 4. Generate the dependency SBOM and attach it to the first public build.
+5. Triage the 79 Dependabot alerts (44 high) that became publicly visible on publication.
 
 A history-free repository would protect private history; it does not cure a notice or ownership
 defect, and it is not what this project chose. History stays, which makes step 2 a precondition

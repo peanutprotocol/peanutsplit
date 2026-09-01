@@ -19,3 +19,9 @@ node_modules
 
 # Generated listing report — published as an artifact, not source
 ops/listings/report.html
+
+# Knerd is Any-Type Foundry's and licensed to Squirrel Labs Ltd for use, not for redistribution, so
+# the files must never be committed to this public repository. Drop a local copy in to build the
+# official look; see LICENSES/LicenseRef-Knerd-Commercial.txt.
+apps/web/public/fonts/knerd-*
+apps/web/src/assets/fonts/

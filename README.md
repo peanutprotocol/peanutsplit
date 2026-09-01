@@ -6,10 +6,7 @@ payment app.
 
 ## Publication status
 
-The code is licensed and the licensing work is done. **The repository is still private**, so it is not
-yet published, and the site's FOSS surface stays closed until it is.
-
-Squirrel Labs Ltd is the granting entity. Code is `AGPL-3.0-or-later` ([`LICENSE`](LICENSE));
+Peanut Split is open source. Squirrel Labs Ltd is the granting entity. Code is `AGPL-3.0-or-later` ([`LICENSE`](LICENSE));
 documentation, content and artwork are `CC-BY-4.0`; third-party material keeps its own terms. The
 per-path map is [`REUSE.toml`](REUSE.toml), the notices are
 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md), and the marks policy is
@@ -17,12 +14,9 @@ per-path map is [`REUSE.toml`](REUSE.toml), the notices are
 [the licensing decision](docs/current/LICENSING.md); evidence in
 [the rights register](docs/current/RIGHTS-REGISTER.md).
 
-Four things must still happen before the repository is made public, all listed at the end of the
-rights register: confirm the Knerd font EULA allows redistributing the files in a public tree, scan
-every ref and the full history for secrets and personal data, rotate the secrets that history has
-seen, and generate the dependency SBOM. Until then, do not change this repository's visibility and do
-not describe the service as open source — `NEXT_PUBLIC_FOSS_RELEASED` keeps `/source` and every FOSS
-claim off the live site.
+The `/source` page and every FOSS claim on the live site stay behind `NEXT_PUBLIC_FOSS_RELEASED`
+until the deployment is built from a public commit — see
+[the rights register](docs/current/RIGHTS-REGISTER.md) for what is done and what is left.
 
 The durable promise is about released software: recipients of an AGPL release keep the license
 permissions to run, inspect, modify, and share that version, subject to the AGPL terms. It does not

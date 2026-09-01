@@ -42,9 +42,11 @@ The Knerd display faces are a commercial typeface by **Any-Type Foundry**. Squir
 purchased license to use them in Peanut Split; that license is **not** passed on to recipients of
 this repository, and the AGPL grant in `LICENSE` does not extend to these files.
 
-Forks must hold their own Knerd license or substitute another display face. See
-[`LICENSES/LicenseRef-Knerd-Commercial.txt`](LICENSES/LicenseRef-Knerd-Commercial.txt) for the
-affected paths and what breaks if you simply delete them.
+**The Knerd files are not in this repository.** They were removed before publication and the paths
+are gitignored, because git history is permanent and a public repository would redistribute them.
+Until a replacement display face lands, share cards and the control-variant hero render in Roboto;
+`apps/web/src/server/og/fonts.ts` falls back rather than failing. See
+[`LICENSES/LicenseRef-Knerd-Commercial.txt`](LICENSES/LicenseRef-Knerd-Commercial.txt).
 
 ## Roboto — Apache License 2.0
 
