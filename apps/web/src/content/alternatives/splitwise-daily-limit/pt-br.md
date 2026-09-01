@@ -1,6 +1,6 @@
 ---
 title: 'Limite grátis do Splitwise: 4 despesas ao dia'
-description: Uma sala não conta quantas despesas você lança. O centro de ajuda do Splitwise diz 4 por dia no plano grátis, não 3. Veja o que o limite faz e como sair dele.
+description: Uma sala não conta quantas despesas você lança. O centro de ajuda do Splitwise diz 4 por dia no plano grátis, não 3. O que o limite faz e que saídas existem.
 date: 2026-07-30
 type: comparison
 headTerm: limite grátis splitwise
@@ -30,8 +30,6 @@ faqs:
       answer: O Splitwise não publica preço no site deles. Os termos dizem que o preço pode variar por data de assinatura, país, impostos e regulação locais e promoções. O seu valor aparece no checkout depois que você entra na conta, e é por isso que dois textos na internet nunca batem.
     - question: Uma sala do Split tem limite diário?
       answer: 'Não. Não há limite de despesas nem plano pago. Nada conta o que você lança, então uma semana de recibos de uma vez funciona igual a um jantar.'
-    - question: Dá para mudar o grupo no meio da viagem?
-      answer: Dá. Exporte o grupo do Splitwise como planilha, importe o CSV em uma sala nova do Split, confira os avisos e os saldos e mande o link novo para o grupo. Deixe o grupo antigo aberto até todo mundo confirmar que os saldos batem.
 ---
 
 {/* Toda afirmação sobre o Splitwise nesta página é uma citação literal de uma página do
@@ -47,8 +45,9 @@ Splitwise, reaberta e conferida contra o texto da página em 2026-07-31:
 
 As citações ficam em inglês de propósito: elas são a prova.
 
-O importador de CSV do Splitwise passou a fazer parte da v1 em 2026-08-02. Mantenha os passos de
-migração abaixo alinhados com o importador, não com a flag v2 das ferramentas com IA.
+A página de importação ainda é só em inglês, então esta versão não aponta para ela nem descreve
+os passos dela, igual às outras páginas traduzidas. A migração por CSV é argumentada na página em
+inglês. Não coloque isso de volta aqui enquanto /pt-br/import não existir.
 
 ENTRAM JUNTAS: o RelatedLink para /pt-br/splitwise-alternative depende da tarefa de engenharia
 que cria essa rota (copy.ts por locale + rota própria e autocanônica). Esta página e essa rota
@@ -58,7 +57,7 @@ sem a rota, o link é um 404. */}
 <Hero
   eyebrow="limite diário splitwise"
   title="O limite grátis é quatro despesas por dia"
-  subtitle="O número vem do próprio centro de ajuda do Splitwise. Aqui está o que o limite faz, as saídas que o próprio Splitwise oferece e como seguir em frente se vocês estão no meio de uma viagem."
+  subtitle="O número vem do próprio centro de ajuda do Splitwise. Aqui está o que o limite faz, as saídas que o próprio Splitwise oferece e em que uma sala é diferente."
   cta="Criar um split"
   ctaHint="Dez segundos. Sem e-mail, sem senha, sem download." />
 
@@ -114,19 +113,6 @@ As páginas deles dizem três coisas sobre anúncios. A página do Pro vende "A 
 
 As linhas do Splitwise vêm de splitwise.com, kb.splitwise.com e feedback.splitwise.com, lidas em 31 de julho de 2026.
 
-## Como mudar o grupo no meio da viagem
-
-Você não precisa reconstruir a viagem inteira. A planilha exportada pelo Splitwise pode virar uma sala nova.
-
-<Steps title="Alguns minutos, depois um link no grupo do WhatsApp">
-<Step title="Exporte o grupo do Splitwise">Abra as configurações do grupo em splitwise.com e escolha "Export as spreadsheet". Esse é o CSV que o importador lê.</Step>
-<Step title="Importe e confira">Abra a página de importação, solte o CSV, escolha a moeda da sala e o seu nome e leia os avisos antes de criar a sala.</Step>
-<Step title="Cole o link novo no grupo">Todo mundo pode lançar na sala a partir do momento em que o link está lá. Sem loja de aplicativos e sem cadastro. Deixe o link fixado: ele é a chave.</Step>
-<Step title="Siga em frente">Daqui para a frente nada é contado. Lance o táxi no momento em que você paga.</Step>
-</Steps>
-
-Tenha clareza sobre o que fica para trás. As fotos dos recibos não passam, e o importador mostra qualquer linha que não consiga ler antes de criar a sala. Deixe o grupo do Splitwise aberto até todo mundo confirmar que os saldos batem.
-
 ## Quando o Splitwise é a ferramenta melhor
 
 A maioria das pessoas nunca vê o limite. Se o seu grupo lança uma ou duas despesas por dia, o limite não é o seu problema, e mudar custa um histórico que vocês já têm.
@@ -142,14 +128,13 @@ O Split não movimenta dinheiro e não consegue conferir se alguém pagou. Ele r
 
 <CTA
   title="Lance a quinta despesa"
-  body="Importe o grupo, confira os saldos e cole o link da sala nova no grupo. Sem limite e sem conta."
+  body="Abra uma sala, cole o link no grupo e continue lançando. Sem limite e sem conta."
   text="Criar um split" />
 
 <FAQ title="Perguntas">
 <FAQItem question="Quantas despesas dá para lançar de graça no Splitwise?">Quatro por dia. O centro de ajuda do Splitwise diz que quem usa o plano grátis lança até 4 despesas por dia, e essa é a única página do Splitwise que dá algum número.</FAQItem>
 <FAQItem question="Quanto custa o Splitwise Pro?">O Splitwise não publica preço no site deles. Os termos dizem que o preço pode variar por data de assinatura, país, impostos e regulação locais e promoções. O seu valor aparece no checkout depois que você entra na conta, e é por isso que dois textos na internet nunca batem.</FAQItem>
 <FAQItem question="Uma sala do Split tem limite diário?">Não. Não há limite de despesas nem plano pago. Nada conta o que você lança, então uma semana de recibos de uma vez funciona igual a um jantar.</FAQItem>
-<FAQItem question="Dá para mudar o grupo no meio da viagem?">Dá. Exporte o grupo do Splitwise como planilha, importe o CSV em uma sala nova do Split, confira os avisos e os saldos e mande o link novo para o grupo. Deixe o grupo antigo aberto até todo mundo confirmar que os saldos batem.</FAQItem>
 </FAQ>
 
 <RelatedPages title="Continue lendo">
