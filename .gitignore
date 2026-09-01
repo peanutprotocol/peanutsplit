@@ -25,8 +25,3 @@ ops/listings/report.html
 # official look; see LICENSES/LicenseRef-Knerd-Commercial.txt.
 apps/web/public/fonts/knerd-*
 apps/web/src/assets/fonts/
-
-# The box-resident supervisor's incident log. It was purged from this repository's history before
-# publication: it carries Hetzner paths, bot token scopes and prod monitoring gaps, none of which
-# belong in a public repo. It lives on the box. Do not commit it back.
-ops/steward/
