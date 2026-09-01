@@ -101,9 +101,10 @@ SPDX-FileCopyrightText = [
 ]
 SPDX-License-Identifier = "OFL-1.1-no-RFN"
 
-# Knerd is a purchased commercial font, not an open one. Squirrel Labs Ltd holds a license to use it;
-# that license is not sublicensed to recipients of this repository, and nothing in the AGPL grant
-# extends to these files. A fork must hold its own Knerd license or substitute another display face.
+# Knerd is Any-Type Foundry's commercial font, not an open one. Squirrel Labs Ltd holds a license to
+# use it; that license is not sublicensed to recipients of this repository, and nothing in the AGPL
+# grant extends to these files. A fork must buy its own Knerd license from Any-Type Foundry or
+# substitute another display face.
 [[annotations]]
 path = [
   "apps/web/public/fonts/knerd-filled.ttf",
@@ -113,7 +114,7 @@ path = [
   "apps/web/src/assets/fonts/knerd-outline.ttf",
 ]
 precedence = "override"
-SPDX-FileCopyrightText = "Knerd (commercial license held by Squirrel Labs Ltd)"
+SPDX-FileCopyrightText = "Any-Type Foundry"
 SPDX-License-Identifier = "LicenseRef-Knerd-Commercial"
 
 # Build output and lockfiles carry no separate grant of their own.

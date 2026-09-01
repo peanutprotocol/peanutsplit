@@ -24,7 +24,7 @@ The outbound license map is implemented in [`REUSE.toml`](../../REUSE.toml), the
 | Munin-derived doodle build code                   | `design/doodles/build.py` names its source         | Same owner under the ruling; AGPL                              | Resolved |
 | Lucide/Feather-derived doodles                    | Generator provenance, ISC/MIT text in tree         | ISC AND MIT; notices in the file header and the bundle         | Resolved |
 | Sniglet fonts                                     | Font name tables carry authors and the OFL URL     | `OFL-1.1-no-RFN`, full text and copyright shipped              | Resolved |
-| Knerd font files                                  | Runtime references; no grant inside the tree       | Commercial license held by Squirrel Labs Ltd, not sublicensed  | Resolved |
+| Knerd font files                                  | Any-Type Foundry typeface, licensed for use only   | Not sublicensed; must not ship in a public tree, see below     | Open     |
 | Peanut logo, mascots, background, illustration    | Byte-identical to peanut-ui blobs, runtime imports | `CC-BY-4.0` grant, trademarks reserved separately              | Resolved |
 | Portraits and generated portrait variants         | Two founder portraits; 13 exploration variants     | Variants deleted; the two founder portraits stay, see below    | Resolved |
 | PWA/OG/favicon/background/badge assets            | Tracked generated assets                           | `CC-BY-4.0` as Squirrel Labs Ltd work                          | Resolved |
@@ -36,13 +36,32 @@ The outbound license map is implemented in [`REUSE.toml`](../../REUSE.toml), the
 
 ## Notes on the entries that are not a plain grant
 
-**Knerd is proprietary and stays proprietary.** Squirrel Labs Ltd bought a license to use these faces
-in Peanut Split. That is a license to use, not a right to sublicense: recipients of this repository
-get no rights to the files, and the AGPL grant does not reach them. The files are annotated
-`LicenseRef-Knerd-Commercial`. Publishing the repository puts them where anyone can download them,
-so **confirm the purchased EULA permits distributing the font files inside a public source tree**
-before the repository goes public. If it does not, remove the five Knerd paths and repoint
-`apps/web/src/server/og/fonts.ts`, which reads `knerd-filled.ttf` unguarded.
+**Knerd is proprietary and cannot ship in a public tree.** The typeface is **Any-Type Foundry's**
+(confirmed by the project owner, 2026-09-01). Squirrel Labs Ltd bought a license to _use_ it, which
+is not a right to sublicense: recipients of this repository get no rights to the files, and the AGPL
+grant does not reach them. The files are annotated `LicenseRef-Knerd-Commercial`.
+
+Knerd is sold through Creative Market, Creative Fabrica, YouWorkForThem and the foundry's own
+Gumroad. Creative Market's font terms — the likeliest purchase route — prohibit redistributing the
+fonts with any website's source code, and prohibit sharing them in any way that lets a third party
+download or extract the file on its own. A public repository does both. Any-Type Foundry publishes no
+separate EULA that was findable, so absent written permission from the foundry, **the Knerd files
+must not be committed to a public repository.**
+
+Three ways out, in the order they cost least:
+
+1. **Keep Knerd off the public tree and inject it in the official build.** The files stay out of Git;
+   the official Dokploy image supplies them. peanutsplit.com looks unchanged and forks get the
+   fallback face. `apps/web/src/server/og/fonts.ts` now degrades instead of throwing when the display
+   face is absent, so this works today.
+2. **Ask Any-Type Foundry in writing** for permission to redistribute the files inside an AGPL public
+   repository. Small foundries sometimes grant this, occasionally for a fee. Keeps everything as it is.
+3. **Replace the display face** with an openly licensed one. Changes every share card, the recap and
+   achievement card art, and the control-variant hero.
+
+Option 1 does not weaken the AGPL offer: the corresponding source of Peanut Split does not include a
+third-party typeface Squirrel Labs Ltd has no right to convey, and the program builds and runs
+without it.
 
 **Peanut artwork carries an open copyright grant and reserved marks.** Ruled 2026-09-01: the mascots,
 logo, background and hand illustration ship under `CC-BY-4.0`, so a fork may copy and modify them,
@@ -68,7 +87,8 @@ not per-commit, so they are generated at release time — see
 
 ## Before the repository goes public
 
-1. Confirm the Knerd EULA permits redistribution inside a public source tree, or remove the files.
+1. Decide the Knerd route: inject at build time, get the foundry's written permission, or replace
+   the face. Do not publish with the files committed.
 2. Scan every retained ref and the full history for secrets, tokens, and personal data.
 3. Rotate `MONO_SPLIT_CONTENT_READ_KEY` and any other secret the repository's history has seen.
 4. Generate the dependency SBOM and attach it to the first public build.

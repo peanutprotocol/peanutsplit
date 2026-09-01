@@ -16,7 +16,10 @@ import path from 'node:path'
 const FONT_DIR = path.join(process.cwd(), 'public', 'fonts')
 const ROBOTO_DIR = path.join(process.cwd(), 'node_modules', '@fontsource', 'roboto', 'files')
 
-/** Display face — the Peanut hero font. Latin-1-ish, no `£`, no `·`, no `~`. */
+/**
+ * Display face — the Peanut hero font. Latin-1-ish, no `£`, no `·`, no `~`.
+ * Proprietary: Knerd is Any-Type Foundry's, licensed to Squirrel Labs Ltd for use only.
+ */
 export const DISPLAY_FONT = 'Knerd'
 /**
  * Body face — Roboto's pinned "all" WOFF. The file is part of the installed
@@ -87,6 +90,16 @@ const load = async (file: string): Promise<ArrayBuffer> => {
     return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer
 }
 
+/** `load`, but a licence-gated face that is simply not in this build is not an error. */
+const loadOptional = async (file: string): Promise<ArrayBuffer | null> => {
+    try {
+        return await load(file)
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException)?.code === 'ENOENT') return null
+        throw error
+    }
+}
+
 const loadRoboto = async (file: string): Promise<ArrayBuffer> => {
     const buf = await readFile(path.join(ROBOTO_DIR, file))
     return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer
@@ -96,15 +109,20 @@ const loadRoboto = async (file: string): Promise<ArrayBuffer> => {
  * Read the three faces off disk. Deliberately not memoised: the SPEC forbids
  * process-lifetime OG caches (a leaked per-locale font/image cache has cost a prior app
  * ~40MB a pod), and a local read of ~215KB is noise next to the rasterizer.
+ *
+ * Knerd is proprietary (Any-Type Foundry) and may be absent from a build that is not
+ * entitled to it — see THIRD_PARTY_NOTICES.md. A missing display face must degrade, not
+ * 500 every share card: Satori has no fallback chain, so the bold body face is registered
+ * under the display family name and the cards render in Roboto instead.
  */
 export async function ogFonts(): Promise<OgFont[]> {
     const [display, body, bodyBold] = await Promise.all([
-        load('knerd-filled.ttf'),
+        loadOptional('knerd-filled.ttf'),
         loadRoboto('roboto-all-400-normal.woff'),
         loadRoboto('roboto-all-900-normal.woff'),
     ])
     return [
-        { name: DISPLAY_FONT, data: display, weight: 400, style: 'normal' },
+        { name: DISPLAY_FONT, data: display ?? bodyBold, weight: 400, style: 'normal' },
         { name: BODY_FONT, data: body, weight: 400, style: 'normal' },
         { name: BODY_FONT, data: bodyBold, weight: 800, style: 'normal' },
     ]

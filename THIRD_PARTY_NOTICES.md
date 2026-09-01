@@ -38,9 +38,9 @@ provided the whole font stays under the OFL and the notice above is preserved.
 
 ## Knerd — proprietary, not redistributed under this repository's license
 
-The Knerd display faces are a purchased commercial font. Squirrel Labs Ltd holds a license to use
-them in Peanut Split; that license is **not** passed on to recipients of this repository, and the
-AGPL grant in `LICENSE` does not extend to these files.
+The Knerd display faces are a commercial typeface by **Any-Type Foundry**. Squirrel Labs Ltd holds a
+purchased license to use them in Peanut Split; that license is **not** passed on to recipients of
+this repository, and the AGPL grant in `LICENSE` does not extend to these files.
 
 Forks must hold their own Knerd license or substitute another display face. See
 [`LICENSES/LicenseRef-Knerd-Commercial.txt`](LICENSES/LicenseRef-Knerd-Commercial.txt) for the

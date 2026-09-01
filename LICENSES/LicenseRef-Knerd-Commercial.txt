@@ -1,20 +1,22 @@
 Knerd — commercial font license
 ===============================
 
-The Knerd font files in this repository are proprietary. They are NOT covered by the AGPL grant in
-LICENSE, and no rights to them are passed to recipients of this repository.
+Knerd is a commercial typeface by Any-Type Foundry. The Knerd font files in this repository are
+proprietary. They are NOT covered by the AGPL grant in LICENSE, and no rights to them are passed to
+recipients of this repository.
 
 Squirrel Labs Ltd holds a purchased license to use Knerd in Peanut Split and on the official
-peanutsplit.com service. That license is between Squirrel Labs Ltd and the font's rightsholder. It is
-not sublicensed here, and it does not authorise anyone else to use, embed, modify, or redistribute
-these files.
+peanutsplit.com service. That license is between Squirrel Labs Ltd and Any-Type Foundry. It is not
+sublicensed here, and it does not authorise anyone else to use, embed, modify, or redistribute these
+files.
 
-If you fork Peanut Split, you must either hold your own Knerd license or replace the display face.
+If you fork Peanut Split, buy your own Knerd license from Any-Type Foundry or replace the display
+face.
 Substituting is not purely a delete: the CSS side degrades on its own, because the `knerd-outline`
 and `knerd-filled` Tailwind families fall through to the sans stack when the @font-face in
 apps/web/src/styles/globals.css finds no file. Open Graph image rendering does not degrade —
-apps/web/src/server/og/fonts.ts reads `knerd-filled.ttf` unguarded, so those routes fail until you
-point that loader at a face you are licensed to use.
+apps/web/src/server/og/fonts.ts falls back to the bold body face, so share cards render in Roboto
+rather than failing — correct, but not the Split look.
 
 Affected files:
 
