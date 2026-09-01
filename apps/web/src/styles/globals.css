@@ -826,6 +826,26 @@
     animation: ps-drawer-in 250ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* The route-level loading fallback holds back for 400ms, then fades in. A fast
+   navigation never shows it at all: flashing a full interstitial for a
+   sub-400ms load reads as a glitch, not as feedback (user report, 2026-08-23).
+   Slow loads still get the screen, and its copy is in the DOM — and the
+   accessibility tree — from the first frame; only the paint is deferred.
+   MUST ride with `data-motion-surface` on the same element: both
+   reduced-motion policies above kill animations wholesale, and without that
+   opt-in's `opacity: 1 !important` the fallback would be parked invisible
+   forever. */
+@keyframes ps-route-reveal {
+    to {
+        opacity: 1;
+    }
+}
+
+.animate-route-reveal {
+    opacity: 0;
+    animation: ps-route-reveal 200ms ease-out 400ms forwards;
+}
+
 /* One CSS motion policy rather than a selector list that every new component
    has to remember to join. `.reduce-animations` is the in-app taste toggle;
    the media query is the OS accessibility declaration and always wins. State
