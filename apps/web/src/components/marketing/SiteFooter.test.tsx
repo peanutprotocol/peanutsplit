@@ -29,7 +29,8 @@ describe('SiteFooter source receipt', () => {
         const html = renderToStaticMarkup(<SiteFooter showLocaleSwitcher={false} />)
 
         expect(html.match(/href="\/source"/g)).toHaveLength(1)
-        expect(html.match(/peanut\.me/g)).toHaveLength(2)
+        // One, not two: privacy is Split's own page now, so Terms is the last peanut.me link here.
+        expect(html.match(/peanut\.me/g)).toHaveLength(1)
         expect(html).not.toContain('utm_')
     })
 
@@ -38,7 +39,7 @@ describe('SiteFooter source receipt', () => {
         const html = renderToStaticMarkup(<SiteFooter showLocaleSwitcher={false} />)
 
         expect(html).toContain('href="https://peanut.me/en/terms"')
-        expect(html).toContain('href="https://peanut.me/en/privacy"')
+        expect(html).toContain('href="/privacy"')
         expect(html).not.toContain('utm_')
         expect(html).not.toContain('peanut-logo')
     })
