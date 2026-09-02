@@ -18,6 +18,11 @@ docker compose up --build
 ```
 
 The application listens on port 3000 and the development database is published on host port 5433.
+Serve the app at exactly the origin it was built for: the image bakes `NEXT_PUBLIC_BASE_URL`
+(default `http://localhost:3000`) as its canonical origin and 308-redirects every request —
+including the API — that arrives under any other host or port. Publishing the container on a
+different port, or fronting it with another hostname, therefore requires passing the matching
+`NEXT_PUBLIC_BASE_URL` build argument and rebuilding, as described under Configuration classes.
 Do not expose that database port on a public host. The supplied Compose path explicitly starts with
 `SEO_INDEXABLE=false` and `SPLIT_FX_MODE=static`: it neither advertises the official site's released
 guides nor calls an FX service by default.
