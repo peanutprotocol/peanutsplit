@@ -12,11 +12,12 @@ every imported file or third-party asset; that scope is recorded separately in t
 
 ## Why source is being opened
 
-The intended public release exists for user freedom, inspectability, and self-hosting—not to build a
-volunteer contributor funnel. Bug reports and private security reports are useful. External feature
-pull requests are not solicited, and submitting one creates no response, review, or merge promise.
+The public release exists for user freedom, inspectability, and self-hosting, not to build a
+volunteer contributor funnel. Bug reports and private security reports are welcome. Feature pull
+requests should start as an issue; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Code is licensed `AGPL-3.0-or-later` by Squirrel Labs Ltd; the repository itself is not public yet.
+Code is licensed `AGPL-3.0-or-later` by Squirrel Labs Ltd. The repository has been public since
+1 September 2026.
 Peanut references on the official service are not a license condition. Downstream operators owe
 Peanut and Squirrel Labs no promotion; ordinary license notices and separate trademark rules still
 apply.

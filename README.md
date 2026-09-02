@@ -1,8 +1,18 @@
 # Peanut Split
 
-Peanut Split is an accountless expense splitter. A room is its link: send it to a group, choose a
-name, add expenses in any supported currency, and record settlements made with cash, a bank, or any
-payment app.
+<p align="center"><img src="apps/web/public/og-default.png" width="720" alt="Peanut Split: share one link, add what you paid, and Split turns it into a short payment plan"></p>
+
+An expense splitter where the room is a link. Make a room, drop the link in the group chat, everyone
+picks a name and adds what they paid. No accounts, no app, no email for anyone. Any currency, uneven
+splits, works offline, installs as a PWA.
+
+- **Try it:** <https://peanutsplit.com>. No signup; a room takes ten seconds.
+- **Self-host:** `cd apps/web && cp .env.example .env && docker compose up --build`, then open
+  <http://localhost:3000>. Limits and production notes in [SELF-HOSTING.md](docs/current/SELF-HOSTING.md).
+- **License:** code `AGPL-3.0-or-later`, docs and artwork `CC-BY-4.0`.
+- **Who pays for it:** [Squirrel Labs](https://squirrellabs.dev/), the company behind
+  [Peanut](https://peanut.me). "Settle with Peanut" is one option next to cash and bank transfer,
+  never preselected. The written limits on that are in [STEWARDSHIP.md](STEWARDSHIP.md).
 
 ## Publication status
 
@@ -35,9 +45,9 @@ force a click, recur as nags, behave like spam, or make non-Peanut settlement wo
 operator will not owe Peanut promotion. The precise surface budget remains unpublished until final
 maintainer approval; see [STEWARDSHIP.md](STEWARDSHIP.md).
 
-This is a maintainer-led project, not a contributor-recruitment program. Bug and private security
-reports are useful; unsolicited feature pull requests are not solicited and have no response,
-review, or merge promise. See [CONTRIBUTING.md](CONTRIBUTING.md).
+The project is maintainer-led: Squirrel Labs sets the roadmap and decides what lands. Bug reports
+and private security reports are welcome. Open an issue before starting a feature pull request so
+nobody does work that cannot land. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Current implementation
 

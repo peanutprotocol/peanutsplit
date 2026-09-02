@@ -1,7 +1,8 @@
-# Interacting with the Peanut Split project
+# Contributing
 
-Peanut Split is maintainer-led by Squirrel Labs. This repository is not organized to recruit or
-onboard external contributors.
+Peanut Split is maintainer-led: Squirrel Labs sets the roadmap and decides what lands. Bug reports
+and security reports are welcome. For a feature, open an issue first so nobody does work that
+cannot land.
 
 ## Useful reports
 
@@ -10,7 +11,7 @@ onboard external contributors.
 - Vulnerabilities and leaked capabilities must be reported privately through [SECURITY.md](SECURITY.md),
   never in a public issue.
 
-Issues have no response or resolution SLA. Please remove room links, expense/member IDs, member
+We answer issues as time allows; there is no response SLA. Please remove room links, expense/member IDs, member
 tokens, names, amounts, receipts, screenshots containing personal data, and other live secrets from
 every public report. Do not attach a real room CSV, portable JSON, or history export. The exporter
 strips known live capabilities and credential-shaped fields, but the result still contains the
@@ -18,13 +19,13 @@ group's financial and personal data. Use a synthetic reproduction.
 
 ## Pull requests
 
-Unsolicited feature pull requests are not solicited and may be closed without review. If a maintainer
-asks for a narrow fix, keep it scoped and include the relevant tests and documentation.
+Open an issue before a feature pull request. A feature PR that was not discussed first may be
+closed without review, because the roadmap is set upstream. If a maintainer asks for a narrow fix,
+keep it scoped and include the relevant tests and documentation.
 
-Before any external patch can be accepted after publication, the project will define approved
-inbound terms—normally inbound under the same license as the outbound project—and confirm that the
-submitter has authority to provide it. Until that publication gate is complete, do not infer an
-inbound license from this draft policy.
+Before an external patch can be merged, the project will publish its inbound terms (expected:
+the same license as the outbound project) and confirm that the submitter has the right to provide
+it. Until then a patch can be discussed in an issue but not merged.
 
 Submitting an issue or patch does not create a promise of support, review, merge, attribution beyond
 the applicable license/history, employment, payment, or roadmap influence.

@@ -3,9 +3,10 @@
 ## Support status
 
 The repository contains a reproducible development/reference topology for one Next.js application
-replica and PostgreSQL. It is **not yet a turnkey production distribution**. The publication gate
-still requires a clean-machine build/run smoke test, neutral assets, immutable releases, and a
-complete notice bundle. A custom public origin is supported as described below.
+replica and PostgreSQL. It is **not yet a turnkey production distribution**. The Baseline below
+passed a clean-machine build/run smoke test on 2 September 2026 (fresh clone, image build,
+migrations, room creation). Still open: neutral assets, immutable releases, and a complete notice
+bundle. A custom public origin is supported as described below.
 
 ## Baseline
 
