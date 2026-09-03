@@ -82,18 +82,13 @@ export function normalizeMarketingCopy(text) {
 }
 
 /**
- * These are posture failures, not a word-choice score. The official host has no paid tier today,
- * but FOSS cannot guarantee that a hosted service will run or retain one price forever. Likewise,
- * Peanut may be referenced by the official service, but Squirrel Labs is the maintainer and funder.
+ * These are posture failures, not a word-choice score. The official host is free and stays free
+ * (a price promise, not an uptime promise), so lifetime-price wording is allowed. Peanut may be
+ * referenced by the official service, but Squirrel Labs is the maintainer and funder.
  * Rejecting the old claims at source keeps every authored locale from regressing while the generated
  * SEO pipeline is cleared separately for public release.
  */
 const prohibitedClaims = [
-    {
-        label: 'makes an unverifiable lifetime promise about the official host',
-        pattern:
-            /free[\s-]forever|forever free|always (?:be )?free|free for life|gratis para siempre|siempre gratis|siempre (?:será|es) gratis|grátis para sempre|sempre grátis|sempre (?:será|é) grátis|für immer kostenlos|kostenlos für immer|immer kostenlos|gratuit(?:e)? pour toujours|toujours gratuit(?:e)?|gratuit(?:e)? à vie|za darmo na zawsze|darmow\w* na zawsze|zawsze (?:będzie|jest) darmow\w*|безкоштовно назавжди|назавжди безкоштовн\w*|завжди (?:буде )?безкоштовн\w*/giu,
-    },
     {
         label: 'uses the misleading product name “Split by Peanut”',
         pattern: /Split by Peanut/giu,

@@ -10,7 +10,8 @@
   condition.
 - The project is not optimizing for external contributors.
 - FOSS may broaden the existing “free” acquisition surface, but must not be used as a synonym for
-  hosted zero-price.
+  hosted zero-price. (Hosted zero-price is itself a standing promise since 3 Sep 2026: free forever,
+  shut down rather than charge.)
 
 ## Page ruling
 

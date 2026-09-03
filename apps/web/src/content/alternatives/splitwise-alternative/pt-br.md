@@ -63,8 +63,9 @@ afirmação sem ter aberto a página, e não acrescente uma que estraga quando e
 
 ## Grátis e de código aberto são promessas diferentes
 
-O serviço oficial é de uso grátis e não tem plano pago. Isso descreve o preço do peanutsplit.com
-hoje; não promete que um servidor vai existir nem continuar custando zero para sempre.
+O serviço oficial é de uso grátis e não tem plano pago, e isso não vai mudar: se um dia não
+pudermos bancar o peanutsplit.com, a gente desliga em vez de começar a cobrar. Grátis para sempre é
+uma promessa sobre o preço, não uma promessa de que um servidor vai existir para sempre.
 
 O software publicado usa a licença AGPL-3.0-or-later. Código aberto descreve o que você pode fazer
 com essa versão: inspecionar, executar, modificar, compartilhar e hospedar por conta própria sob a

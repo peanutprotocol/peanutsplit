@@ -66,8 +66,9 @@ price. */}
 
 ## Free and open source are separate promises
 
-The official service is free to use and has no paid tier. That is a price statement about
-peanutsplit.com today, not a promise that one host will exist or stay zero-price forever.
+The official service is free to use and has no paid tier, and that will not change: if we ever
+cannot afford to run peanutsplit.com, we switch it off rather than start charging. Free forever is a
+price promise, not a promise that one host will exist forever.
 
 The released software is licensed under AGPL-3.0-or-later. Open source describes what you may do
 with that release: inspect it, run it, modify it, share it and host it yourself under the licence.

@@ -141,19 +141,21 @@ claiming the link cannot be shared onward or guessed — we do not make claims a
 
 ## hosted-price
 
-**claim:** The official Split service is free to use and has no paid tier. That is a statement about
-the service today, not a promise that the host will remain online or zero-price for its entire
-lifetime.
+**claim:** The official Split service is free, and will stay free. There is no paid tier and there
+will never be one: if the hosted service ever cannot be afforded, it shuts down rather than starts
+charging.
 
-**safe:** "the official service is free to use" · "there is no paid tier" · "free to use; no paid
-tier"
+**safe:** "free forever" · "always free" · "free to use" · "there is no paid tier" · "free, and will
+stay free" · "if we ever can't afford to run it, we switch it off; we don't start charging"
 
-**unsafe:** "free forever" · "always free" · "lifetime free" · "free tier" · "free plan" · any
-host-lifetime or future-pricing promise · using "open source" or "FOSS" as a synonym for zero-price
+**unsafe:** "free tier" · "free plan" · "freemium" (all imply a paid tier exists) · using "open
+source" or "FOSS" as a synonym for zero-price · any promise that the host will exist forever (the
+promise is about price, never about uptime or lifetime)
 
-**source:** The official product/catalog configuration exposes no paid Split plan. Wording is
-mechanically gated by `apps/web/scripts/marketing-copy-audit.mjs`, which rejects lifetime host
-promises in every shipped locale.
+**source:** Konrad's ruling, 3 September 2026: Split is forever free; if the hosted service cannot be
+afforded it is shut down, not monetised. The official product/catalog configuration exposes no paid
+Split plan. `apps/web/scripts/marketing-copy-audit.mjs` no longer rejects lifetime price wording;
+it still rejects paid-tier vocabulary and future-release licence promises.
 
 ---
 

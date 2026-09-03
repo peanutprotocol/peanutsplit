@@ -120,7 +120,8 @@ verbatim**; the rest are Split terms with no mono equivalent.
 | settle up (verb)                        | **acertar**                                | **passar a régua** (banned, stylebook §9.3), quitar (formal)         |
 | settled                                 | acertado / acertadas                       | liquidado                                                            |
 | who owes who                            | **quem deve a quem**                       | quem deve o quê                                                      |
-| free to use, with no paid tier          | **uso grátis, sem plano pago**             | grátis para sempre, versão grátis                                    |
+| free to use, with no paid tier          | **uso grátis, sem plano pago**             | versão grátis, plano grátis (implicam um plano pago)                 |
+| free forever                            | **grátis para sempre**                     | grátis por enquanto                                                  |
 | automatic conversion for 156 currencies | conversão automática para 156 moedas       | doze moedas, multimoeda, qualquer moeda, 150+ (stylebook §6.7)       |
 | converted at the day's rate             | pela taxa do dia                           | taxa ao vivo / em tempo real (stylebook §6.6)                        |
 | the split (the operation)               | **o rateio**                               | a divisão (vague), o acerto                                          |

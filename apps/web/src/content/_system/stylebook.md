@@ -587,7 +587,7 @@ the reader's behalf is the trust-builder for the migration audience.
 | Group size    | "up to twenty people"                                                                                                                                                                                      | unlimited, any size group                                                      |
 | Netting       | "two or three transfers instead of twenty"; "a short payment plan"                                                                                                                                         | fewest/minimum transfers, optimal                                              |
 | Offline       | "expenses typed with no signal wait on your phone and go when it comes back"; "recording a settle-up waits for a connection on purpose — a payment written down twice is worse than one written down late" | "works offline" as a category claim; anything implying settle-up works offline |
-| Hosted price  | "the official service is free to use and has no paid tier"                                                                                                                                                 | "free forever"; any promise about host lifetime or future pricing              |
+| Hosted price  | "free forever"; "the official service is free to use and has no paid tier"; "if we ever can't afford to run it, we switch it off; we don't start charging"                                                | "free tier", "free plan", freemium; any promise that the host will exist forever |
 | Stewardship   | "Squirrel Labs maintains Split and pays every cost, including the work hours"; "Peanut stays an option, never a requirement"                                                                               | Peanut built/makes/funds Split; any forced-reference or licence-rider claim    |
 | Public source | after the release gate only: "AGPL-3.0-or-later", "open source", "FOSS", "self-hostable"                                                                                                                   | using software freedom as a synonym for hosted price; claiming future releases |
 | Settling      | "two people settle however they settle, and one of them taps to record it"; "Split does not check with a bank and cannot"                                                                                  | "we settle it for you", "verified payments", "instant settlement"              |
@@ -783,7 +783,7 @@ and invent no others.
 | room · link · all square                               | group · invite / invite code · balanced                 |
 | the link is the key / the link is the room             | your access token                                       |
 | alter ego, cast, recast                                | avatar, profile                                         |
-| free to use, with no paid tier                         | free forever · free tier · freemium                     |
+| free forever · free to use, with no paid tier          | free tier · freemium                                    |
 | reconciles to the cent                                 | 100% accurate                                           |
 | Start a split                                          | Get started · Try it free · Sign up                     |
 | a website                                              | the app (Split is not an app and says so)               |

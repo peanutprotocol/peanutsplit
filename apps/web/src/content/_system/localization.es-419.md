@@ -127,7 +127,8 @@ verbatim**; the rest are Split terms with no mono equivalent.
 | settle up (verb)                        | **saldar**                                   | liquidar (accounting), pasar la cuenta, arreglar cuentas                        |
 | settled                                 | saldado / saldadas                           | cerrado, finiquitado                                                            |
 | who owes who                            | **quién le debe a quién**                    | quién debe qué                                                                  |
-| free to use, with no paid tier          | **de uso gratuito, sin plan pago**           | gratis para siempre, versión gratis                                             |
+| free to use, with no paid tier          | **de uso gratuito, sin plan pago**           | versión gratis, plan gratis (implican un plan pago)                             |
+| free forever                            | **gratis para siempre**                      | gratis por ahora                                                                |
 | automatic conversion for 156 currencies | conversión automática para 156 monedas       | doce monedas, multimoneda, cualquier moneda, 150+ (stylebook §6.7)              |
 | converted at the day's rate             | al tipo de cambio del día                    | tipo de cambio en vivo / en tiempo real (stylebook §6.6)                        |
 | flatmate                                | roomie / compañero de departamento           | **compañero de piso** (Spain), piso                                             |
