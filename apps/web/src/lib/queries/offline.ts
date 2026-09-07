@@ -10,8 +10,11 @@ import {
     requestDrain,
     setQueuePerformer,
     useQueueNotices,
+    type QueuedWrite,
 } from '../offline-queue'
 import { api } from '../api'
+import { readIdentity } from '../identity'
+import { rememberExpenseCurrency } from '../expense-currencies'
 import { roomKey, seedRoomState } from './core'
 
 /**
@@ -36,6 +39,15 @@ export function removedQueueSlugs(event: Pick<StorageEvent, 'key' | 'oldValue' |
     return [...new Set(removed.map((item) => item.slug))]
 }
 
+/** A queued draft becomes a recent currency only once its server write succeeds. */
+export async function replayQueuedExpense(item: QueuedWrite) {
+    const identity = readIdentity(item.slug)
+    const memberId = identity && (identity.token ?? null) === item.token ? identity.memberId : undefined
+    const state = await api.replayWrite(item)
+    rememberExpenseCurrency(item.slug, memberId, item.body.currency)
+    return state
+}
+
 /** Configure and drain the device-local offline write queue. */
 export function useOfflineQueueRunner(): void {
     const queryClient = useQueryClient()
@@ -43,7 +55,7 @@ export function useOfflineQueueRunner(): void {
 
     useEffect(() => {
         setQueuePerformer(async (item) => {
-            const state = await api.replayWrite(item)
+            const state = await replayQueuedExpense(item)
             seedRoomState(queryClient, item.slug, state)
         })
 

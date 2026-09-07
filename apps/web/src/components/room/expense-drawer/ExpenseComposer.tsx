@@ -175,7 +175,7 @@ export function ExpenseComposer({
                             value={currency.value}
                             onChange={currency.onChange}
                             currencies={currency.choices}
-                            suggested={currency.suggested}
+                            shortlist={currency.suggested}
                             requireRateTo={currency.roomCurrency}
                             allowCustomWithManualRate={currency.allowCustomWithManualRate}
                             variant="sm"

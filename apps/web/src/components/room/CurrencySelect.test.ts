@@ -8,6 +8,7 @@ import {
     matchCurrencies,
     offerableCurrencies,
     orderCurrencies,
+    shortlistCurrencies,
 } from './CurrencySelect'
 
 describe('customOptionAccessibleName', () => {
@@ -286,5 +287,31 @@ describe('currencyMenuPlacement', () => {
         const custom = currencyMenuPlacement(trigger(120, 168), { width: 390, height: 844 }, 1, true)
 
         expect(custom.maxHeight).toBe(CHROME + CUSTOM_ROW)
+    })
+})
+
+describe('expense shortlist', () => {
+    it('keeps saved recency order even while another draft currency is selected', () => {
+        expect(
+            codesOf(
+                shortlistCurrencies(CATALOG, offerableCurrencies(CATALOG, 'THB', 'EUR'), ['USD', 'GBP', 'EUR'], true)
+            )
+        ).toEqual(['USD', 'GBP', 'EUR'])
+    })
+
+    it('keeps a recently saved custom currency available with an explicit manual rate', () => {
+        expect(
+            codesOf(
+                shortlistCurrencies(CATALOG, offerableCurrencies(CATALOG, 'EUR', 'EUR'), ['BEER', 'USD', 'EUR'], true)
+            )
+        ).toEqual(['BEER', 'USD', 'EUR'])
+    })
+
+    it('preserves the only convertible option in a custom room', () => {
+        expect(
+            codesOf(
+                shortlistCurrencies(CATALOG, offerableCurrencies(CATALOG, 'BEER', 'BEER'), ['BEER', 'USD', 'EUR'], true)
+            )
+        ).toEqual(['BEER'])
     })
 })

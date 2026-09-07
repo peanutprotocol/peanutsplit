@@ -19,6 +19,8 @@ interface CurrencySelectProps {
      *  own: each caller knows something this component cannot — the room's history, the parsed
      *  file, the device's timezone. */
     suggested?: readonly string[]
+    /** Explicit expense shortcuts; selecting a draft currency does not reorder them. */
+    shortlist?: readonly string[]
     /** May the reader invent a ticker the catalog does not have? False where the chosen currency
      *  has to be able to RECEIVE others — the Splitwise mapper picks what the file converts into. */
     allowCustom?: boolean
@@ -185,6 +187,22 @@ export function offerableCurrencies(
     return [...missing.map((code) => currencyInfo(code, currencies)), ...allowed]
 }
 
+/** Preserve the expense shortlist while keeping unsupported automatic FX pairs unavailable. */
+export function shortlistCurrencies(
+    currencies: readonly CurrencyInfo[],
+    selectable: readonly CurrencyInfo[],
+    shortlist: readonly string[],
+    allowCustomWithManualRate: boolean
+): CurrencyInfo[] {
+    return shortlist
+        .filter(
+            (code) =>
+                selectable.some((info) => info.code === code) ||
+                (allowCustomWithManualRate && !currencies.some((info) => info.code === code))
+        )
+        .map((code) => currencyInfo(code, currencies))
+}
+
 /** The base order every ranking falls back to: the five, then everything else A→Z. */
 export function orderCurrencies(currencies: readonly CurrencyInfo[], common: readonly CurrencyInfo[]): CurrencyInfo[] {
     const shown = new Set(common.map((info) => info.code))
@@ -321,6 +339,7 @@ export function CurrencySelect({
     onChange,
     currencies,
     suggested,
+    shortlist,
     allowCustom = true,
     requireRateTo,
     allowCustomWithManualRate = false,
@@ -355,7 +374,13 @@ export function CurrencySelect({
     )
 
     const selectable = useMemo(() => offerableCurrencies(named, value, requireRateTo), [named, value, requireRateTo])
-    const common = useMemo(() => commonCurrencies(selectable, value, suggested), [selectable, value, suggested])
+    const common = useMemo(
+        () =>
+            shortlist
+                ? shortlistCurrencies(named, selectable, shortlist, allowCustomWithManualRate)
+                : commonCurrencies(selectable, value, suggested),
+        [named, selectable, value, suggested, shortlist, allowCustomWithManualRate]
+    )
     const ordered = useMemo(() => orderCurrencies(selectable, common), [selectable, common])
 
     const trimmedQuery = query.trim()

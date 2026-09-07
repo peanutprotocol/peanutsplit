@@ -174,9 +174,7 @@ test('a real-currency room can price an invented expense with a frozen manual ra
     await expectBalance(page, 'Bea', '-150')
 
     await page.getByTestId('open-add-expense').click()
-    await page.getByRole('button', { name: /Expense currency, EUR/ }).click()
-    await page.getByTestId('expense-currency-search').fill('BEER')
-    await page.getByTestId('currency-custom').click()
+    await expect(page.getByRole('button', { name: /Expense currency, BEER/ })).toBeVisible()
     await expect(rate).toHaveValue('')
     expect(customRateProbes).toEqual([])
 
@@ -189,4 +187,103 @@ test('a real-currency room can price an invented expense with a frozen manual ra
     await page.getByTestId('expense-currency-search').fill('swiss')
     await expect(page.getByRole('option', { name: 'CHF', exact: true })).toBeVisible()
     expect(await clippedRows(page)).toEqual([])
+})
+
+test('expense currency remembers only this device’s saved choices in this room', async ({ page, newDevice }) => {
+    const createRoom = async (currency: string) => {
+        await page.goto('/new')
+        await page.getByTestId('room-name').fill('Currency preferences QA')
+        await page.getByTestId('room-currency').selectOption(currency)
+        await page.getByTestId('creator-name').fill('Ana')
+        await page.getByTestId('create-room').click()
+        await expect(page.getByTestId('roster-checkpoint')).toBeVisible({ timeout: 15_000 })
+        await page.getByTestId('checkpoint-name').fill('Bea')
+        await page.getByTestId('checkpoint-add').click()
+        await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
+        return enterCreatedRoom(page)
+    }
+    const expectMenu = async (device: Page, selected: string, codes: string[]) => {
+        await expect(device.getByTestId('expense-currency')).toHaveValue(selected)
+        await device.getByRole('button', { name: `Expense currency, ${selected}`, exact: true }).click()
+        await expect(device.getByRole('option')).toHaveCount(codes.length)
+        for (const [index, code] of codes.entries()) {
+            await expect(device.getByRole('option').nth(index)).toHaveAccessibleName(code)
+        }
+        await device.keyboard.press('Escape')
+    }
+    const choose = async (code: string) => {
+        await page.getByRole('button', { name: /Expense currency,/ }).click()
+        await page.getByTestId('expense-currency-search').fill(code)
+        await page.getByRole('option', { name: code, exact: true }).click()
+    }
+    const save = async (code: string, description: string, first = false) => {
+        await choose(code)
+        await page.getByTestId('expense-amount').fill('10')
+        await page.getByTestId('expense-description').fill(description)
+        await page.getByTestId('save-expense').click()
+        if (first) {
+            await expect(page.getByTestId('skip-post-aha-share')).toBeVisible({ timeout: 15_000 })
+            await page.getByTestId('skip-post-aha-share').click()
+        }
+        await expect(page.getByTestId('close-expense')).toHaveCount(0)
+        await expect(page.locator(`[data-testid="expense-row"][data-description="${description}"]`)).toBeVisible()
+    }
+
+    const roomUrl = await createRoom('GBP')
+    await page.getByTestId('open-add-expense').click()
+    await expectMenu(page, 'GBP', ['GBP', 'USD', 'EUR'])
+    await choose('EUR')
+    await page.getByTestId('close-expense').click()
+    await page.getByTestId('open-add-expense').click()
+    await expectMenu(page, 'GBP', ['GBP', 'USD', 'EUR'])
+    await save('EUR', 'Euro expense', true)
+    await page.getByTestId('open-add-expense').click()
+    await expectMenu(page, 'EUR', ['EUR', 'GBP', 'USD'])
+    await save('USD', 'Dollar expense')
+    await page.reload()
+    await page.getByTestId('open-add-expense').click()
+    await expectMenu(page, 'USD', ['USD', 'EUR', 'GBP'])
+
+    // A rejected server write must not turn a draft choice into a preference.
+    await choose('CHF')
+    await page.getByTestId('expense-amount').fill('10')
+    await page.getByTestId('expense-description').fill('Rejected expense')
+    await page.route('**/api/rooms/*/expenses', (route) =>
+        route.request().method() === 'POST'
+            ? route.fulfill({
+                  status: 400,
+                  contentType: 'application/json',
+                  body: JSON.stringify({ error: 'QA rejected save' }),
+              })
+            : route.continue()
+    )
+    const rejected = page.waitForResponse(
+        (response) => response.status() === 400 && response.url().endsWith('/expenses')
+    )
+    await page.getByTestId('save-expense').click()
+    await rejected
+    await page.getByTestId('close-expense').click()
+    await page.unroute('**/api/rooms/*/expenses')
+    await page.getByTestId('open-add-expense').click()
+    await expectMenu(page, 'USD', ['USD', 'EUR', 'GBP'])
+    await page.getByTestId('close-expense').click()
+
+    // Editing has its own saved currency even when the next new expense defaults to USD.
+    await page.locator('[data-testid="expense-row"][data-description="Euro expense"]').click()
+    await expect(page.getByTestId('expense-currency')).toHaveValue('EUR')
+    await page.getByTestId('close-expense').click()
+
+    const other = await newDevice()
+    await other.goto(roomUrl)
+    await other.locator('[data-testid="claim-member"][data-member="Bea"]').click()
+    await expect(other.getByTestId('join-gate')).toHaveCount(0)
+    await other.getByTestId('open-add-expense').click()
+    await expectMenu(other, 'GBP', ['GBP', 'USD', 'EUR'])
+
+    await createRoom('CHF')
+    await page.getByTestId('open-add-expense').click()
+    await expectMenu(page, 'CHF', ['CHF', 'USD', 'EUR'])
+    await page.goto(roomUrl)
+    await page.getByTestId('open-add-expense').click()
+    await expectMenu(page, 'USD', ['USD', 'EUR', 'GBP'])
 })

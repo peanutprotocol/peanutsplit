@@ -69,7 +69,7 @@ import {
     type ExpenseRequestState,
 } from '@/lib/queries'
 import { TOAST_MS } from '@/lib/toasts'
-import { useCurrencyHints } from '@/lib/use-currency-hint'
+import { expenseCurrencyShortlist, readExpenseCurrencies, rememberExpenseCurrency } from '@/lib/expense-currencies'
 import { convertMinorForPreview, useRate } from '@/lib/use-rate'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
@@ -153,7 +153,7 @@ export function ExpenseDrawer({
     const feedback = useFeedback()
     const motionAllowed = useMotionAllowed()
     const { ref: formRef, shake } = useShake<HTMLDivElement>()
-    const hints = useCurrencyHints()
+    const [recentCurrencies, setRecentCurrencies] = useState<string[]>([])
 
     const activeRoster = useMemo(() => activeMembers(state.members), [state.members])
     const [values, setValues] = useState<ExpenseFormValues>(() =>
@@ -320,6 +320,8 @@ export function ExpenseDrawer({
             advancedOptionsOpen: Boolean(expense && expense.splitMode !== 'EQUAL'),
         })
         expenseRequestRef.current = null
+        const recents = readExpenseCurrencies(slug, meId)
+        setRecentCurrencies(recents)
         const expenseNeedsManualRate = Boolean(
             expense &&
             expense.currency !== state.room.currency &&
@@ -331,7 +333,7 @@ export function ExpenseDrawer({
             expense
                 ? expenseToFormValues(expense, currencies, locale)
                 : emptyExpenseForm({
-                      currency: state.room.currency,
+                      currency: recents[0] ?? state.room.currency,
                       members: activeRoster,
                       paidById: defaultPaidById,
                   })
@@ -339,7 +341,7 @@ export function ExpenseDrawer({
         // `currencies` and `state.members` intentionally excluded — a poll landing
         // mid-edit must not stomp on what is being typed.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [open, expense?.id])
+    }, [open, expense?.id, slug, meId])
 
     // A route Back can close `?add=1` while the scanner portal is active. The
     // drawer component itself remains mounted, so clear its local session too;
@@ -428,11 +430,7 @@ export function ExpenseDrawer({
     const isInventedExpenseCurrency = !currencies.some((info) => info.code === values.currency)
     const requiresManualFxRate = isForeign && isInventedExpenseCurrency
     const manualFxRate = requiresManualFxRate ? parseManualFxRateInput(manualFxRateInput, locale) : null
-    /** The room's own currency leads: most expenses are in it, and it is the one code that is
-     *  certainly relevant here. The device guess follows, for the traveller paying in their own. */
-    const suggestedCurrencies = [state.room.currency, ...hints.map((hint) => hint.currency)].filter(
-        (code, index, all) => all.indexOf(code) === index
-    )
+    const suggestedCurrencies = expenseCurrencyShortlist(recentCurrencies, state.room.currency)
     const validation = validateExpenseForm(values, currencies, locale)
     const remaining = remainingMinor(values, currencies, locale)
     const remainingIsZero = remaining === '0'
@@ -886,6 +884,7 @@ export function ExpenseDrawer({
                 // the transition without adding mutation-only fields to the wire.
                 const roomWasMature = state.room.hasReachedSharedBalance === true
                 const updated = await updateExpense.mutateAsync({ id: expense.id, input })
+                rememberExpenseCurrency(slug, meId, body.currency)
                 track(
                     'expense_edited',
                     roomProps(slug, { splitMode: body.splitMode, foreign: body.currency !== state.room.currency })
@@ -903,6 +902,7 @@ export function ExpenseDrawer({
                 // the latch is aha itself, not a later mature-room contribution.
                 const roomWasMature = state.room.hasReachedSharedBalance === true
                 const { createdFirstSharedBalance, queuedLocally } = await addExpense.mutateAsync(body)
+                if (!queuedLocally) rememberExpenseCurrency(slug, meId, body.currency)
                 track(
                     'expense_added',
                     roomProps(slug, { splitMode: body.splitMode, foreign: body.currency !== state.room.currency })
