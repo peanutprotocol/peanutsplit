@@ -1,6 +1,6 @@
 ---
-title: Como dividir contas sem baixar um app
-description: Cada pessoa que você pede para instalar algo é uma pessoa que sai do rateio. Como dividir despesas em grupo usando só um link.
+title: 'Dividir despesas sem baixar um app'
+description: 'Compartilhe despesas por um link. Veja como criar uma sala, guardar o acesso e registrar pagamentos sem fazer cadastro.'
 date: 2026-07-24
 type: guide
 tags: [sem-conta, grupos]
@@ -11,75 +11,59 @@ claims:
     - settle-is-a-record
 cast: []
 faqs:
-    - question: Dá para dividir despesas sem conta?
-      answer: Dá. Uma sala do Split é um link — quem abre digita um nome e começa a lançar despesas. Sem e-mail, sem senha, sem verificação de identidade.
-    - question: O que impede um estranho de abrir a sala?
-      answer: O link é a chave. O endereço de uma sala termina em seis caracteres aleatórios, e os buscadores são instruídos a não indexar as páginas das salas, então não é algo que alguém encontra por acaso.
-    - question: E se eu perder o link?
-      answer: As salas que você abriu ficam lembradas no aparelho em que você as abriu. Fora isso, o link é o único jeito de voltar — então guarde ele no grupo do WhatsApp, não só no seu navegador.
-draft: true
+    - question: 'Posso usar o Split sem cadastro?'
+      answer: 'Para entrar em uma sala do Split, digite um nome. Você não precisa criar conta, informar e-mail nem definir uma senha.'
+    - question: 'Outra pessoa pode encaminhar o link da sala?'
+      answer: 'Sim. Quem receber o link pode abrir a sala e lançar despesas. Compartilhar o link dá acesso à lista.'
+    - question: 'E se todo mundo perder o link?'
+      answer: 'Confira as salas recentes em um aparelho que já tenha aberto a sala ou procure o link nas mensagens. Se ninguém tiver o link ou a sala salva, não há uma conta para recuperar o acesso.'
 ---
 
 <Hero
-  eyebrow="sem cadastro"
-  title="Divida as contas sem obrigar ninguém a se cadastrar"
-  subtitle="Cada instalação que você pede é alguém que nunca entra. Mande um link no lugar."
+  eyebrow="guia"
+  title="Divida despesas pelo navegador"
+  subtitle="Envie o link para que cada pessoa lance o que pagou."
   cta="Criar um split"
-  ctaHint="Dez segundos. Sem e-mail, sem senha, sem download." />
+  ctaHint="Sem e-mail, sem senha, sem download." />
 
-Pense no que você está realmente pedindo quando manda pra um amigo um link da loja de apps só pra vocês dois dividirem um jantar de €60.
+Você pode dividir despesas no Peanut Split pelo navegador do celular. Crie uma sala, compartilhe o link e lance os gastos. Cada pessoa acompanha sua parte sem fazer cadastro.
 
-Você está pedindo pra pessoa achar o gerenciador de senhas, instalar algo, criar uma conta, verificar um e-mail, entender a interface e encontrar o grupo de vocês, tudo antes de conseguir digitar os €14 que ela pagou no táxi. Mande um link no lugar, e não há nada entre ela e os €14.
+Para uma única refeição, uma calculadora e uma mensagem com o valor podem bastar. A sala compartilhada ajuda quando várias pessoas pagaram despesas diferentes ou quando o grupo vai continuar gastando junto.
 
-Algumas pessoas vão criar a conta. Num grupo de seis, duas não vão, e as despesas do grupo ficam incompletas pra sempre. Metade do grupo nunca entrou.
-
-## O que "sem cadastro" precisa significar pra valer alguma coisa
-
-<Steps title="Três níveis de 'sem cadastro', só um serve">
-<Step title="Cadastre-se depois">Você pode dar uma olhada, mas não pode adicionar nada até criar uma conta. É um cadastro com a parede empurrada uma tela pra trás. A pessoa desiste do mesmo jeito, só que mais tarde.</Step>
-<Step title="Modo convidado">Você pode adicionar despesas, mas confira antes de confiar nisso — dá pra ver os totais, e o que você lançou ainda está lá amanhã?</Step>
-<Step title="Nenhuma conta">Abra o link, digite um nome, lance as despesas, veja tudo. Não há conta pra criar porque a sala não tem usuários. Ela tem um link e alguns nomes. É a versão em que a sexta pessoa realmente entra.</Step>
+<Steps title="Monte a lista de despesas">
+<Step title="Crie a sala">Escolha um nome que o grupo reconheça e a moeda usada nos totais.</Step>
+<Step title="Envie o link">Compartilhe no grupo do WhatsApp e fixe a mensagem. Cada pessoa abre o link e digita seu nome.</Step>
+<Step title="Lance a despesa">Informe o valor, quem pagou e quem participa da divisão. Confira a lista antes de lançar algo que outra pessoa pode ter registrado.</Step>
 </Steps>
 
-O Split é o terceiro. Não existe campo de e-mail em lugar nenhum do produto, porque não há nada pra te enviar e nada pra fazer login. Splitwise e Settle Up [começam os dois com uma conta](/guides/splitwise-vs-settle-up), e os meios-termos (um nome na lista de alguém, um link só de leitura) param antes de deixar essa pessoa lançar o táxi.
+## Guarde o link da sala
 
-## Como um link pode ser o login
+Qualquer pessoa com o link pode abrir a sala e lançar despesas. Compartilhe com quem deve participar e lembre que o link pode ser encaminhado.
 
-A objeção de sempre a uma sala sem contas: nada parece estar impedindo ninguém de entrar.
+Seu aparelho lembra as salas que você abriu. Se trocar de celular, vai precisar do link para entrar novamente. Como não existe recuperação de senha, uma cópia no grupo do WhatsApp ajuda a encontrar a sala depois.
 
-O link está. O endereço de uma sala termina em seis caracteres aleatórios, e os buscadores são instruídos a não indexar as páginas das salas, então não é algo que alguém encontra por acaso. Isso deixa a sala tão privada quanto o grupo em que você cola o link, e nada além disso.
+## Pague e registre na sala
 
-<Callout title="A troca">
-Um link que é a chave pode ser encaminhado, e pode ser perdido. Guarde ele no grupo do WhatsApp, não só no seu navegador, e trate "qualquer um com esse link vê a sala" como literalmente verdade. Os robôs de pré-visualização de link podem ler as páginas das salas para que a prévia funcione no grupo. Isso é de propósito, e significa que o nome da sala e os totais viajam junto com o link. Em troca, ninguém no seu grupo precisa criar uma conta.
-</Callout>
+O Split calcula o saldo de cada pessoa e sugere uma lista de pagamentos. Ele considera o que cada um pagou e deve, o que pode reduzir as transferências necessárias.
 
-## Onde não pedir cadastro deixa de bastar
+Faça o pagamento por Pix, dinheiro ou outro meio que vocês usem. Depois registre na sala. O Split não movimenta dinheiro nem consulta o banco para conferir a transferência. O registro significa que alguém informou que pagou.
 
-Colocar as pessoas pra dentro não é a parte difícil de dividir despesas. Fazer elas pagarem é.
-
-Um grupo sem contas e sem um app em comum ainda precisa mover dinheiro de verdade no fim. Seis pessoas que moram todas na mesma cidade resolvem isso num toque, no app de transferência doméstica que todas têm. Seis pessoas espalhadas por quatro países não têm esse app.
-
-<Checklist title="O que procurar além da tela de cadastro">
-<ChecklistItem title="Ele junta as dívidas em poucas transferências?">Vinte pequenas dívidas nunca são pagas. Duas ou três transferências, sim. A ferramenta é que deveria fazer essa conta, não você.</ChecklistItem>
-<ChecklistItem title="Ele lida com mais de uma moeda sem cobrar por isso?">Se o grupo cruza países, conversão não é um luxo, e não deveria ser aquilo pelo que te cobram.</ChecklistItem>
-<ChecklistItem title="Ele oferece um jeito de realmente pagar, ou só um número?">Um número no grupo do WhatsApp é onde a maioria dos rateios morre. Algum caminho pra mover o dinheiro, tipo um link que a outra pessoa pode pagar, é a diferença entre acertado e esquecido.</ChecklistItem>
-<ChecklistItem title="Você sabe o que uma linha acertada significa?">No Split significa que quem devia tocou pra dizer que pagou. Nenhum divisor de despesas está de olho no seu banco, então vale saber qual dos dois você está olhando.</ChecklistItem>
-</Checklist>
+Se o grupo mora em países diferentes, combinem o meio de pagamento antes de voltar para casa. O [guia de despesas entre países](/pt-br/blog/split-a-group-trip-across-countries) explica o que conferir.
 
 <CTA
-  title="Mande um link, não uma página da loja de apps"
-  body="Cada um lança o que pagou, o Split descobre quem deve a quem, e aí as pessoas realmente se pagam de volta, onde quer que estejam."
+  title="Crie uma sala para o grupo"
+  body="Lance a primeira despesa e compartilhe o link."
   text="Criar um split" />
 
-<FAQ>
-<FAQItem question="Dá para dividir despesas sem conta?">Dá. Uma sala do Split é um link — quem abre digita um nome e começa a lançar despesas. Sem e-mail, sem senha, sem verificação de identidade.</FAQItem>
-<FAQItem question="O que impede um estranho de abrir a sala?">O link é a chave. O endereço de uma sala termina em seis caracteres aleatórios, e os buscadores são instruídos a não indexar as páginas das salas, então não é algo que alguém encontra por acaso.</FAQItem>
-<FAQItem question="E se eu perder o link?">As salas que você abriu ficam lembradas no aparelho em que você as abriu. Fora isso, o link é o único jeito de voltar — então guarde ele no grupo do WhatsApp, não só no seu navegador.</FAQItem>
+<FAQ title="Perguntas">
+<FAQItem question="Posso usar o Split sem cadastro?">Para entrar em uma sala do Split, digite um nome. Você não precisa criar conta, informar e-mail nem definir uma senha.</FAQItem>
+<FAQItem question="Outra pessoa pode encaminhar o link da sala?">Sim. Quem receber o link pode abrir a sala e lançar despesas. Compartilhar o link dá acesso à lista.</FAQItem>
+<FAQItem question="E se todo mundo perder o link?">Confira as salas recentes em um aparelho que já tenha aberto a sala ou procure o link nas mensagens. Se ninguém tiver o link ou a sala salva, não há uma conta para recuperar o acesso.</FAQItem>
 </FAQ>
 
 <RelatedPages>
-<RelatedLink href="/pt-br/blog/split-a-group-trip-across-countries">Dividir uma viagem quando ninguém compartilha banco</RelatedLink>
-<RelatedLink href="/pt-br/blog/split-expenses-across-currencies">Dividir quando você pagou numa moeda e deve em outra</RelatedLink>
+<RelatedLink href="/pt-br/blog/split-a-group-trip-across-countries">Dividir despesas de viagem entre países</RelatedLink>
+<RelatedLink href="/pt-br/blog/split-expenses-across-currencies">Dividir despesas em moedas diferentes</RelatedLink>
 <RelatedLink href="/pt-br/splitwise-alternative">Como o Split se compara ao Splitwise</RelatedLink>
 <RelatedLink href="/pt-br/tricount-alternative">Como o Split se compara ao Tricount</RelatedLink>
 </RelatedPages>

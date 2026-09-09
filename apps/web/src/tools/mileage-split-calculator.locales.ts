@@ -21,30 +21,30 @@ export const mileageSplitEs419: ToolWords = {
     meta: {
         title: 'Dividir el costo de un viaje en auto',
         description:
-            'Calcula lo que costó un viaje al valor oficial por kilómetro, que cubre el auto entero y no solo el combustible, y divídelo entre todos los que iban adentro.',
+            'Calcula la parte de cada pasajero en un viaje en auto. Usa un valor por distancia de la lista o ingresa uno propio y elige si quien maneja también aporta.',
     },
     copy: {
         h1: 'Calculadora para dividir un viaje en auto',
         intro: [
-            'Di cuánto anduvo el auto y cuántas personas iban adentro. El viaje se calcula al valor oficial de reembolso del país que elijas, y abajo está lo que cada pasajero le debe a quien manejó.',
-            'Un valor justo por kilómetro nunca es solo el combustible. Cubre los neumáticos, el mantenimiento que se adelanta y el valor que el auto va perdiendo mientras lo disfrutas, y por eso una cifra oficial queda bastante arriba de lo que sugeriría el ticket del combustible. Cámbialo si conoces el auto mejor que el estado, o arma el tuyo con lo que consume. Deja que Split se encargue de pedir después, para que quien manejó no tenga que sacar el tema en el chat del grupo.',
+            'Ingresa la distancia recorrida y la cantidad de pasajeros para calcular cuánto le debe cada persona a quien manejó. Elige un país para usar un valor de reembolso de la lista o ingresa uno propio.',
+            'Un valor por distancia puede incluir otros costos además del combustible. Acuerden cuáles van a compartir antes de usar el resultado. La sección de abajo permite calcular el combustible y agregar un monto por desgaste y pérdida de valor.',
         ],
         resultTitle: 'Quién le debe qué a quien manejó',
-        resultHint: 'Di cuántas personas iban con quien manejó.',
+        resultHint: 'Ingresa la cantidad de pasajeros, sin contar a quien maneja.',
         roundingNote:
-            'El costo de un viaje casi nunca se divide parejo, así que lo que sobra al final va a las fracciones más grandes, de a una unidad. La columna suma exactamente lo que costó el viaje.',
+            'Cada parte se redondea hacia abajo. El resto se distribuye entre las fracciones más grandes, de a una unidad mínima de la moneda, hasta completar el costo calculado del viaje.',
         copyLabel: 'Copiar la lista',
         copyDone: 'Copiado',
         method: {
-            title: 'Lo que el valor deja para los tickets',
+            title: 'Gastos que se agregan por separado',
             body: [
-                'Calcula distancia y nada más. Peajes, ferris, estacionamiento y el café de la parada quedan afuera, y tienen tickets propios. Esos van en la sala con el resto del viaje.',
-                'Tampoco le paga a nadie por manejar. Cuatro horas al volante es algo real y ninguna cifra por kilómetro lo cotiza. Los grupos suelen arreglarlo con el asiento de adelante y la elección de la música, y los que intentan arreglarlo con dinero rara vez disfrutan esa conversación.',
+                'El cálculo multiplica la distancia por el valor indicado. Agrega peajes, ferris, estacionamiento y otros gastos del viaje por separado en tu sala de Split.',
+                'El cálculo no agrega un pago por el tiempo de quien maneja. Si el grupo quiere incluirlo, acuerden ese monto por separado.',
             ],
         },
         concession: {
-            title: 'Cuando el ticket del combustible es la mejor herramienta',
-            body: 'Un tanque, un ticket, un viaje: divide lo que cobró el surtidor y para ahí. Un valor por kilómetro se gana su lugar en un auto que alguien tiene, donde el costo está repartido en años de servicios cuyos papeles nadie guardó. En un auto alquilado la factura más el combustible es la cifra más honesta, y ya está escrita.',
+            title: 'Compartir combustible o un auto alquilado',
+            body: 'Si solo quieren compartir combustible, dividan el costo del combustible usado en el viaje. Para un auto alquilado, usen la factura del alquiler y el combustible en lugar de agregar un valor por distancia para los costos del propietario.',
         },
         goodToKnow: {
             title: 'Bueno saberlo',
@@ -52,12 +52,12 @@ export const mileageSplitEs419: ToolWords = {
                 'El servicio oficial es de uso gratuito y no tiene plan pago.',
                 'Conversión automática para 156 monedas al tipo de cambio indicativo del día.',
                 'Una sala tiene hasta veinte personas.',
-                'Split registra un pago, no lo hace. No consulta con ningún banco, y no puede.',
+                'Split registra los pagos. No envía dinero ni verifica los pagos con un banco.',
             ],
         },
         cta: {
-            title: 'El combustible no fue lo único que alguien pagó',
-            body: 'Diez segundos. Sin correo, sin contraseña, sin descargas.',
+            title: 'Registra los demás gastos del viaje',
+            body: 'Crea una sala y comparte el enlace con el grupo. No necesitas cuenta ni descargas.',
             label: 'Crear un split',
         },
         faqTitle: 'Preguntas',
@@ -65,18 +65,21 @@ export const mileageSplitEs419: ToolWords = {
     fields: {
         distance: {
             label: 'Distancia recorrida',
-            help: 'El viaje entero, ida y vuelta si todos volvieron a casa. En la unidad que nombra el selector.',
+            help: 'Incluye el regreso si también lo comparten. Usa las millas o kilómetros indicados para el país elegido.',
         },
         rate: {
             label: 'Valor por milla o kilómetro',
-            help: 'Elegir un país llena esto y cambia la moneda con él. Cámbialo por lo que de verdad cuesta mantener el auto.',
+            help: 'Al elegir un país se cambia la moneda y se completa el valor cuando hay uno en la lista. Puedes editarlo.',
         },
         passengers: { label: 'Pasajeros', help: 'Todos los del auto menos quien maneja.' },
         driverShares: {
             label: 'La persona que maneja también toma una parte',
             help: 'Apagado, los pasajeros cubren el viaje entre ellos.',
         },
-        share: { label: 'Parte', help: 'Uno es una parte pareja. Media para alguien que solo fue de ida.' },
+        share: {
+            label: 'Parte',
+            help: 'Usa 1 para una parte completa o 0.5 para quien recorrió la mitad de la distancia.',
+        },
     },
     rows: { nameLabel: 'Nombre', namePrefix: 'Pasajero' },
     choices: {
@@ -140,9 +143,9 @@ export const mileageSplitEs419: ToolWords = {
         },
     },
     builder: {
-        summary: 'Arranca de lo que consume el auto',
-        title: 'Arma tu propio valor',
-        intro: 'Dos números del tablero dan el combustible. El combustible es el piso y no la respuesta: el auto también se gasta, entra a servicio y vale menos al final del año que al principio.',
+        summary: 'Calcula un valor según el consumo',
+        title: 'Calcula tu propio valor',
+        intro: 'Ingresa el consumo y el precio por litro para calcular el combustible por milla o kilómetro. Agrega un monto acordado por desgaste y pérdida de valor si también quieren compartir esos costos.',
         fields: {
             fuelPer100: {
                 label: 'Lo que consume cada 100',
@@ -151,49 +154,49 @@ export const mileageSplitEs419: ToolWords = {
             },
             fuelPrice: {
                 label: 'Lo que cuesta un litro',
-                help: 'En la moneda de arriba. El precio del cartel, no el de la tarjeta de puntos.',
+                help: 'Ingresa el precio pagado por litro en la moneda seleccionada.',
             },
             wear: {
                 label: 'Desgaste y pérdida de valor encima',
-                help: 'Por cada milla o kilómetro. La parte que ningún ticket de combustible muestra: neumáticos, el servicio que llega antes, el auto valiendo menos que antes. En cero, esto calcula el combustible y ya.',
+                help: 'Monto adicional por milla o kilómetro para neumáticos, mantenimiento y pérdida de valor. Déjalo en cero para calcular solo combustible.',
             },
         },
         floorLabel: 'Solo combustible',
-        totalLabel: 'El valor que esto escribe',
+        totalLabel: 'Valor calculado',
         applyLabel: 'Usar este valor',
-        appliedLabel: 'En la casilla de arriba',
+        appliedLabel: 'Valor aplicado',
     },
     related: [
         { href: '/es-419/blog/split-a-group-trip-across-countries', label: 'Dividir un viaje entre países' },
         { href: '/es-419/blog/split-expenses-across-currencies', label: 'Dividir gastos en varias monedas' },
-        { href: '/es-419/rent-split-calculator', label: 'La otra calculadora' },
+        { href: '/es-419/rent-split-calculator', label: 'Calculadora para dividir el alquiler' },
     ],
     faqs: [
         {
-            question: '¿Por qué dividir el combustible al valor oficial de un gobierno?',
-            answer: 'Porque es el único número del auto que nadie del auto eligió. Cada uno de estos es la estimación de trabajo de un gobierno sobre lo que una distancia en un auto particular le cuesta a quien lo tiene, y está publicado, fechado y abierto a que lo leas. Dividir solo el ticket del surtidor le cobra de menos a quien es dueño, y hacer las cuentas de la depreciación durante un fin de semana afuera es así como un favor termina en resentimiento.',
+            question: '¿Por qué usar un valor oficial por distancia para un viaje compartido?',
+            answer: 'Un valor publicado sirve como referencia para costos además del combustible. Revisa la fuente y la fecha debajo del selector: el propósito y las condiciones cambian según el país. Puedes usar otro monto que el grupo acuerde. Esta calculadora divide gastos de viaje y no calcula deducciones fiscales.',
         },
         {
             question: '¿Y si el auto es alquilado y no de alguien del grupo?',
-            answer: 'Entonces el valor no tiene nada que agregar. Una empresa de alquiler ya metió el desgaste en la tarifa diaria, así que la cifra honesta es la factura del alquiler más lo que se cargó al tanque, y las dos son tickets que puedes poner en una sala como gastos normales. Los valores por kilómetro existen para el auto que no tiene factura, porque es de una de ustedes.',
+            answer: 'Usa la factura del alquiler, el combustible usado y los demás gastos del viaje. Agregar un valor por desgaste encima del alquiler puede contar el mismo costo dos veces. Registra los gastos reales en tu sala de Split.',
         },
         {
             question: '¿Qué debería incluir un valor por kilómetro además del combustible?',
-            answer: 'Todo lo que la distancia gasta, no todo lo que cuesta el día. El combustible es la parte con ticket, y es la parte chica: los neumáticos se gastan, el servicio llega antes y un auto con más kilómetros vale menos que el mismo auto sin ellos. Por eso el armador de aquí muestra el combustible en su propia línea y después pregunta qué va encima. Un valor que se queda en el piso del combustible le cobra a quien maneja la gasolina y le deja el resto.',
+            answer: 'Si quieren compartir más que el combustible, acuerden un monto por desgaste, mantenimiento y pérdida de valor. La calculadora de valor propio lo suma al combustible por milla o kilómetro. Deja el monto adicional en cero para calcular solo combustible.',
         },
         {
             question: '¿Debería quien maneja pagar también una parte del viaje?',
-            answer: 'Los dos arreglos son normales, y el interruptor hace el que le digas. Como está, los pasajeros cubren el viaje entre ellos, que es la lectura habitual de que alguien te lleve: una persona pone el auto y las otras ponen el dinero. Encendido, quien maneja toma una parte pareja junto a todos los demás, que se lee más justo cuando el auto está haciendo un trabajo para todo el grupo y no un favor a los pasajeros.',
+            answer: 'El grupo decide. Por defecto, los pasajeros cubren todo el costo calculado. Activa la opción de quien maneja para asignarle una parte también. Las partes de los pasajeros siguen siendo ajustables; quien recorrió la mitad de la distancia puede tener media parte.',
         },
     ],
     phrases: {
-        noRiders: 'Di cuántas personas van con quien maneja.',
-        negativeDistance: 'Una distancia no puede ser menos que nada.',
-        negativeRate: 'Un valor no puede ser menos que nada.',
-        noDistance: 'Pon cuánto anduvo el auto.',
-        noRate: 'Pon un valor por cada {unit}.',
-        driveTooLong: 'Ese viaje es más largo de lo que esta página divide.',
-        noShares: 'Todas las partes están en cero, así que no hay nada que dividir.',
+        noRiders: 'Ingresa la cantidad de pasajeros, sin contar a quien maneja.',
+        negativeDistance: 'La distancia debe ser un número mayor o igual a cero.',
+        negativeRate: 'El valor debe ser un número mayor o igual a cero.',
+        noDistance: 'Ingresa la distancia recorrida.',
+        noRate: 'Ingresa un valor por cada {unit}.',
+        driveTooLong: 'El costo calculado supera el límite de esta calculadora.',
+        noShares: 'Asigna un valor mayor a cero a por lo menos una parte.',
         unitMile: 'milla',
         unitKilometre: 'kilómetro',
         distanceLabel: 'Distancia',
@@ -201,7 +204,7 @@ export const mileageSplitEs419: ToolWords = {
         costLabel: 'Lo que costó el viaje',
         shareDetail: '{share} de {total} partes',
         driverLabel: 'Al volante',
-        driverDetail: 'su propia parte, que nadie entrega',
+        driverDetail: 'costo cubierto por quien maneja',
     },
 }
 
@@ -209,31 +212,31 @@ export const mileageSplitPtBr: ToolWords = {
     meta: {
         title: 'Dividir o custo de uma viagem de carro',
         description:
-            'Calcule quanto a viagem custou pela taxa oficial por quilômetro, que cobre o carro inteiro e não só o combustível, e divida entre todo mundo que estava dentro.',
+            'Calcule a parte de cada passageiro numa viagem de carro. Use uma taxa da lista ou informe a sua e escolha se quem dirige também paga uma cota.',
     },
     copy: {
         h1: 'Calculadora para dividir uma viagem de carro',
         intro: [
-            'Diga quanto o carro andou e quantas pessoas estavam dentro. A viagem é calculada pela taxa oficial de reembolso do país que você escolher, e embaixo está o que cada passageiro deve para quem dirigiu.',
-            'No Brasil não existe taxa federal por quilômetro. A regra federal paga um teto por dia, sem nenhuma distância dentro dela, então aqui você digita a sua própria taxa, e o bloco no fim monta uma a partir do que o carro consome.',
-            'Uma taxa justa por quilômetro nunca é só o combustível. Ela está no lugar dos pneus, da revisão que chega antes da hora e do valor que o carro perde enquanto você aproveita, e por isso um número oficial fica bem acima do que o comprovante do posto sugere. Escreva por cima se você conhece o carro melhor que o estado. Deixe o Split cobrar depois, para quem dirigiu não precisar levantar o assunto no grupo.',
+            'Informe a distância percorrida e o número de passageiros para calcular quanto cada pessoa deve a quem dirigiu. Escolha um país para usar uma taxa de reembolso da lista ou informe a sua.',
+            'No Brasil não existe taxa federal por quilômetro. A regra federal prevê um limite diário, sem cálculo por distância. Ao selecionar Brasil, informe a taxa que o grupo combinou ou calcule uma abaixo a partir do consumo do carro.',
+            'Uma taxa por distância pode incluir custos além do combustível. Combinem quais vão dividir antes de usar o resultado. A seção abaixo permite calcular o combustível e acrescentar um valor por desgaste e perda de valor do carro.',
         ],
         resultTitle: 'Quem deve o quê para quem dirigiu',
-        resultHint: 'Diga quantas pessoas foram com quem dirigiu.',
+        resultHint: 'Informe o número de passageiros, sem contar quem dirige.',
         roundingNote:
-            'O custo de uma viagem quase nunca divide certinho, então o que sobra no fim vai para as maiores frações, uma unidade de cada vez. A coluna soma exatamente o que a viagem custou.',
+            'Cada cota é arredondada para baixo. O restante é distribuído entre as maiores frações, uma unidade mínima da moeda por vez, até completar o custo calculado da viagem.',
         copyLabel: 'Copiar a lista',
         copyDone: 'Copiado',
         method: {
-            title: 'O que a taxa deixa para os comprovantes',
+            title: 'Despesas para adicionar separadamente',
             body: [
-                'Ela cobra distância e mais nada. Pedágio, balsa, estacionamento e o café do posto ficam fora, e têm comprovante próprio. Esses vão para a sala junto com o resto da viagem.',
-                'Ela também não paga ninguém por dirigir. Quatro horas no volante é uma coisa real de se ter feito, e nenhum número por quilômetro cobra por isso. Os grupos costumam resolver isso com o banco da frente e a escolha da música, e quem tenta resolver com dinheiro raramente gosta da conversa.',
+                'O cálculo multiplica a distância pela taxa. Adicione pedágios, balsas, estacionamento e outras despesas da viagem separadamente na sua sala do Split.',
+                'O cálculo não acrescenta um pagamento pelo tempo de quem dirige. Se o grupo quiser incluir esse valor, combinem isso separadamente.',
             ],
         },
         concession: {
-            title: 'Quando o comprovante do posto é a melhor ferramenta',
-            body: 'Um tanque, um comprovante, uma viagem: divida o que o posto cobrou e pare por aí. Uma taxa por quilômetro vale a pena num carro que é de alguém, onde o custo está espalhado por anos de revisão que ninguém guardou o papel. Num carro alugado a nota mais o combustível é o número mais honesto, e ele já está escrito.',
+            title: 'Dividir combustível ou um carro alugado',
+            body: 'Se o grupo quiser dividir apenas combustível, use o custo do combustível consumido na viagem. Para um carro alugado, use a nota do aluguel e o combustível em vez de acrescentar uma taxa por distância para os custos do proprietário.',
         },
         goodToKnow: {
             title: 'Bom saber',
@@ -241,12 +244,12 @@ export const mileageSplitPtBr: ToolWords = {
                 'O serviço oficial é de uso grátis e não tem plano pago.',
                 'Conversão automática para 156 moedas pela taxa indicativa do dia.',
                 'Uma sala comporta até vinte pessoas.',
-                'O Split registra um pagamento, não faz o pagamento. Ele não confere com banco nenhum, e não tem como conferir.',
+                'O Split registra pagamentos. Ele não envia dinheiro nem verifica pagamentos com um banco.',
             ],
         },
         cta: {
-            title: 'O combustível não foi a única coisa que alguém pagou',
-            body: 'Dez segundos. Sem e-mail, sem senha, sem download.',
+            title: 'Registre as outras despesas da viagem',
+            body: 'Crie uma sala e compartilhe o link com o grupo. Não é preciso criar conta nem baixar nada.',
             label: 'Criar um split',
         },
         faqTitle: 'Perguntas',
@@ -254,18 +257,18 @@ export const mileageSplitPtBr: ToolWords = {
     fields: {
         distance: {
             label: 'Distância rodada',
-            help: 'A viagem inteira, ida e volta se todo mundo voltou. Na unidade que o seletor está usando.',
+            help: 'Inclua a volta se ela também for compartilhada. Use as milhas ou quilômetros indicados para o país escolhido.',
         },
         rate: {
             label: 'Taxa por milha ou quilômetro',
-            help: 'Escolher um país preenche isto e troca a moeda junto. Escreva por cima com o que o carro custa de verdade para rodar.',
+            help: 'Escolher um país muda a moeda e preenche a taxa quando há uma na lista. Você pode editar o valor.',
         },
         passengers: { label: 'Passageiros', help: 'Todo mundo no carro menos quem dirige.' },
         driverShares: {
             label: 'Quem dirige também entra com uma cota',
             help: 'Desligado, os passageiros cobrem a viagem entre eles.',
         },
-        share: { label: 'Cota', help: 'Um é uma cota igual. Meia para quem foi só na ida.' },
+        share: { label: 'Cota', help: 'Use 1 para uma cota inteira ou 0.5 para quem percorreu metade da distância.' },
     },
     rows: { nameLabel: 'Nome', namePrefix: 'Passageiro' },
     choices: {
@@ -329,9 +332,9 @@ export const mileageSplitPtBr: ToolWords = {
         },
     },
     builder: {
-        summary: 'Comece pelo que o carro consome',
-        title: 'Monte a sua própria taxa',
-        intro: 'Dois números do painel dão o combustível. O combustível é o piso e não a resposta: o carro também se desgasta, vai para a revisão e vale menos no fim do ano do que valia no começo.',
+        summary: 'Calcule uma taxa pelo consumo',
+        title: 'Calcule a sua própria taxa',
+        intro: 'Informe o consumo e o preço por litro para calcular o combustível por milha ou quilômetro. Acrescente um valor combinado para desgaste e perda de valor do carro se quiserem dividir esses custos também.',
         fields: {
             fuelPer100: {
                 label: 'O que ele gasta a cada 100',
@@ -340,53 +343,53 @@ export const mileageSplitPtBr: ToolWords = {
             },
             fuelPrice: {
                 label: 'Quanto custa um litro',
-                help: 'Na moeda acima. O preço da bomba, não o do clube de desconto.',
+                help: 'Informe o preço pago por litro na moeda selecionada.',
             },
             wear: {
                 label: 'Desgaste e perda de valor em cima',
-                help: 'Por milha ou quilômetro. A parte que nenhum comprovante de combustível mostra: pneus, a revisão que chega antes, o carro valendo menos do que valia. Em zero, isto cobra o combustível e para por aí.',
+                help: 'Valor adicional por milha ou quilômetro para pneus, manutenção e perda de valor do carro. Deixe em zero para calcular apenas combustível.',
             },
         },
         floorLabel: 'Só o combustível',
-        totalLabel: 'A taxa que isto escreve',
+        totalLabel: 'Taxa calculada',
         applyLabel: 'Usar esta taxa',
-        appliedLabel: 'Na caixa acima',
+        appliedLabel: 'Taxa aplicada',
     },
     related: [
         { href: '/pt-br/blog/split-a-group-trip-across-countries', label: 'Dividir uma viagem entre países' },
         { href: '/pt-br/blog/split-expenses-across-currencies', label: 'Dividir despesas em várias moedas' },
-        { href: '/pt-br/rent-split-calculator', label: 'A outra calculadora' },
+        { href: '/pt-br/rent-split-calculator', label: 'Calculadora para dividir o aluguel' },
     ],
     faqs: [
         {
             question: 'O Brasil tem uma taxa oficial por quilômetro?',
-            answer: 'Não tem. A regra federal paga um teto por dia, sem nenhum termo de distância dentro dela, então não existe um número nacional por quilômetro para dividir uma viagem. No Brasil a taxa da caixa é sua: comece pelo que o carro consome, no bloco de montar, e some o desgaste em cima. Os números locais e de categoria que existem por aí não substituem uma taxa nacional.',
+            answer: 'Não. A regra federal prevê um limite diário, sem cálculo por distância. Ao selecionar Brasil, informe a taxa que o grupo combinou ou use a seção de consumo para calcular combustível e acrescentar desgaste. Taxas locais ou de categorias profissionais não são uma taxa nacional.',
         },
         {
-            question: 'Por que dividir o combustível pela taxa oficial de um governo?',
-            answer: 'Porque é o único número do carro que ninguém dentro do carro escolheu. Cada um deles é a estimativa de trabalho de um governo sobre o que uma distância num carro particular custa para quem é dono dele, e está publicado, datado e aberto para você ler. Dividir só o comprovante do posto cobra de menos de quem é dono, e fazer a conta da depreciação num fim de semana fora é como uma carona vira mágoa.',
+            question: 'Por que usar uma taxa oficial por distância numa viagem compartilhada?',
+            answer: 'Uma taxa publicada serve de referência para custos além do combustível. Confira a fonte e a data abaixo do seletor: a finalidade e as condições mudam conforme o país. Você pode usar outro valor combinado pelo grupo. Esta calculadora divide despesas de viagem e não calcula deduções fiscais.',
         },
         {
             question: 'E se o carro for alugado e não de alguém do grupo?',
-            answer: 'Aí a taxa não tem nada a acrescentar. A locadora já colocou o desgaste na diária, então o número honesto é a nota do aluguel mais o que foi para o tanque, e os dois são comprovantes que vocês colocam numa sala como despesas normais. Taxa por quilômetro existe para o carro que não tem nota, porque ele é de alguém do grupo.',
+            answer: 'Use a nota do aluguel, o combustível consumido e as outras despesas da viagem. Acrescentar uma taxa de desgaste ao aluguel pode contar o mesmo custo duas vezes. Registre as despesas reais na sua sala do Split.',
         },
         {
             question: 'O que uma taxa por quilômetro deve incluir além do combustível?',
-            answer: 'Tudo o que a distância gasta, não tudo o que o dia custa. O combustível é a parte com comprovante, e é a parte menor: os pneus se gastam, a revisão chega antes e um carro com mais quilômetros vale menos que o mesmo carro sem eles. Por isso o bloco de montar mostra o combustível numa linha só dele e depois pergunta o que vai em cima. Uma taxa parada no piso do combustível cobra a gasolina de quem dirige e deixa o resto para quem dirige.',
+            answer: 'Se quiserem dividir mais que combustível, combinem um valor para desgaste, manutenção e perda de valor do carro. A seção de taxa própria soma esse valor ao combustível por milha ou quilômetro. Deixe o valor adicional em zero para calcular apenas combustível.',
         },
         {
             question: 'Quem dirige também deve pagar uma cota da viagem?',
-            answer: 'Os dois arranjos são comuns, e o interruptor faz o que você mandar. Do jeito que está, os passageiros cobrem a viagem entre eles, que é a leitura comum de uma carona: uma pessoa entra com o carro e as outras entram com o dinheiro. Ligado, quem dirige fica com uma cota igual às demais, o que soa mais justo quando o carro está fazendo um trabalho para o grupo inteiro e não um favor para os passageiros.',
+            answer: 'O grupo decide. Por padrão, os passageiros cobrem todo o custo calculado. Ative a opção de quem dirige para atribuir uma cota a essa pessoa também. As cotas dos passageiros continuam ajustáveis; quem percorreu metade da distância pode ficar com meia cota.',
         },
     ],
     phrases: {
-        noRiders: 'Diga quantas pessoas foram com quem dirige.',
-        negativeDistance: 'Uma distância não pode ser menos que nada.',
-        negativeRate: 'Uma taxa não pode ser menos que nada.',
-        noDistance: 'Coloque quanto o carro andou.',
-        noRate: 'Coloque uma taxa por {unit}.',
-        driveTooLong: 'Essa viagem é mais longa do que esta página divide.',
-        noShares: 'Todas as cotas estão em zero, então não tem nada para dividir.',
+        noRiders: 'Informe o número de passageiros, sem contar quem dirige.',
+        negativeDistance: 'A distância deve ser um número maior ou igual a zero.',
+        negativeRate: 'A taxa deve ser um número maior ou igual a zero.',
+        noDistance: 'Informe a distância percorrida.',
+        noRate: 'Informe uma taxa por {unit}.',
+        driveTooLong: 'O custo calculado ultrapassa o limite desta calculadora.',
+        noShares: 'Defina pelo menos uma cota acima de zero.',
         unitMile: 'milha',
         unitKilometre: 'quilômetro',
         distanceLabel: 'Distância',
@@ -394,6 +397,6 @@ export const mileageSplitPtBr: ToolWords = {
         costLabel: 'O que a viagem custou',
         shareDetail: '{share} de {total} cotas',
         driverLabel: 'Quem dirigiu',
-        driverDetail: 'a própria cota, que ninguém entrega',
+        driverDetail: 'custo coberto por quem dirige',
     },
 }

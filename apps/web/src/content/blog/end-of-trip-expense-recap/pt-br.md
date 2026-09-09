@@ -1,84 +1,70 @@
 ---
-title: O resumo no fim da viagem
-description: Quanto a viagem custou de verdade, quantos dias durou e quem mais bancou. Um card pro grupo quando a viagem acaba e todo mundo fica quites.
+title: 'Compartilhar o resumo de gastos da viagem'
+description: 'Confira o total gasto, os participantes e os pagamentos registrados. Compartilhe uma imagem do resumo quando todos os saldos estiverem quitados.'
 date: 2026-07-28
 type: guide
 tags: [viagens, resumo]
 claims:
+    - no-app
     - link-is-the-key
     - settle-is-a-record
     - recap-card
 cast: []
 faqs:
-    - question: O que aparece no resumo?
-      answer: O total gasto na sala, quantos dias ela durou, quantas despesas e pessoas ela teve, quantos pagamentos foram registrados e quem mais bancou. Ele ganha um selo de quites quando todo mundo está acertado.
-    - question: Dá pra compartilhar o resumo como link?
-      answer: 'Não, e é de propósito. O endereço de uma sala também é a chave dela: qualquer um que abra o link do resumo pode tirar a última parte e cair num caderno de contas onde consegue escrever. Por isso o resumo é compartilhado como imagem.'
-    - question: Quando dá pra compartilhar?
-      answer: Quando a sala chega de fato a zero. Dá pra ver um resumo de até agora em qualquer momento da viagem, mas o botão de compartilhar espera o quites, porque um card com selo de "quites" numa sala que ainda tem 400 em aberto seria mentira.
-    - question: O card mostra o saldo de alguém?
-      answer: Não. Ele mostra o que o grupo gastou junto e quem mais bancou, não o que cada um deve. O que vai parar num grupo deve ser uma lembrança, não a dívida de alguém.
-draft: true
+    - question: 'Posso ver o resumo antes de quitar tudo?'
+      answer: 'Você pode consultar um resumo da viagem enquanto houver saldos pendentes. O compartilhamento fica disponível depois que a sala estiver quitada.'
+    - question: 'Por que uma sala vazia não tem botão de compartilhar?'
+      answer: 'A sala precisa ter pelo menos uma despesa e nenhum saldo pendente para ser considerada quitada. Uma sala vazia não atende a essas condições.'
+    - question: 'Alguém consegue abrir minha sala pela imagem?'
+      answer: 'A imagem contém o domínio do produto, não o link da sala. Ela mostra os totais e quem adiantou mais dinheiro, então confira o cartão antes de escolher onde compartilhar.'
 ---
 
 <Hero
-  eyebrow="viagens"
-  title="Quanto a viagem custou de verdade, num card só"
-  subtitle="Nove dias, catorze despesas, seis pessoas, tudo quites. A última coisa que uma sala de despesas te deve é um resumo que você realmente queira mandar no grupo."
+  eyebrow="guia"
+  title="Compartilhe um resumo das despesas da viagem"
+  subtitle="O cartão reúne os totais da sala para você enviar ao grupo."
   cta="Criar um split"
-  ctaHint="Dez segundos. Sem e-mail, sem senha, sem download." />
+  ctaHint="Sem e-mail, sem senha, sem download." />
 
-Rachar despesas termina mal mesmo quando termina certo. A última mensagem no grupo costuma ser alguém confirmando um pagamento, e aí tudo se apaga — ninguém descobre quanto a semana custou, e quem bancou o depósito da casa lá em março não recebe nem um obrigado.
+O Peanut Split monta um resumo com as despesas da sala da viagem. Você pode acompanhar durante a viagem e compartilhar como imagem quando houver despesas e todos os saldos estiverem quitados.
 
-É um lugar estranho pra parar, já que a sala esteve contando esse tempo todo.
+Os totais incluem o que foi lançado na sala. Passagens ou compras pessoais anotadas em outro lugar não entram no resumo.
 
-## O que o resumo traz
+## O que aparece no cartão
 
-<Checklist title="Seis coisas tiradas da sala, sem digitar nada">
-<ChecklistItem title="Total gasto">Tudo que o grupo passou pela sala, na moeda da própria sala.</ChecklistItem>
-<ChecklistItem title="Quanto tempo durou">Dias corridos da primeira despesa até a última, contando as duas pontas. Contado do mesmo jeito onde quer que a pessoa esteja, pra ninguém ver nove dias enquanto o outro vê dez.</ChecklistItem>
-<ChecklistItem title="Despesas e pessoas">O formato da viagem em dois números.</ChecklistItem>
-<ChecklistItem title="Pagamentos registrados">Quantos acertos foram registrados pra sair do "a gente se deve" até o zero.</ChecklistItem>
-<ChecklistItem title="Quem mais bancou">A pessoa que colocou mais no próprio cartão. Não quem gastou mais consigo — quem carregou o grupo.</ChecklistItem>
-<ChecklistItem title="Um selo de quites">Só quando todo mundo está de fato quites, e só quando havia algo pra acertar. Uma sala vazia não está acertada, está vazia.</ChecklistItem>
-</Checklist>
+O resumo mostra o total gasto na moeda da sala, a quantidade de despesas e pessoas, e os dias de calendário da primeira à última despesa. Também inclui a quantidade de pagamentos registrados e quem adiantou mais dinheiro para as despesas compartilhadas.
 
-Dá pra ver no meio da viagem também, marcado como "até agora". O botão de compartilhar é a parte que espera.
+O valor adiantado pode ser diferente da parte que aquela pessoa precisa pagar. O cartão não mostra os saldos individuais nem quanto cada pessoa deve.
 
-## Por que é uma imagem e não um link
+## Confira a sala antes de compartilhar
 
-Essa é a decisão de design que vale explicar, porque "compartilhe seu resumo" seria bem mais fácil de fazer como um link, e seria a coisa errada.
-
-<Callout title="O endereço da sala é a chave da sala">
-Não existe login. O link da sala é a credencial: quem tem o link abre a sala, entra e lança despesas. A tela do resumo fica no próprio endereço da sala, então qualquer um que receba o link do resumo poderia apagar a última parte dele e cair no caderno de contas do grupo, de caneta na mão. Postar isso num story ou numa conversa pública é entregar tudo pra estranhos.
-</Callout>
-
-Então o que é compartilhado é uma imagem. O card é gerado como imagem, entregue pra tela de compartilhar normal do seu celular, e mostra o domínio do produto em vez do endereço da sala. Nada que possa abrir sua sala sai do grupo, e o arquivo salvo tem o nome do produto, não da sala, então o link também não vai parar numa pasta de downloads nem num print de seletor de arquivos.
-
-A troca é honesta: quem vê o card não consegue clicar e entrar na sua viagem. É esse o ponto. Se a pessoa quiser o dela, o domínio está no card.
-
-## Como chegar num resumo que valha a pena compartilhar
-
-<Steps title="Três hábitos que deixam o card verdadeiro">
-<Step title="Uma sala por viagem, não por pessoa">Crie antes da primeira reserva, coloque o depósito nela, e deixe as passagens e a casa caírem no mesmo lugar que os jantares. Uma sala que começa no segundo dia conta a viagem a menos.</Step>
-<Step title="Lance as coisas na hora">Não pelo extrato do banco depois. A contagem de dias sai das datas das despesas, e o resumo de uma semana remontada no voo de volta mostra um dia só.</Step>
-<Step title="Registre os pagamentos">Acertar é um toque na pessoa que você pagou. Se esquecer, a sala nunca chega a zero, então o card nunca ganha o selo e ninguém tem o momento.</Step>
+<Steps title="Complete o registro da viagem">
+<Step title="Revise as despesas">Peça que todos confiram reservas que faltam e lançamentos duplicados. Veja as datas das despesas para conferir o período do resumo.</Step>
+<Step title="Registre os pagamentos">Depois de se pagarem, registrem na sala. O Split anota o que as pessoas informam que pagaram; não verifica transferências bancárias.</Step>
+<Step title="Abra o resumo">Você pode consultar mesmo com saldos pendentes. A marca de quitado e o botão de compartilhar aparecem quando existe pelo menos uma despesa e todos os saldos estão quitados.</Step>
 </Steps>
 
+## Compartilhe a imagem
+
+Use o botão do resumo para enviar o cartão pelas opções de compartilhamento do celular. A imagem mostra peanutsplit.com e não inclui o endereço da sua sala.
+
+Mantenha o link da sala dentro do grupo. Quem tiver esse link pode abrir a sala e lançar despesas. O endereço da página do resumo contém o mesmo acesso, por isso copiar esse endereço não é uma forma adequada de publicar o resumo.
+
+O cartão serve para consultar os totais. Para conferir uma despesa específica, volte à lista da sala.
+
 <CTA
-  title="Crie a sala antes da viagem começar"
-  body="Um link no grupo, cada um lança o que pagou, e tem algo pra ver quando você chega em casa."
+  title="Reúna as despesas da viagem"
+  body="Crie uma sala e lance as reservas que devem entrar no resumo."
   text="Criar um split" />
 
-<FAQ>
-<FAQItem question="O que aparece no resumo?">O total gasto na sala, quantos dias ela durou, quantas despesas e pessoas ela teve, quantos pagamentos foram registrados e quem mais bancou. Ele ganha um selo de quites quando todo mundo está acertado.</FAQItem>
-<FAQItem question="Dá pra compartilhar o resumo como link?">Não, e é de propósito. O endereço de uma sala também é a chave dela: qualquer um que abra o link do resumo pode tirar a última parte e cair num caderno de contas onde consegue escrever. Por isso o resumo é compartilhado como imagem.</FAQItem>
-<FAQItem question="Quando dá pra compartilhar?">Quando a sala chega de fato a zero. Dá pra ver um resumo de até agora em qualquer momento da viagem, mas o botão de compartilhar espera o quites.</FAQItem>
-<FAQItem question="O card mostra o saldo de alguém?">Não. Ele mostra o que o grupo gastou junto e quem mais bancou, não o que cada um deve.</FAQItem>
+<FAQ title="Perguntas">
+<FAQItem question="Posso ver o resumo antes de quitar tudo?">Você pode consultar um resumo da viagem enquanto houver saldos pendentes. O compartilhamento fica disponível depois que a sala estiver quitada.</FAQItem>
+<FAQItem question="Por que uma sala vazia não tem botão de compartilhar?">A sala precisa ter pelo menos uma despesa e nenhum saldo pendente para ser considerada quitada. Uma sala vazia não atende a essas condições.</FAQItem>
+<FAQItem question="Alguém consegue abrir minha sala pela imagem?">A imagem contém o domínio do produto, não o link da sala. Ela mostra os totais e quem adiantou mais dinheiro, então confira o cartão antes de escolher onde compartilhar.</FAQItem>
 </FAQ>
 
 <RelatedPages>
-<RelatedLink href="/pt-br/blog/split-a-group-trip-across-countries">Rachar uma viagem quando ninguém divide o mesmo banco</RelatedLink>
-<RelatedLink href="/pt-br/blog/split-expenses-offline">Lançar despesas onde não tem sinal</RelatedLink>
-<RelatedLink href="/pt-br/blog/split-expenses-across-currencies">Rachar quando você pagou numa moeda e deve em outra</RelatedLink>
+<RelatedLink href="/pt-br/blog/split-a-group-trip-across-countries">Dividir despesas de viagem entre países</RelatedLink>
+<RelatedLink href="/pt-br/blog/split-expenses-offline">Lançar despesas offline</RelatedLink>
+<RelatedLink href="/pt-br/blog/split-expenses-across-currencies">Dividir despesas em moedas diferentes</RelatedLink>
 </RelatedPages>

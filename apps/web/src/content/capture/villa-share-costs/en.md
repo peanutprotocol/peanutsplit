@@ -1,6 +1,6 @@
 ---
-title: How to share the cost of a villa
-description: Divide the booking by the beds, put every other cost in one place as it happens, and settle once at the end. The method, and where it stops being worth running.
+title: 'How to share the cost of a villa'
+description: 'Choose a room or per-person split before booking. Record the villa, fees and shared trip expenses, then calculate what each person owes.'
 date: 2026-08-24
 type: capture
 headTerm: villa share
@@ -16,51 +16,57 @@ claims:
 cast:
     - bea
 faqs:
-    - question: How do you share the cost of a villa between friends?
-      answer: Divide the nightly rate by the people sleeping there and keep the fees, the food and the car as separate lines everybody shares. One person usually pays the booking months early, so the group owes them a number from day one rather than a favour that gets vaguer.
-    - question: Should couples pay double for one room?
-      answer: They pay for the bed rather than for the head. Two people in a double are using one room, so a per-room split is what most groups land on, and the food and the car go back to per person because two people eat twice.
-    - question: What happens if somebody drops out after the deposit is paid?
-      answer: Decide the rule before the booking, not after. A non-refundable deposit is a cost the trip has already taken, and the only question is who absorbs it. Written down on the day it was paid, it is a fact. Raised for the first time in July, it sounds like an accusation.
+    - question: 'How do you share the cost of a villa between friends?'
+      answer: 'Choose a per-person, per-room or weighted split for the villa before booking. Record each person’s agreed accommodation amount and add shared food, transport and fees separately.'
+    - question: 'Should couples pay double for one room?'
+      answer: 'It depends on the agreed method. A per-room split charges for one room; a per-person split charges for two people. Decide before booking and use a separate rule for shared food if needed.'
+    - question: 'What happens if somebody drops out after the deposit is paid?'
+      answer: 'Check the booking’s refund terms and the cancellation rule your group agreed. If the payment is not refunded, agree who covers it before changing the recorded shares.'
 ---
 
-# How a villa share works out fairly
+# How to share the cost of a villa
 
-Divide the booking by the beds, and put everything the week costs after it into one place everybody can see. That is the whole method, and the reason it fails is never the arithmetic.
+Choose how to divide the accommodation before booking: equally per person, per room or with different weights for different rooms. Record the agreed amounts under the person who pays the booking. Add food, transport and other shared purchases separately.
 
-The booking goes on one card in February. The cleaning fee, the hire car, the first food shop and four dinners follow it over the next six months, spread across whoever happened to have their wallet out. By the last night somebody is doing sums on a phone while everybody else packs.
-
-Open a room on the day the villa is booked instead. The link goes in the group chat, everybody adds what they paid as they pay it, and the week has a running total from the deposit onward. Nobody makes an account and there is nothing to download.
-
-<Steps title="Doing it in the right order">
-<Step title="Agree the beds before the bags go in">A master with its own bathroom is worth more than the attic room. Settle that in the hallway, while it is still a decision rather than a complaint.</Step>
-<Step title="Put the booking in under whoever paid it">Type each person's share rather than letting it divide evenly, so the bed weights end up in the room instead of in somebody's memory.</Step>
-<Step title="Let the week land on top of it">The car, the shop, the ferry, the dinner nobody planned. <Cast name="bea" size="sm" caption="Bea added the boat tickets from the harbour before the rest of the group had found the right queue." /></Step>
+<Steps title="Agree the villa split">
+<Step title="Choose how to price the rooms">Consider room size, private bathrooms and sofa beds. The unequal-room guide shows how to turn room weights into percentages.</Step>
+<Step title="Record the booking and shares">Enter the payer and each person's agreed amount in Split. Keep refundable deposits separate so you can account for them later.</Step>
+<Step title="Share the link and add other costs">Everyone can enter their own shared purchases and check the balances. <Cast name="bea" size="sm" /></Step>
 </Steps>
 
-## When a spreadsheet still wins
+## Couples sharing a room
 
-A villa share of two couples who split everything down the middle has one number to remember, and a shared note holds it fine. A room starts paying for itself at five or six people, where the paying is spread across a dozen cards and nobody can hold the total in their head.
+A per-room split charges a couple for one room; a per-person split charges them for two people. Either can work if the group agrees. You can also weight rooms for accommodation and split shared food per person.
+
+## Cancellations and fewer nights
+
+Agree what happens if someone cancels after a non-refundable payment. Also decide whether a shorter stay changes that person's share. The booking may cost the same either way, so the remaining amount needs to be covered.
+
+## When a spreadsheet is useful
+
+Use a spreadsheet if you want custom formulas for rooms, nights and fees. Once the shares are agreed, a Split room can record those amounts alongside the rest of the trip's expenses.
 
 ## Good to know
 
-The official service is free to use and has no paid tier. A room holds up to twenty people.
+Peanut Split is free to use and has no paid tier.
 
-Automatic conversion for 156 currencies at the day's indicative rate rather than your bank's. At the end the room nets the week down, so the group makes two or three transfers instead of twenty. Split records a payment rather than making one.
+Split automatically converts 156 currencies at the day's indicative rate. Your bank may use a different rate.
+
+Pay each other by cash, bank transfer or another method you agree on, then record the payment in Split. Split does not move money or check with your bank.
 
 <CTA
-  title="Open the room before the deposit"
-  body="Takes ten seconds. No email, no password, no download."
+  title="Create a room for your villa stay"
+  body="Share a room link so everyone can add expenses. No account or download required."
   text="Start a split" />
 
 <FAQ>
-<FAQItem question="How do you share the cost of a villa between friends?">Divide the nightly rate by the people sleeping there and keep the fees, the food and the car as separate lines everybody shares. One person usually pays the booking months early, so the group owes them a number from day one rather than a favour that gets vaguer.</FAQItem>
-<FAQItem question="Should couples pay double for one room?">They pay for the bed rather than for the head. Two people in a double are using one room, so a per-room split is what most groups land on, and the food and the car go back to per person because two people eat twice.</FAQItem>
-<FAQItem question="What happens if somebody drops out after the deposit is paid?">Decide the rule before the booking, not after. A non-refundable deposit is a cost the trip has already taken, and the only question is who absorbs it. Written down on the day it was paid, it is a fact. Raised for the first time in July, it sounds like an accusation.</FAQItem>
+<FAQItem question="How do you share the cost of a villa between friends?">Choose a per-person, per-room or weighted split for the villa before booking. Record each person’s agreed accommodation amount and add shared food, transport and fees separately.</FAQItem>
+<FAQItem question="Should couples pay double for one room?">It depends on the agreed method. A per-room split charges for one room; a per-person split charges for two people. Decide before booking and use a separate rule for shared food if needed.</FAQItem>
+<FAQItem question="What happens if somebody drops out after the deposit is paid?">Check the booking’s refund terms and the cancellation rule your group agreed. If the payment is not refunded, agree who covers it before changing the recorded shares.</FAQItem>
 </FAQ>
 
 <RelatedPages>
 <RelatedLink href="/t/villa-week">A room for a villa week, already set up</RelatedLink>
 <RelatedLink href="/split-airbnb-cost-unequal-rooms">Weighting the bedrooms when they are not equal</RelatedLink>
-<RelatedLink href="/blog/fronting-a-group-trip">Fronting a group trip without being the bank</RelatedLink>
+<RelatedLink href="/blog/fronting-a-group-trip">Paying upfront for a group trip</RelatedLink>
 </RelatedPages>

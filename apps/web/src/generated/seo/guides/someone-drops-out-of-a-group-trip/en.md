@@ -1,13 +1,13 @@
 ---
 title: "What happens if someone drops out of a holiday"
-description: "Someone dropped out of a booked holiday and the money is already spent. Three defensible ways to split what is left, with the working for each one."
+description: "Compare three ways to split a booked holiday after one person cancels. See who pays, how the deposit counts, and the calculation for each remaining share."
 slug: someone-drops-out-of-a-group-trip
 type: guide
 lang: en
 author: Squirrel Labs
 date: 2026-08-12
 tags: [trips, getting paid back]
-claims: [link-is-the-key, netting-is-bounded-exact, settle-is-a-record]
+claims: [link-is-the-key, netting-is-bounded-exact, settle-is-a-record, hosted-price]
 cast: []
 canonical: https://peanutsplit.com/guides/someone-drops-out-of-a-group-trip
 schema_types: [BlogPosting]
@@ -28,122 +28,83 @@ generated_from:
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-24
+generated_at: 2026-09-09
 ---
 
-Someone drops out of the holiday five weeks before it starts, the house in Pembrokeshire is paid
-for, and the group is now five people holding a bill written for six. If nobody settles on a number,
-one person carries the difference in silence and never brings it up again. Let Peanut Split take
-the arithmetic off the group chat. It keeps the trip's expenses in one shared room, so the
-recalculation happens once and everybody reads the same version of it.
-
-The house, the minibus and the surf places were paid for months ago. Those totals are fixed, so
-the only live question is whose cost each line is now.
+When someone drops out of a booked holiday, agree which costs they will still share. The group can
+keep the original split, cover their share or divide the costs item by item. Each choice changes
+who pays; none changes the total already spent in the example below.
 
 ## Who pays when someone drops out of a group trip
 
-Sort the trip into two kinds of cost, because they behave differently when a name comes off the
-list. A whole-thing cost does not move when one person leaves: the house was £1,320 for the week
-whether or not a bed goes unused, £600 of it paid as a deposit back in March, and the minibus was
-£180 for the vehicle. A per-head cost was bought for one named person: six surf places at £35 came
-to £210, and one of them now belongs to nobody.
+Separate fixed bookings from individual tickets. A house or minibus can cost the same with one
+fewer person; an activity place was bought for a particular guest.
 
-At six people the trip came to £1,710, or £285 each. That is the number everybody agreed to, and
-it is the number that has stopped being true.
+Suppose six people booked these items and one person cancels:
 
-## Three splits you can defend, and the working for each
+| Cost | Amount |
+|---|---|
+| House, including a £600 deposit already paid | £1,320 |
+| Minibus | £180 |
+| Six surf places at £35 | £210 |
+| Total | £1,710 |
 
-Three answers hold up: the leaver keeps their share, the five still going absorb it, or every line
-goes to whoever it was bought for. Choose one, show the working, and the conversation stays about
-the method rather than the person.
+The original share was £1,710 ÷ 6 = £285 each. These examples allocate those paid costs; they do not
+decide anyone's legal obligations or whether a booking can be refunded.
 
-### The leaver keeps their share
+## Three ways to split the remaining cost
 
-Nothing is reallocated. Everybody stays on £285, the leaver included. The working is the original
-working: £1,710 divided by six.
+### Keep the original shares
 
-It is the easiest to explain and the hardest to ask for, because it charges somebody for a week
-they will spend at home.
+All six people pay £285, including the person who cancelled. The five still going pay no extra,
+but the person who cancelled pays for a holiday they will not attend.
 
-### The people still going absorb it equally
+### Divide the total among the people going
 
-The leaver pays nothing and the trip is divided among the people going: £1,710 divided by five is
-£342 each. Everybody still going pays £57 more than they budgeted for.
+The person who cancelled pays £0. The remaining five pay £1,710 ÷ 5 = £342 each, an extra £57 per
+person. Check that everyone agrees to the increase.
 
-Groups reach for this when the drop-out was not a choice: a funeral, a shift nobody could swap. It
-costs the five who go the most, so somebody has to say it out loud rather than assume it.
+### Split the bookings and individual tickets separately
 
-### Every line goes to whoever it was bought for
+The house and minibus total £1,500. Divide that by the five people going: £300 each. Add their own
+£35 surf places, giving £335 each. The person who cancelled keeps the £35 cost of their unused place.
 
-Divide the whole-thing costs across the five who go, and leave each per-head cost with the person
-it was bought for. The house and the minibus come to £1,500, which is £300 each. Five surf places
-at £35 make £175, one each. Everybody going pays £335, and the unused sixth place, £35, stays with
-the person who is not going.
-
-Working it out takes the longest. Nobody reopens it later, because every line names who it was
-bought for. Splitting the house five equal ways assumes the bedrooms are worth the same. When they
-are not, the group decides
-[per person or per room](/guides/split-holiday-house-per-person-or-per-room), and it decides once.
+If the bedrooms differ, you can also compare [splitting the house per person or per room](/guides/split-holiday-house-per-person-or-per-room).
 
 <Callout type="info">
-**All three pay for the same trip.** Each version collects £1,710: six shares of £285, five shares
-of £342, or five of £335 plus the £35 place nobody uses. They differ only in where the leaver's
-original £285 lands: on the person who left, on the five who go, or between them line by line.
+**Check the total.** The three methods collect the same £1,710: 6 × £285; 5 × £342; or (5 × £335) + £35.
 </Callout>
 
-## Where a non-refundable deposit lands
+## What happens to the non-refundable deposit
 
-The £600 that went in March was the first part of the £1,320 house, not a separate cost on top of
-it. The deposit follows the house line under whichever method the group picks, and it never sits
-with one person on its own.
+The £600 deposit is already included in the £1,320 house cost. Allocate it with the house under the
+chosen method. Adding it again would count the same cost twice.
 
-It feels different because it went first, out of one account, months before anybody else paid.
-That is a fact about the timing rather than about the split.
+## When a friend cancels at the last minute
 
-## When a friend cancels a holiday at the last minute
+For these fixed costs, late notice does not change the calculation. Send the proposed method and
+new amounts together, and get agreement before requesting payment. You can adapt these
+[repayment messages](/guides/ask-a-friend-to-pay-you-back). For the next trip, agree a cancellation
+rule before booking.
 
-Late notice does not change the maths. It changes how much patience the group has for doing it,
-which is why the method gets chosen in a moving car, or on the last redraft of a message that keeps
-getting softer. Stop rewriting it!
+## Record the agreed shares
 
-Pick the method, put it in a sentence, and post it where everybody can see it.
-[What to put in that message](/guides/ask-a-friend-to-pay-you-back) is the number and the lines it
-came from. Agreeing the rule before anyone books is the better habit, and that is a job for the
-next trip.
+Peanut Split can keep the expenses in a room the group can check. Anyone with the link can open the
+room and add to it, so save the link in the group chat. There is no account or password recovery.
 
-## Put the number where the group can check it
+When several people paid for different bookings, Split suggests a short payment plan from their
+balances. [Debt simplification](/guides/why-do-i-owe-someone-i-never-paid) can change the payee
+without changing a person's net balance.
 
-The agreed number should not live on one person's phone. Paste the room link into the group chat:
-the link is the key, so whoever opens it can read the expenses and add one. There is no login and
-no password recovery, so pin the link where the group will find it after the trip.
+Before paying, check that each booking appears once and that the proposed shares add up to the
+total. A shared message may be enough if there is only one booking and one payer.
 
-A reallocation also leaves a tangle of small debts, because one person paid for the house, another
-for the minibus and a third for the surf places. Split nets those debts down, so the group makes two
-or three transfers rather than working through every pair. That netting is
-[why the plan can name somebody you never paid](/guides/why-do-i-owe-someone-i-never-paid).
+Pay by the method you agree, then record it in Split. Split does not send money or verify payments
+with a bank. The paid status records that someone said they paid.
 
-### Before you send the new number round
+Split is free to use and has no paid tier.
 
-- State which of the three methods it came from.
-- Keep whole-thing costs and per-head costs on separate lines.
-- Put the original share next to the new one, so the difference is visible.
-
-## Recording the money once it moves
-
-Settle however you like: cash, a bank transfer, or another payment app. Then somebody records it in the room.
-Split records the payment, it does not make it. It does not verify with any bank and cannot.
-Nothing in the room collects anything from anybody; it holds the figure and the people do the
-rest.
-
-
-## When a group chat is the better tool
-
-Three of you, one house, one person out, and everybody in the same group chat that evening: work
-out the new share, send it once, and it is settled before anyone opens a browser. A room is worth
-opening when the trip has several paid lines and several payers, and when the settling happens
-weeks after everyone is home.
-
-<CTA text="Start a split" subtitle="Put the trip's expenses and the new shares in one room." href="https://peanutsplit.com/new?utm_medium=content&utm_source=split-guide&utm_campaign=someone-drops-out-of-a-group-trip&utm_content=final-cta" variant="card" />
+<CTA text="Start a split" subtitle="Record the trip expenses and agreed shares." href="https://peanutsplit.com/new?utm_medium=content&utm_source=split-guide&utm_campaign=someone-drops-out-of-a-group-trip&utm_content=final-cta" variant="card" />
 
 <RelatedPages title="Related guide">
 <RelatedLink href="/guides/ask-a-friend-to-pay-you-back">How to ask a friend to pay you back</RelatedLink>

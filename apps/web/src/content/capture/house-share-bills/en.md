@@ -1,6 +1,6 @@
 ---
-title: Working out bills in a house share
-description: Rent by the room, everything communal down the middle, and one place the whole household can see it. How to run house share bills without one person chasing.
+title: 'How to work out bills in a house share'
+description: 'Agree how to divide rent and household bills, record who paid and calculate the monthly balances in a room everyone can open.'
 date: 2026-08-24
 type: capture
 headTerm: house share bills
@@ -14,51 +14,51 @@ claims:
     - room-size-20
 cast: []
 faqs:
-    - question: How do you work out bills in a house share?
-      answer: Split the communal things evenly and the private things by who has them. The kitchen, the lights and the loo are used by everybody, so energy, water and broadband usually go down the middle; rent can follow room size where one bedroom is obviously bigger than another.
-    - question: Who should the accounts be in the name of?
-      answer: Spread them. One name on every account makes that person the household's bank, and the month one bill doubles is the month they find out. Two or three people each holding an account means the balances point in several directions and settle against each other.
-    - question: Should one flatmate pay less because they earn less?
-      answer: It is a method rather than a verdict, and the households that run it agree it once, out loud, before anybody has moved in. The rent calculator has a slider for exactly this, and a household that would rather split on room size alone can leave it alone.
+    - question: 'How do you work out bills in a house share?'
+      answer: 'Agree each person’s share of the household bills, record who paid and subtract each person’s share from what they paid. Split calculates these balances as you add expenses.'
+    - question: 'Who should the accounts be in the name of?'
+      answer: 'Agree who will manage each bill and make sure they can pay it by the due date. The household’s arrangement in Split does not change the account holder’s responsibility to the supplier.'
+    - question: 'Should one flatmate pay less because they earn less?'
+      answer: 'The household can agree an income-based adjustment if everyone is comfortable with it. The rent calculator lets you adjust the division and compare the resulting amounts.'
 ---
 
-# Working out bills in a house share
+# How to work out bills in a house share
 
-Split what the household uses evenly and what one person has privately by room size. That covers rent, energy, water, broadband and council tax, and it takes one conversation rather than twelve.
+Agree a rule for each household cost before the bills arrive. You might divide broadband equally, adjust rent for different rooms and keep personal purchases separate. Record who paid each bill so you can calculate the amount each flatmate owes.
 
-The trouble is never the rule. It is that the energy account is in one name, the broadband is in another, and the person with the car does the big shop, so every month three people are owed something and one of them has to be the one who mentions it. Six months of that and the flat has a quiet bookkeeper who is starting to resent it.
-
-Put the household's money in a room the whole flat can open. Bills land in it as they arrive, everybody can see where they stand, and the message that starts with an apology stops being anybody's job.
-
-<Steps title="Setting it up once">
-<Step title="Agree the rent split before anybody moves in">Room size is the only measure that stays true in November as well as in March. The kitchen and the hallway belong to everybody, so they stay out of the sum.</Step>
-<Step title="Spread the accounts across names">Energy in one, broadband in another, council tax in a third. Nobody ends up carrying the household on one card.</Step>
-<Step title="Add each bill the day it arrives">While the amount is still on the screen in front of you, rather than from a folder in March.</Step>
+<Steps title="Set up the household bills">
+<Step title="Agree the shares">Use the rent calculator if you want to compare room sizes. Decide separately how to split utilities and shared shopping.</Step>
+<Step title="Decide who pays each bill">Check due dates and make sure the person paying has the money in time. Recording a share in Split does not change responsibility to the supplier.</Step>
+<Step title="Record the bills and payments">Add each expense under whoever paid it. At the end of the month, check the balances together and record repayments.</Step>
 </Steps>
 
-## When a standing order still wins
+## When a standing order works well
 
-A household that agreed a flat monthly figure and pays it into one account has already solved this, and should carry on. A room is for the half of the budget that moves: the bill that doubled in January, the shop that was somebody's turn, the boiler.
+If each person pays the same amount every month, standing orders can cover the regular bills. Review the amount when costs change. A shared room is useful for variable bills and purchases paid by different flatmates.
+
+## Room size and income
+
+Room size is one possible basis for rent. A private bathroom, storage or different incomes may also affect what the household agrees. Use the [rent split calculator](/rent-split-calculator) to compare shares, then record the amounts everyone accepts.
 
 ## Good to know
 
-The official service is free to use and has no paid tier. A room holds up to twenty people.
+Peanut Split is free to use and has no paid tier.
 
-The room nets the month down, so the flat makes two or three transfers rather than twelve. Split records a payment rather than making one. It does not check with a bank and cannot.
+Pay each other by cash, bank transfer or another method you agree on, then record the payment in Split. Split does not move money or check with your bank.
 
 <CTA
-  title="Open the flat's room and let the bills land in it"
-  body="Takes ten seconds. No email, no password, no download."
+  title="Create a room for household bills"
+  body="Share a room link so everyone can add expenses. No account or download required."
   text="Start a split" />
 
 <FAQ>
-<FAQItem question="How do you work out bills in a house share?">Split the communal things evenly and the private things by who has them. The kitchen, the lights and the loo are used by everybody, so energy, water and broadband usually go down the middle; rent can follow room size where one bedroom is obviously bigger than another.</FAQItem>
-<FAQItem question="Who should the accounts be in the name of?">Spread them. One name on every account makes that person the household's bank, and the month one bill doubles is the month they find out. Two or three people each holding an account means the balances point in several directions and settle against each other.</FAQItem>
-<FAQItem question="Should one flatmate pay less because they earn less?">It is a method rather than a verdict, and the households that run it agree it once, out loud, before anybody has moved in. The rent calculator has a slider for exactly this, and a household that would rather split on room size alone can leave it alone.</FAQItem>
+<FAQItem question="How do you work out bills in a house share?">Agree each person’s share of the household bills, record who paid and subtract each person’s share from what they paid. Split calculates these balances as you add expenses.</FAQItem>
+<FAQItem question="Who should the accounts be in the name of?">Agree who will manage each bill and make sure they can pay it by the due date. The household’s arrangement in Split does not change the account holder’s responsibility to the supplier.</FAQItem>
+<FAQItem question="Should one flatmate pay less because they earn less?">The household can agree an income-based adjustment if everyone is comfortable with it. The rent calculator lets you adjust the division and compare the resulting amounts.</FAQItem>
 </FAQ>
 
 <RelatedPages>
 <RelatedLink href="/t/flat-monthly">A room for the household ledger, month after month</RelatedLink>
-<RelatedLink href="/rent-split-calculator">Rent by room size, with the working shown</RelatedLink>
+<RelatedLink href="/rent-split-calculator">Split rent by room size</RelatedLink>
 <RelatedLink href="/split-bill-no-signup">Splitting without anybody making an account</RelatedLink>
 </RelatedPages>

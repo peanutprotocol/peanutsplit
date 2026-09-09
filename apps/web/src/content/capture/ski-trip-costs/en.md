@@ -1,6 +1,6 @@
 ---
-title: Ski trip costs, split across the group
-description: The chalet, the passes, the hire kit and the drive, and which of them belong in the group total. Where a season pass bought in October fits.
+title: 'How to split ski trip costs'
+description: 'Separate shared accommodation, food and transport from personal lift passes and ski hire. Track who paid and calculate each person’s balance.'
 date: 2026-08-24
 type: capture
 headTerm: ski trip costs
@@ -15,51 +15,53 @@ claims:
 cast:
     - jules
 faqs:
-    - question: How do you split ski trip costs between friends?
-      answer: Share the chalet, the food and the drive across everybody, and leave each person's own passes and hire kit with them. Almost every argument on a ski week comes from mixing those two piles together.
-    - question: Does a season pass go into the group total?
-      answer: No, and this is the one to agree before anybody books. A pass bought in the autumn sale was paid for months before the trip existed, so charging the rest of the group a share of it bills them for a decision they were not part of.
-    - question: What about the people who do not ski?
-      answer: They pay for the bed, the food and the drive, and not for the mountain. It is only awkward when it comes up on the last day, which is the argument for having the room open before anybody books anything.
+    - question: 'How do you split ski trip costs between friends?'
+      answer: 'For a ski trip, share accommodation, food and transport between the people using them. Assign passes, lessons and equipment hire to the people they were bought for.'
+    - question: 'Does a season pass go into the group total?'
+      answer: 'Usually no. Treat it as a personal purchase unless the group has agreed to share that cost.'
+    - question: 'What about the people who do not ski?'
+      answer: 'Include them in the accommodation, meals and transport they use. Leave them out of lift passes, lessons and equipment hire bought for other people.'
 ---
 
-# What a ski trip costs each person
+# How to split ski trip costs
 
-Split the chalet, the food and the drive across the whole group, and leave the passes and the hire kit with the person who bought them. Mixing those two piles is where a ski week goes wrong.
+Split the chalet, shared meals and transport between the people using them. Keep lift passes, lessons and equipment hire with the people they were bought for, unless the group agrees another arrangement.
 
-Nothing else about the week is shared evenly. Two people bought passes in the autumn sale for far less than the three who bought theirs at the lift. One person hired boots and skis, another brought their own. Somebody did a supermarket shop in the valley for eight, and somebody else paid for the diesel and the tolls both ways.
-
-A room holds the shared pile and ignores the rest. Everything goes in under whoever paid it, the week nets down at the end, and the drive home is not the conversation where the fuel gets worked out from memory.
-
-<Steps title="Doing it in the right order">
-<Step title="Decide what counts as shared before booking">The chalet, the food, the fuel and the tolls. Passes and kit stay personal unless the group buys them together at a group rate.</Step>
-<Step title="Put the chalet in on the day it is paid">Whoever's card took it is owed from that day, which is easier to say in September than in February.</Step>
-<Step title="Add the rest as the week goes">The shop, the tolls, the one dinner up the mountain. <Cast name="jules" size="sm" caption="Jules added the valley shop from the car park while the boot was still open." /></Step>
+<Steps title="Record the ski trip costs">
+<Step title="Agree which costs are shared">Decide how to divide the chalet, food, fuel and tolls. If people stay for different dates, agree their accommodation shares.</Step>
+<Step title="Add bookings as they are paid">Record the chalet under whoever paid and enter the agreed shares.</Step>
+<Step title="Add expenses during the trip">Include shared shopping and meals. Select only the people who took part in each expense. <Cast name="jules" size="sm" /></Step>
 </Steps>
 
-## When a kitty still wins
+## Passes, hire and people who do not ski
 
-A group that pays a fixed amount each into one pot and spends out of it has a simpler problem, and one line in a note closes it. A room is better when six people are paying for eight days on their own cards and nobody knows the total until Thursday.
+A season pass is normally a personal purchase. If one person buys passes or hires equipment for others, record that cost only against those people. Friends who do not ski can share the accommodation and transport without paying for lift access.
+
+## When a shared pot is enough
+
+If everyone contributes a fixed amount and all shared spending comes from that pot, a note of the total and any leftover money may suffice. A room helps when people pay with their own cards.
 
 ## Good to know
 
-The official service is free to use and has no paid tier.
+Peanut Split is free to use and has no paid tier.
 
-Adding an expense with no connection is kept on the phone and sent when the signal comes back, which is most of a mountain. Recording a settle-up needs a connection. Split records a payment rather than making one.
+You can add expenses without a connection; they stay on your device and send when you reconnect. Editing expenses and recording payments need a connection.
+
+Pay each other by cash, bank transfer or another method you agree on, then record the payment in Split. Split does not move money or check with your bank.
 
 <CTA
-  title="Open the room before the passes get bought"
-  body="Takes ten seconds. No email, no password, no download."
+  title="Create a room for your ski trip"
+  body="Share a room link so everyone can add expenses. No account or download required."
   text="Start a split" />
 
 <FAQ>
-<FAQItem question="How do you split ski trip costs between friends?">Share the chalet, the food and the drive across everybody, and leave each person's own passes and hire kit with them. Almost every argument on a ski week comes from mixing those two piles together.</FAQItem>
-<FAQItem question="Does a season pass go into the group total?">No, and this is the one to agree before anybody books. A pass bought in the autumn sale was paid for months before the trip existed, so charging the rest of the group a share of it bills them for a decision they were not part of.</FAQItem>
-<FAQItem question="What about the people who do not ski?">They pay for the bed, the food and the drive, and not for the mountain. It is only awkward when it comes up on the last day, which is the argument for having the room open before anybody books anything.</FAQItem>
+<FAQItem question="How do you split ski trip costs between friends?">For a ski trip, share accommodation, food and transport between the people using them. Assign passes, lessons and equipment hire to the people they were bought for.</FAQItem>
+<FAQItem question="Does a season pass go into the group total?">Usually no. Treat it as a personal purchase unless the group has agreed to share that cost.</FAQItem>
+<FAQItem question="What about the people who do not ski?">Include them in the accommodation, meals and transport they use. Leave them out of lift passes, lessons and equipment hire bought for other people.</FAQItem>
 </FAQ>
 
 <RelatedPages>
 <RelatedLink href="/t/ski-week">A room for a ski week, already set up</RelatedLink>
-<RelatedLink href="/mileage-split-calculator">Costing the drive at an official rate</RelatedLink>
-<RelatedLink href="/blog/split-a-group-trip-across-countries">A trip that crosses a border and a currency</RelatedLink>
+<RelatedLink href="/mileage-split-calculator">Split driving costs</RelatedLink>
+<RelatedLink href="/blog/split-a-group-trip-across-countries">Split trip expenses across countries</RelatedLink>
 </RelatedPages>

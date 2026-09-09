@@ -1,6 +1,6 @@
 ---
-title: Dividir despesas de viagem entre países
-description: Quatro pessoas, quatro bancos, três moedas, um jantar. Como manter as despesas da viagem em ordem e, principalmente, como receber depois.
+title: 'Dividir uma viagem entre países'
+description: 'Organize despesas com amigos que moram em países diferentes. Escolha a moeda, registre quem pagou e combine como fazer os pagamentos.'
 date: 2026-07-28
 type: guide
 tags: [viagens, moedas, receber]
@@ -12,83 +12,59 @@ claims:
     - settle-is-a-record
 cast: []
 faqs:
-    - question: Todo mundo precisa instalar alguma coisa?
-      answer: Não. Uma sala do Split é um link. Quem abre digita um nome e começa a lançar despesas — sem app, sem conta, sem e-mail.
-    - question: Em que moeda deixar a sala?
-      answer: Na que vocês vão discutir no fim, que costuma ser a moeda em que quase tudo foi pago. Você ainda pode lançar cada despesa na moeda em que pagou.
-    - question: Como as pessoas se pagam entre países?
-      answer: Do jeito que já pagam. O Split reduz as dívidas para vocês fazerem duas ou três transferências em vez de vinte, e registra cada uma quando quem pagou diz que pagou.
+    - question: 'Todo mundo precisa instalar alguma coisa?'
+      answer: 'Cada pessoa entra na sala ao abrir o link no navegador e digitar um nome. Não precisa instalar nada nem criar conta.'
+    - question: 'A sala deve usar a moeda do meu país?'
+      answer: 'Escolha uma moeda que o grupo aceite. Usar a moeda da maior parte das despesas facilita comparar os totais com os recibos.'
+    - question: 'Podemos usar meios diferentes para pagar?'
+      answer: 'Sim. Duas pessoas podem usar dinheiro e outras podem fazer uma transferência bancária. Registrem os pagamentos na sala depois de fazê-los.'
 ---
 
 <Hero
-  eyebrow="viagens em grupo"
-  title="Dividir uma viagem quando ninguém tem o mesmo banco"
-  subtitle="A conta é a parte fácil. O difícil é fazer quatro pessoas em quatro países se pagarem de verdade."
+  eyebrow="guia"
+  title="Divida uma viagem com amigos de outros países"
+  subtitle="Combinem as despesas compartilhadas e o meio de pagamento antes de voltar para casa."
   cta="Criar um split"
-  ctaHint="Dez segundos. Sem e-mail, sem senha, sem download." />
+  ctaHint="Sem e-mail, sem senha, sem download." />
 
-Uma viagem com amigos que moram na mesma cidade se resolve sozinha. Um paga o jantar, outro paga o táxi, e mais ou menos empata porque vocês vão se ver na semana seguinte.
+Para dividir uma viagem com amigos que moram em países diferentes, usem uma lista de despesas e escolham uma moeda para os totais. Combinem como vão se pagar enquanto ainda estiverem juntos.
 
-Uma viagem com amigos que moram em quatro países não se resolve. Um pagou a casa em euros de uma conta alemã. Outro pagou o carro em bahts tailandeses num cartão que cobra em libras. Dois vêm comprando comida em dinheiro. Três semanas depois existe um número no grupo em que ninguém confia e que ninguém pagou.
+No Peanut Split, cada pessoa lança o que pagou em uma sala compartilhada. O site calcula os saldos e sugere uma lista de pagamentos. O dinheiro é enviado pelo meio que vocês escolherem.
 
-## Monte a sala antes de desembarcar
-
-Três coisas para combinar antes da primeira despesa.
-
-<Steps title="Antes da primeira despesa">
-<Step title="Escolha a moeda em que vocês vão discutir">Use aquela em que quase tudo está sendo pago, não a do seu banco. Se a casa, o carro e os restaurantes são em euros, a sala é em euros. Cada um lança o que pagou de verdade e o Split converte, então ninguém faz conta na fila do táxi.</Step>
-<Step title="Coloque todo mundo antes da primeira despesa">Cole o link no grupo no primeiro dia, enquanto ainda existe empolgação com a viagem. O maior motivo para um split de viagem desandar é que duas pessoas nunca entraram, e o que elas gastaram ficou perdido na rolagem do WhatsApp.</Step>
-<Step title="Combinem o que entra">Digam em voz alta se o caixa comum cobre bebida, gorjeta e táxi, ou só as coisas grandes. Leva trinta segundos e é a única regra de que vocês vão precisar.</Step>
+<Steps title="Antes da primeira reserva">
+<Step title="Escolha a moeda da sala">A moeda usada na maioria das reservas é um bom ponto de partida. Cada despesa pode ser lançada na moeda original, com conversão automática para 156 moedas pelo câmbio indicativo.</Step>
+<Step title="Compartilhe a sala">Envie o link no grupo do WhatsApp e fixe a mensagem. Cada pessoa entra pelo navegador e digita um nome. Quem tem o link pode acessar a sala, então mantenha o compartilhamento dentro do grupo.</Step>
+<Step title="Combinem o que será dividido">Decidam como tratar refeições individuais, bebidas e transporte usado por apenas parte do grupo. Selecione em cada despesa as pessoas que participam da divisão.</Step>
 </Steps>
 
-## Lance enquanto o recibo está na sua mão
+## Lance o valor original
 
-Quem pagou lança a despesa antes de tirarem os pratos. Não à noite, não no voo de volta.
+Se o recibo mostra 3.200 bahts, lance 3.200 bahts. Isso facilita a conferência depois. O guia de [despesas em moedas diferentes](/pt-br/blog/split-expenses-across-currencies) explica como lidar com custos do cartão e conversão.
 
-Depois você não vai lembrar. Uma semana depois aquele jantar custou "uns noventa" e você errou por quinze, e quem pagou não vai contestar porque também não lembra. Cada um desses arredondamentos sai do bolso de alguém.
+Lance as despesas enquanto tiver os dados em mãos. Antes de voltar, peça que todos confiram reservas que faltam, compras em dinheiro e lançamentos duplicados.
 
-<Callout title="Lance o que você pagou de verdade">
-Se você pagou 3.200 bahts, coloque 3.200 bahts — não o palpite do seu celular em euros. Converter na hora de lançar joga fora o único número que dá para provar, e ele não vai bater com a fatura do seu cartão de qualquer jeito.
-</Callout>
+## Combinem o pagamento entre países
 
-## Não persigam todo mundo por tudo
+Confira se a outra pessoa consegue receber na moeda que você pretende enviar. Veja as tarifas e combinem quem vai pagá-las antes da transferência.
 
-Com quatro pessoas e duas semanas de gastos dá para terminar com vinte dívidas pequenas apontando para todos os lados. Pagar uma por uma é como uma viagem acertada continua sem acerto por um mês.
+Dinheiro em espécie pode servir enquanto vocês estão juntos. Depois da viagem, uma transferência ou outro serviço de pagamento pode ser mais conveniente, desde que os dois consigam usar. Links de pagamento também têm países e meios aceitos; confira antes de contar com essa opção.
 
-O Split compensa as dívidas entre si para vocês fazerem duas ou três transferências em vez de vinte. Com quatro pessoas quase sempre cai para isso, e cada uma é uma decisão de uma pessoa só, não uma negociação de grupo.
+O Split compensa o que cada pessoa pagou com o que deve. Por isso, pode sugerir que você pague alguém que não pagou sua refeição diretamente. A [explicação das dívidas simplificadas](/guides/why-do-i-owe-someone-i-never-paid) mostra como funciona.
 
-<Checklist title="Como acertado deveria ser">
-<ChecklistItem title="Dois ou três pagamentos, não vinte">Uma pessoa pagar outra acontece. Seis pessoas se pagando entre si vira discussão.</ChecklistItem>
-<ChecklistItem title="Cada pagamento com dono e com número">"Jules deve 140 € para a Ana" dá para executar. "Todo mundo deve mais ou menos a mesma coisa" não.</ChecklistItem>
-<ChecklistItem title="Alguém precisa dizer que caiu">Uma linha acertada é a palavra de uma pessoa de que pagou. O Split não confere com banco nenhum e não tem como — entre amigos tudo bem, e vale saber disso sobre o seu registro.</ChecklistItem>
-</Checklist>
-
-## E aí vem a parte chata: pagar entre países
-
-É aqui que quase todo conselho sobre dividir viagem termina.
-
-Se o grupo compartilha país, vocês já têm a resposta: um app de transferência que todo mundo tem. Se não, "me manda por aí" vira uma semana de idas e vindas sobre quem tem qual app, quanto custa uma transferência internacional e se vale discutir 4 € de tarifa numa dívida de 40 €.
-
-Em ordem de preferência:
-
-- **Dinheiro, se vocês ainda estiverem no mesmo lugar.** Sem taxa, na hora, e acontece antes de cada um ir embora. Acertem no aeroporto se der.
-- **Uma transferência local entre as duas pessoas que compartilham país.** Compensem as dívidas para que o máximo possível de pagamentos seja local.
-- **Um link de pagamento para o resto.** Um manda o link, o outro paga com o que tiver. Isso contorna o problema do "qual app você tem", que é o que realmente trava tudo.
-
-O Split registra o pagamento quando quem pagou diz que pagou. Ele não se importa com o caminho que o dinheiro fez, e não confere com o banco. Uma linha acertada quer dizer que alguém tocou, não que o dinheiro caiu.
+Registre cada pagamento depois de fazer a transferência. O Split não movimenta dinheiro nem verifica pagamentos com o banco. Se o valor não chegar, confira com quem deveria receber.
 
 <CTA
-  title="Abra a sala antes da viagem, não depois"
-  body="Um link no grupo. Cada um lança o que pagou, na moeda em que pagou, e o Split calcula quem deve a quem."
+  title="Crie a sala da viagem"
+  body="Reúna reservas e despesas diárias em uma lista compartilhada."
   text="Criar um split" />
 
 <FAQ title="Perguntas">
-<FAQItem question="Todo mundo precisa instalar alguma coisa?">Não. Uma sala do Split é um link. Quem abre digita um nome e começa a lançar despesas — sem app, sem conta, sem e-mail.</FAQItem>
-<FAQItem question="Em que moeda deixar a sala?">Na que vocês vão discutir no fim, que costuma ser a moeda em que quase tudo foi pago. Você ainda pode lançar cada despesa na moeda em que pagou.</FAQItem>
-<FAQItem question="Como as pessoas se pagam entre países?">Do jeito que já pagam. O Split reduz as dívidas para vocês fazerem duas ou três transferências em vez de vinte, e registra cada uma quando quem pagou diz que pagou.</FAQItem>
+<FAQItem question="Todo mundo precisa instalar alguma coisa?">Cada pessoa entra na sala ao abrir o link no navegador e digitar um nome. Não precisa instalar nada nem criar conta.</FAQItem>
+<FAQItem question="A sala deve usar a moeda do meu país?">Escolha uma moeda que o grupo aceite. Usar a moeda da maior parte das despesas facilita comparar os totais com os recibos.</FAQItem>
+<FAQItem question="Podemos usar meios diferentes para pagar?">Sim. Duas pessoas podem usar dinheiro e outras podem fazer uma transferência bancária. Registrem os pagamentos na sala depois de fazê-los.</FAQItem>
 </FAQ>
 
 <RelatedPages title="Continue lendo">
-<RelatedLink href="/pt-br/blog/split-expenses-across-currencies">Quando você pagou numa moeda e deve em outra</RelatedLink>
+<RelatedLink href="/pt-br/blog/split-expenses-across-currencies">Dividir despesas em moedas diferentes</RelatedLink>
 <RelatedLink href="/pt-br/tricount-alternative">Como o Split se compara ao Tricount</RelatedLink>
 </RelatedPages>

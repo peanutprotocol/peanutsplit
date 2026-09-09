@@ -206,13 +206,13 @@ describe('proxy released and parked guide headers on the indexed deployment', ()
         vi.unstubAllEnvs()
     })
 
-    it('splits the installed cohort into the nine released and the seven parked', () => {
-        expect(guidePaths).toHaveLength(16)
+    it('splits the installed cohort into the nine released and the eight parked', () => {
+        expect(guidePaths).toHaveLength(17)
         // Named one by one, so a typo in the registry fails on the path that does not exist rather
         // than on an arithmetic mismatch.
         for (const publicPath of released) expect(guidePaths, publicPath).toContain(publicPath)
         expect(released).toHaveLength(9)
-        expect(parked).toHaveLength(7)
+        expect(parked).toHaveLength(8)
     })
 
     it('answers every released path without a noindex tag and without the private cache rule', () => {

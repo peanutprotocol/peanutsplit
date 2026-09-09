@@ -260,7 +260,7 @@ describe('content tree', () => {
             expect(released!.frontmatter.faqs?.map((faq) => faq.question).slice(0, 3)).toEqual([
                 'Is Split FOSS or only free to use?',
                 'Can I self-host Split?',
-                'Who maintains Split, and why can another product appear?',
+                'Who maintains Split?',
             ])
         } finally {
             if (prior === undefined) delete process.env.NEXT_PUBLIC_FOSS_RELEASED
@@ -981,9 +981,11 @@ function noExclamationZones(doc: (typeof ALL)[number]): [string, string][] {
  */
 function ownVoiceQuestions(text: string): string[] {
     const asked = text
-        .replace(/<FAQ>[\s\S]*?<\/FAQ>/g, ' ')
+        .replace(/<FAQ(?:\s[^>]*)?>[\s\S]*?<\/FAQ>/g, ' ')
+        .replace(/^#{1,6}\s+.*$/gm, ' ')
         .replace(/\b[a-zA-Z]+="[^"]*"/g, ' ')
         .replace(/["“][^"”]*["”]/g, ' ')
+        .replace(/‘[^’]*’/g, ' ')
     return [...asked.matchAll(/[^.!?\n]*\?/g)].map((match) => match[0].trim()).filter(Boolean)
 }
 
@@ -1395,13 +1397,6 @@ describe('locale routing', () => {
     })
 })
 
-/** §4.1 — the only approved shapes for the one concession section a page carries, per locale. */
-const CONCESSION_TITLE: Record<IndexedLocale, RegExp> = {
-    en: /^When .+ (?:is the better tool|still wins)$/,
-    'es-419': /^Cuando .+ es la mejor herramienta$/,
-    'pt-br': /^Quando .+ é a melhor ferramenta$/,
-}
-
 /**
  * §8.1's objection, in each language's own household. Whole words, because unanchored `loo` sits
  * inside "floor" and a page about floor area says that in its first line.
@@ -1811,12 +1806,10 @@ describe('tool style gate', () => {
         }
     })
 
-    /** §4.1: one concession, and its title names the tool that wins rather than what we lack. */
-    it('concedes to something named, in the approved words', () => {
-        for (const [id, tool, locale] of GATED_PAGES) {
-            expect(tool.copy.concession.title, `${id}: see §4.1 for the approved titles`).toMatch(
-                CONCESSION_TITLE[locale]
-            )
+    /** The alternative section needs a heading and explanation, with no prescribed sentence shape. */
+    it('labels and explains the alternative method', () => {
+        for (const [id, tool] of GATED_PAGES) {
+            expect(tool.copy.concession.title.trim().length, `${id}: the heading is empty`).toBeGreaterThan(0)
             expect(tool.copy.concession.body.length, `${id}: the concession is empty`).toBeGreaterThan(40)
         }
     })

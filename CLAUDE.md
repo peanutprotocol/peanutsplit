@@ -4,6 +4,17 @@ This repo does **not** follow mono's always-PR workflow. Split is growth-owned, 
 
 Product rationale, status, milestones and the decision log live in the Notion project (linked from `mono/projects/peanut-split/`). The engineering backlog — what's built, building, queued, gated on infra, and deliberately not built — lives in [`ROADMAP.md`](ROADMAP.md). This file is the working rules only — don't restate either here.
 
+## Readability for all work
+
+- Apply this standard to user-facing copy, docs, comments, identifiers, PR and commit explanations, and assistant responses.
+- Lead with the concrete point or action. Use familiar words and complete sentences in prose; keep labels and identifiers concise.
+- Cut padding, inflated claims, forced personas, rhetorical questions followed by answers, and invented contrasts.
+- Keep the facts, technical precision, necessary detail and natural phrasing in each language.
+- Name code for what it represents or does, using existing domain terms consistently.
+- Use comments to explain a reason or constraint. Omit comments that merely narrate the code.
+- Choose code that is easy to follow. Add abstractions only when they reduce actual complexity.
+- Before delivery, do a final editorial reread from the human reader's perspective; pattern checks alone are insufficient. Preserve factual and functional meaning when editing.
+
 ## What's in here
 
 ```

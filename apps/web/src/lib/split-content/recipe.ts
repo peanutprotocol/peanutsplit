@@ -13,12 +13,9 @@ export type PageKind = Collection | 'guide'
  * translation silently repaint the page). A slug that is both a blog/* directory and a generated
  * guide must resolve to the same chapter, which a flat map gives for free — see recipe.test.ts.
  *
- * Covers the 31 real slugs live today: the 5 alternatives/*, 9 blog/*, 10 capture/* directory
- * names, plus the 9 unique guide slugs in src/generated/seo/manifest.json (2 of which —
- * split-a-group-trip-across-countries, split-expenses-across-currencies — are also blog/*
- * directories and share one entry below). recipe.test.ts cross-checks this map against the real
- * content tree and the manifest, so an unmapped slug fails a test rather than falling back
- * silently.
+ * Covers the native content tree and the generated guide manifest, including parked guides.
+ * Topics shared by a blog post and a guide use the same entry. recipe.test.ts checks coverage
+ * against both sources so a missing chapter fails before deployment.
  *
  * A proposal for Konrad's post-build review (fun-engine.md Status), not a final taxonomy.
  */
@@ -60,6 +57,7 @@ export const CHAPTER_BY_SLUG: Record<string, Chapter> = {
     'split-shared-house-bills': 'home',
     'splitwise-currency-conversion': 'currencies',
     'splitwise-vs-settle-up': 'versus',
+    'when-a-friend-wont-pay-their-share': 'getting-paid-back',
     'why-do-i-owe-someone-i-never-paid': 'getting-paid-back',
 }
 

@@ -1,9 +1,9 @@
 ---
-title: Group trip expenses without a spreadsheet
-description: Skip the sheet. One link in the group chat, everybody adds their own expenses as they pay, and the totals are right before the trip ends.
+title: 'Group trip expenses without a spreadsheet'
+description: 'Record shared trip expenses in one room. Everyone adds what they paid, and Split works out the balances and a payment plan.'
 date: 2026-07-30
 type: capture
-headTerm: group trip expenses
+headTerm: 'group trip expenses'
 intent: group trip expense spreadsheet template
 tags: [trips, spreadsheets]
 claims:
@@ -17,51 +17,53 @@ claims:
 cast:
     - mo
 faqs:
-    - question: Is there a spreadsheet template for group trip expenses?
-      answer: There are hundreds, and for two people in one currency a good one is enough. Starting a room mid-trip is ordinary. Type in the ones you have already recorded, paste the link, and the rest arrives from other people.
-    - question: How do I work out who owes who at the end of a trip?
-      answer: The room does it as people type, so the number is right on day three as well. It nets the debts down, so the group makes two or three transfers instead of twenty.
-    - question: How do we split petrol money on a road trip?
-      answer: Add each fill as an expense under whoever paid at the pump, rather than keeping a tally for the end. Expenses typed with no signal wait on your phone and go when it comes back, and the queue survives closing the tab.
+    - question: 'Is there a spreadsheet template for group trip expenses?'
+      answer: 'A trip expense spreadsheet needs columns for the date, description, amount, currency, payer and each person’s share. Split is an alternative if you want everyone to enter expenses through a shared link.'
+    - question: 'How do I work out who owes who at the end of a trip?'
+      answer: 'For each person, subtract their share of the costs from what they paid. Split calculates these balances and suggests a short payment plan.'
+    - question: 'How do we split petrol money on a road trip?'
+      answer: 'Add each fuel purchase under the person who paid and select the passengers who shared it. Expenses added offline wait on your device until you reconnect.'
 ---
 
-# A spreadsheet template for group trip expenses
+# Group trip expenses without a spreadsheet
 
-"Send me the photo, I'll put it in tonight," they say. Nobody puts it in tonight. Your sheet was lovely on day one — colour-coded tabs, a column for the currency, a total that worked out the per-person share on its own. By day three you are the only one who has opened it, the receipts are photographs in three different phones, and you have typed in 19 of them from a sun lounger, which is unpaid bookkeeping in a swimming costume for a company that does not exist. Enough of that!
+A shared trip ledger needs the amount, who paid and who shared each expense. In Peanut Split, everyone can add those details through the same room link. The room keeps a running balance and suggests who should pay whom.
 
-Whether the sheet gets finished matters more than it sounds. When it doesn't, somebody is ninety euros down and says nothing about it, and some people never bring it up at all and carry a quiet resentment that outlasts the friendship. Let Split do that bit instead. One link in the group chat, everyone adds what they paid themselves, in the currency they paid it in, no accounts and nothing to download; the room adds it up and nets it to a short list of who pays whom. Just send the link and get back in the sea.
-
-## When a spreadsheet still wins
-
-Some groups want the formulas, and a sheet gives you them. You can put a column in for anything: who slept in the room with the balcony, the deposit one person paid in March and got back in August. The file is still on your drive in two years.
-
-A room does none of that. It counts what people paid, it nets the total down to who pays whom, and it holds up to twenty people. If somebody in the group likes keeping the sheet, keep the sheet.
-
-<Steps title="Setting one up">
-<Step title="Start a room">Name it after the trip and pick the currency most of the money goes out in.</Step>
-<Step title="Paste the link into the group chat">Whoever opens it types a name and is in. Nobody makes an account, and the link is the key, so the chat is where it wants to live rather than your own browser.</Step>
-<Step title="Everyone adds their own as they pay">The food shop and the museum tickets one person bought for everybody, entered by whoever was holding the card. The totals move while you are still at the table. <Cast name="mo" size="sm" caption="Mo adds the ferry tickets on the ferry." /></Step>
+<Steps title="Set up the trip">
+<Step title="Create a room">Name it after the trip and choose the currency you want to use for balances.</Step>
+<Step title="Share the link">Send it to the group. Each person enters a name to join. Keep the link pinned so you can open the room again.</Step>
+<Step title="Add shared expenses">Record accommodation, food and transport under the person who paid. Select the people who shared each cost. <Cast name="mo" size="sm" /></Step>
 </Steps>
+
+## If you prefer a spreadsheet
+
+Use columns for the date, description, amount, currency, payer and each person's share. Each person's balance is what they paid minus what they owe for their share.
+
+A spreadsheet gives you control over formulas and extra columns. It works well if someone is happy to maintain it. Split is useful when several people want to enter their own expenses from their phones.
 
 ## Good to know
 
-The official service is free to use and has no paid tier.
+Split is free to use and has no paid tier.
 
-It automatically converts 156 currencies at the day's indicative rate rather than your bank's. Split does not check with a bank and cannot: two people settle however they settle, and one of them taps to record it. Recording that tap needs a connection, on purpose, because a payment written down twice is worse than one written down late.
+Split automatically converts 156 currencies at the day's indicative rate. Your bank may use a different rate.
+
+You can add expenses without a connection; they stay on your device and send when you reconnect. Editing expenses and recording payments need a connection.
+
+Pay each other by cash, bank transfer or another method you agree on, then record the payment in Split. Split does not move money or check with your bank.
 
 <CTA
-  title="Start a room for the trip"
-  body="Name it, paste the link, and the typing stops being your turn."
+  title="Create a room for your trip"
+  body="Share a room link so everyone can add expenses. No account or download required."
   text="Start a split" />
 
 <FAQ>
-<FAQItem question="Is there a spreadsheet template for group trip expenses?">There are hundreds, and for two people in one currency a good one is enough. Starting a room mid-trip is ordinary. Type in the ones you have already recorded, paste the link, and the rest arrives from other people.</FAQItem>
-<FAQItem question="How do I work out who owes who at the end of a trip?">The room does it as people type, so the number is right on day three as well. It nets the debts down, so the group makes two or three transfers instead of twenty.</FAQItem>
-<FAQItem question="How do we split petrol money on a road trip?">Add each fill as an expense under whoever paid at the pump, rather than keeping a tally for the end. Expenses typed with no signal wait on your phone and go when it comes back, and the queue survives closing the tab.</FAQItem>
+<FAQItem question="Is there a spreadsheet template for group trip expenses?">A trip expense spreadsheet needs columns for the date, description, amount, currency, payer and each person’s share. Split is an alternative if you want everyone to enter expenses through a shared link.</FAQItem>
+<FAQItem question="How do I work out who owes who at the end of a trip?">For each person, subtract their share of the costs from what they paid. Split calculates these balances and suggests a short payment plan.</FAQItem>
+<FAQItem question="How do we split petrol money on a road trip?">Add each fuel purchase under the person who paid and select the passengers who shared it. Expenses added offline wait on your device until you reconnect.</FAQItem>
 </FAQ>
 
 <RelatedPages>
-<RelatedLink href="/blog/fronting-a-group-trip">Fronting a group trip without being the bank</RelatedLink>
-<RelatedLink href="/blog/split-expenses-across-currencies">Splitting expenses across currencies</RelatedLink>
+<RelatedLink href="/blog/fronting-a-group-trip">Paying upfront for a group trip</RelatedLink>
+<RelatedLink href="/blog/split-expenses-across-currencies">Split expenses across currencies</RelatedLink>
 <RelatedLink href="/splitwise-alternative">How Split compares to Splitwise</RelatedLink>
 </RelatedPages>

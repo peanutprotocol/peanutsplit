@@ -1,58 +1,56 @@
 import type { RoomTemplate } from './types'
 
-/**
- * The weekend whose biggest line was paid nine months earlier, by one person, in a queue.
- */
+/** Festival tickets and shared travel, camping and food costs. */
 export const festival: RoomTemplate = {
     slug: 'festival',
-    updated: '2026-08-24',
+    updated: '2026-09-09',
     room: { name: 'Festival', emblem: 'tent' },
     meta: {
         title: 'Split festival costs with the whole camp',
         description:
-            'One person got the tickets in the sale nine months ago. A room for the ticket money, the van, the shop and the weekend, on a link nobody signs up for.',
+            'Track festival tickets, transport, camping supplies and food in one shared room. Record who paid and what each person owes, without creating an account.',
     },
     headTerm: 'split festival costs',
     copy: {
         h1: 'Split festival costs when one person bought the tickets',
         intro: [
-            'Somebody sat in a queue in October with six tabs open and got eight tickets. Nine months later four of those people have paid them back, two have paid part, and the person who bought them has stopped mentioning it because it has been too long.',
-            'This link opens a room called Festival. Put the tickets in the day they are bought, at the price they were bought for, and the debt is a number on everybody’s screen from that afternoon rather than a favour that quietly goes bad.',
+            'Add the ticket purchase with the booking fee, who paid and which tickets belong to each person. Record repayments as they happen so the group can see what is still owed.',
+            'This template starts a room called Festival. Use it for tickets bought in advance and for the costs you share during the weekend.',
         ],
         lines: {
-            title: 'What usually goes in a festival room',
-            intro: 'The ticket line is the one that matters. Everything else is the weekend, and the weekend is cheap by comparison.',
+            title: 'Festival costs to include',
+            intro: 'Select the people sharing each expense. Different ticket types or travel plans may need different shares.',
             items: [
-                'Tickets, at what they cost including the booking fee',
-                'Coach or van hire, and the fuel',
-                'The camping gear somebody bought for everybody',
-                'The big shop before the gates',
-                'Ice, wood and the things you buy twice because they got lost',
-                'The taxi home on Monday morning',
+                'Tickets and booking fees',
+                'Coach tickets or van hire and fuel',
+                'Shared camping equipment',
+                'Groceries for the group',
+                'Ice and other campsite supplies',
+                'Taxis and return travel',
             ],
         },
         concession: {
-            title: 'When a bank transfer request still wins',
-            body: 'One ticket bought for one friend is a single transfer and a room would be ceremony. This is for the camp of eight where the tickets, the van and the shop were paid by three different people at three different times, and nobody can hold the shape of it in their head.',
+            title: 'For a single ticket purchase',
+            body: 'If you bought one ticket for one friend, sending them the amount and your payment details may be enough. A shared room is useful when several people pay for tickets, transport and supplies, or repay in instalments.',
         },
-        ctaTitle: 'Open the room the day the tickets clear',
+        ctaTitle: 'Create your festival room',
     },
     faqs: [
         {
-            question: 'How do you get people to pay for a festival ticket months later?',
-            answer: 'Do not leave it months. Put the tickets in the room the day they are bought and send the link that afternoon, while everybody is still pleased about getting in. A number that has been visible since October is a fact by June; a number raised for the first time in June is a request.',
+            question: 'How do I track tickets bought months before the festival?',
+            answer: 'Add the purchase when you buy the tickets and agree on when each person will repay you. Record any repayments already received, including partial ones. Split shows the remaining balances; it does not collect the money.',
         },
         {
             question: 'What about the booking fee?',
-            answer: 'It went on the same card, so it goes in the same line. Splitting it separately is more arithmetic for a figure that comes to a couple of pounds a head.',
+            answer: 'Include the booking fee in the ticket expense. If every ticket cost the same, split the total equally. If prices or fees differ, enter each person’s actual share.',
         },
         {
             question: 'Someone dropped out and sold their ticket on. Now what?',
-            answer: 'Record what the ticket sold for as a payment from the person who took it over, and settle the person leaving out. Whether they get the whole amount back is a decision the group makes, and the room is where that decision is written down rather than remembered differently by everybody.',
+            answer: 'Keep the original buyer recorded as the person who paid for the tickets. Agree who receives the resale money and who covers any shortfall. Record only repayments that actually happened between room members. If the replacement pays the departing person outside the room, do not record that as a repayment to the original buyer.',
         },
     ],
     related: [
-        { href: '/blog/fronting-a-group-trip', label: 'Fronting something for a group and being paid back' },
-        { href: '/split-bill-no-signup', label: 'Splitting without anybody making an account' },
+        { href: '/blog/fronting-a-group-trip', label: 'Paying upfront for a group' },
+        { href: '/split-bill-no-signup', label: 'Split bills without an account' },
     ],
 }

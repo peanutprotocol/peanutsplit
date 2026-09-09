@@ -1,58 +1,56 @@
 import type { RoomTemplate } from './types'
 
-/**
- * The chalet week, whose defining argument is the pass somebody bought in October.
- */
+/** Shared accommodation, travel and food costs for a ski trip. */
 export const skiWeek: RoomTemplate = {
     slug: 'ski-week',
-    updated: '2026-08-24',
+    updated: '2026-09-09',
     room: { name: 'Ski week', emblem: 'ski' },
     meta: {
-        title: 'Split a ski trip: chalet, passes, the shop',
+        title: 'Split a ski trip: chalet, travel and food',
         description:
-            'A room for the week: the chalet on one card, the passes bought at four different times, the shop on the way up. One link, and no reckoning on the drive home.',
+            'Share ski trip expenses in one room. Split the chalet, travel and groceries across the group, and assign lift passes and equipment to the people using them.',
     },
     headTerm: 'split a ski trip',
     copy: {
-        h1: 'Split a ski trip when nobody paid for the same thing',
+        h1: 'Split a ski trip: chalet, travel and food',
         intro: [
-            'The chalet went on one card in September. Two people bought passes in the autumn sale, one bought a day pass on the Tuesday because their knee went, and somebody did a shop at the supermarket in the valley for eight people.',
-            'This link opens a room called Ski week. Everything goes in under whoever paid it, the week nets down at the end, and the drive home is not the conversation where somebody works out what the diesel came to.',
+            'Share the chalet, travel and food costs among the people using them. If someone buys lift passes or hires equipment for others, assign those costs to the relevant people.',
+            'This template starts a room called Ski week. Add what each person paid, then use the balances to work out repayments.',
         ],
         lines: {
-            title: 'What usually goes in a ski week',
-            intro: 'The lift pass is the line that causes the argument. Decide before the trip whether a season pass bought months ago is in or out.',
+            title: 'Ski trip costs to include',
+            intro: 'You do not need to enter something a person bought only for themselves. Add it when somebody else owes them a share.',
             items: [
-                'The chalet or the apartment, under the card it went on',
-                'Lift passes, one line per person who bought their own',
-                'Hire kit, which is rarely the same price for everybody',
-                'The supermarket shop in the valley',
-                'Fuel, tolls and the winter tyres',
-                'The one dinner up the mountain that costs more than the shop did',
+                'Chalet or apartment booking',
+                'Lift passes bought on behalf of others',
+                'Equipment hire paid for as a group',
+                'Shared groceries',
+                'Transfers, car hire, fuel and tolls',
+                'Group meals',
             ],
         },
         concession: {
-            title: 'When a spreadsheet is the better tool',
-            body: 'A group that pre-pays a fixed amount each into one kitty and spends out of it has a simpler problem, and a spreadsheet closes it in one line. A room is better when the paying is spread across six people and eight days and nobody knows the total until Thursday.',
+            title: 'Using a shared trip fund',
+            body: 'If everyone pays into one fund before the trip, a spreadsheet can track contributions and the remaining money. Split tracks expenses paid by individuals and what they owe each other; it does not hold a shared fund.',
         },
-        ctaTitle: 'Open the room before the passes get bought',
+        ctaTitle: 'Create your ski week room',
     },
     faqs: [
         {
             question: 'How do you split a ski trip fairly?',
-            answer: 'Split the shared costs — the chalet, the food, the fuel — across everybody, and keep each person’s own kit and passes to themselves. The one to agree in advance is the season pass: it was bought before the trip existed, so putting it into the group total charges the others for a decision they were not part of.',
+            answer: 'Agree on accommodation shares and split travel and food among those using them. Keep individual lift passes and equipment costs with their users unless the group agrees otherwise. If people stay for different numbers of nights, agree on their accommodation shares before booking.',
         },
         {
             question: 'What about the person who does not ski?',
-            answer: 'They pay for the bed and the food and not for the mountain. That is only awkward if it is raised on the last day, which is the argument for opening the room before anybody has booked anything.',
+            answer: 'Include them in the accommodation, food and travel they share. Leave them out of lift passes and ski equipment they do not use. You can choose different people and shares for each expense.',
         },
         {
             question: 'Can people put things in while they are on the mountain?',
-            answer: 'Yes, and a line typed with no signal is kept on the phone and sent when the signal comes back. Recording a settle-up needs a connection, so that part waits until the bar.',
+            answer: 'Yes. With the room already available on the device, you can add an expense without a connection. It is queued on the device and sent when the connection returns, with room for up to thirty queued expenses per device. Editing, deleting and recording a repayment need a connection.',
         },
     ],
     related: [
-        { href: '/blog/split-a-group-trip-across-countries', label: 'A trip that crosses a border and a currency' },
-        { href: '/mileage-split-calculator', label: 'Costing the drive at an official rate' },
+        { href: '/blog/split-a-group-trip-across-countries', label: 'Splitting a trip across countries' },
+        { href: '/mileage-split-calculator', label: 'Calculate a shared mileage cost' },
     ],
 }

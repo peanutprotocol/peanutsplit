@@ -7,7 +7,7 @@ lang: en
 author: Squirrel Labs
 date: 2026-07-28
 tags: [trips, currencies, getting paid back]
-claims: [automatic-currency-conversion, netting-is-bounded-exact, settle-is-a-record, link-is-the-key, no-app]
+claims: [automatic-currency-conversion, netting-is-bounded-exact, settle-is-a-record, link-is-the-key, hosted-price, no-app]
 cast: []
 canonical: https://peanutsplit.com/guides/split-a-group-trip-across-countries
 schema_types: [BlogPosting]
@@ -30,64 +30,49 @@ generated_from:
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-24
+generated_at: 2026-09-09
 ---
 
-One friend paid for the villa in euros, another covered the rental car in baht, and the receipts now
-sit across several phones; if the record stays muddled, somebody goes home out of pocket and the
-resentment can outlast the trip. Let Peanut Split do that bit instead. It puts every expense in one
-room so the group can work from the same trip ledger.
-
-By then, the organiser is scrolling through old messages instead of unpacking. Leave that job
-behind!
+Choose one currency for the trip total, record each receipt in its original currency and agree how
+everyone will pay before you leave. This gives people returning to different countries the same
+record to check.
 
 ## Organise group-trip expenses across countries
 
-<Steps title="Before the first expense">
-<Step title="Pick the room currency">Choose the currency used for most of the trip. Ask everyone to keep the original receipts and enter each expense in its printed currency.</Step>
-<Step title="Share the room link">Paste the link in the group chat before the first receipt. The link is the key to the room, so pin it where everyone can find it. There is no login or password recovery.</Step>
-<Step title="Agree what counts">Decide whether the shared total covers alcohol, tips and taxis, or only the large expenses. One clear boundary is enough.</Step>
+<Steps title="Set up the trip record">
+<Step title="Agree what to share">Decide which bookings and purchases belong in the group total. Keep individual purchases separate.</Step>
+<Step title="Choose the room currency">In Peanut Split, choose the currency the group will use to read its balances. Enter receipts in their original currency.</Step>
+<Step title="Save the room link">Anyone with the link can open the room and add expenses. Keep it in the group chat: there is no login or password recovery.</Step>
 </Steps>
 
-Split opens in your browser; nobody has to install it before joining.
+The room opens in a browser, without an app-store install or account. Installing Split on a device
+is optional.
 
-## Log each expense while you have the receipt
+## Record expenses from the receipts
 
-Whoever paid adds the expense before the plates are cleared. Add the restaurant name, date and
-participants while the details are fresh. That gives everyone a recognisable line to review later.
+Check the amount, currency, payer and participants while you have the receipt. Keep a copy until
+everyone has reviewed the expenses.
 
 <Callout type="info">
-**Enter what the receipt shows.** Split recognises a catalogue of 162 currency codes, with automatic
-conversion for 156 of them. It uses the day's indicative rate and fixes that rate when the expense is
-added, so the saved calculation does not move later.
+**Currency conversion.** Split recognises 162 currency codes and supports automatic conversion for
+156. It uses an indicative rate fixed when the expense is added. That rate may differ from the
+payer's bank rate; the saved rate does not change afterwards.
 </Callout>
 
-## Turn the balances into a short payment plan
+## Check the payment plan before sending money
 
-With up to 18 non-zero balances, Split searches the combinations for the plan with the minimum number
-of transfers. Above that boundary, it switches to a faster method that keeps the calculation under
-control. For those larger groups, the plan is not guaranteed to use the minimum number of transfers.
+Split uses the room's balances to suggest a short payment plan. Check for missing expenses,
+duplicate entries and people included in purchases they did not share.
 
-### Check the room before using the plan
+Agree a payment method that works for each sender and recipient. Pay outside Split, then record the
+payment in the room. Split does not send money or check payments with a bank; a paid status means
+someone recorded it.
 
-- Correct any misspelled names.
-- Remove duplicate receipts and confirm the tips.
-- Ask the group about any expense nobody recognises.
+For a small outing in one currency, settling in cash while everyone is together may be enough.
+Split is free to use and has no paid tier.
 
-## Settle with people who live abroad
-
-The plan is an instruction, not a payment. People use cash or their usual transfer method outside
-Split. After the payment happens, one person records it in the room. A settled entry means somebody
-recorded what happened; Split neither moves the money nor verifies it with a bank.
-
-## When cash is the better tool
-
-If everyone is together, the balance is small, and the whole trip used one currency, cash can close
-the matter before anyone leaves. Split earns its place when receipts arrive over time, currencies
-differ, or people will settle later.
-
-<CTA text="Start a split" subtitle="Set up the room before the first shared expense." href="https://peanutsplit.com/new?utm_medium=content&utm_source=split-guide&utm_campaign=split-a-group-trip-across-countries&utm_content=final-cta" variant="card" />
+<CTA text="Start a split" subtitle="Create a room for the trip." href="https://peanutsplit.com/new?utm_medium=content&utm_source=split-guide&utm_campaign=split-a-group-trip-across-countries&utm_content=final-cta" variant="card" />
 
 <RelatedPages title="Related guide">
-<RelatedLink href="/guides/split-expenses-across-currencies">How to split expenses across currencies</RelatedLink>
+<RelatedLink href="/guides/ask-a-friend-to-pay-you-back">How to ask a friend to pay you back</RelatedLink>
 </RelatedPages>

@@ -24,7 +24,7 @@ const STEWARD_URL = 'https://squirrellabs.dev/'
  * the served meta description is the kind of mismatch that gets structured data ignored.
  */
 export const SITE_DESCRIPTION =
-    'Accountless, link-based expense splitting. Create a room, share the link, settle up however you like. Free to use.'
+    'Split expenses with friends for free. Share a room link, add what everyone paid, and see who owes what. No account or app download needed.'
 
 /**
  * OG spells locales `language_TERRITORY`; everything else here uses BCP 47.

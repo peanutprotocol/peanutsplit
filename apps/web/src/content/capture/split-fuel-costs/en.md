@@ -1,6 +1,6 @@
 ---
-title: How to split fuel costs on a long drive
-description: Put every fill in under whoever paid it and divide by the people in the car. Why that beats taking turns, and what to charge for using somebody's own car.
+title: 'How to split fuel costs on a shared drive'
+description: 'Record fuel, tolls and parking under whoever paid. Divide each cost between the passengers on that part of the trip, with a separate option for mileage.'
 date: 2026-08-24
 type: capture
 headTerm: split fuel costs
@@ -15,51 +15,53 @@ claims:
 cast:
     - ana
 faqs:
-    - question: How do you split fuel costs between passengers?
-      answer: Put each fill in as it happens under the person who paid, and divide it across whoever is in the car for that leg. It comes out the same as taking turns over a long trip and it survives somebody joining halfway, which taking turns does not.
-    - question: What should you charge for using somebody's own car?
-      answer: Agree a rate per kilometre and put one line in for the whole trip. Several countries publish an official rate for exactly this, which is a defensible number to borrow rather than a figure somebody in the car invented on the motorway.
-    - question: Do tolls and parking go in the same pot as fuel?
-      answer: Yes, and they add up faster than people expect. Anything the car costs while it is carrying the group is the group's; anything it costs while it is sitting outside one person's flat is theirs.
+    - question: 'How do you split fuel costs between passengers?'
+      answer: 'Record each fuel purchase under whoever paid and split it between the people sharing that part of the journey. Use separate expenses when the passenger group changes.'
+    - question: "What should you charge for using somebody's own car?"
+      answer: 'Agree whether to share fuel alone or use a mileage rate that also covers wear on the car. Check what the rate includes so fuel is not counted twice.'
+    - question: 'Do tolls and parking go in the same pot as fuel?'
+      answer: 'Include tolls and parking for the shared journey. Agree separately whether the group covers personal detours or other parking.'
 ---
 
-# How to split fuel costs on a long drive
+# How to split fuel costs on a shared drive
 
-Put every fill in under whoever tapped, and divide it across the people who were in the car for that leg. Taking turns at the pump gets to roughly the same place and falls apart the moment somebody joins late or drops off early.
+Record each fuel purchase under whoever paid and divide it between the people sharing that part of the drive. If someone joins or leaves partway through, keep those legs separate. Taking turns at the pump can leave people paying different amounts.
 
-The receipts are the problem. Four people, one car, and a tank filled by whoever is driving when the light comes on. By the third day there is a wad of paper in the door pocket, nobody can remember whose card took the last one, and the person whose car it is has quietly paid for a tyre as well.
-
-A room is faster than the wallet. Type the fill in at the pump while the receipt is still in your hand, add the tolls as they happen, and the trip has a running total instead of a reconstruction at the end.
-
-<Steps title="Doing it in the right order">
-<Step title="Put the car in before the fuel">A hire cost, or an agreed rate for somebody's own car. Otherwise one person is lending an asset and paying for diesel like everybody else.</Step>
-<Step title="Add each fill at the pump">It takes about as long as putting the card away. <Cast name="ana" size="sm" caption="Ana added the fill at the services before she had finished the coffee she went in for." /></Step>
-<Step title="Let the tolls and the parking land too">They are small, they are constant, and they are the ones that get forgotten.</Step>
+<Steps title="Track the cost of the drive">
+<Step title="Agree what the group will cover">Choose actual fuel costs or an agreed mileage rate. If the mileage rate includes fuel, do not add the same fuel cost again.</Step>
+<Step title="Record each purchase">Add fuel under whoever paid and select the passengers sharing it. <Cast name="ana" size="sm" /></Step>
+<Step title="Add tolls and parking">Include charges for the shared journey. Keep personal detours and unrelated parking separate unless everyone agrees to cover them.</Step>
 </Steps>
 
-## When cash still wins
+## Using someone's own car
 
-Two friends alternating fills for a weekend do not need a ledger. They need a rough memory and some goodwill, and a room would be ceremony. This starts paying for itself at four people, or wherever one card is doing all the tapping.
+Fuel is only part of running a car. A mileage rate can also account for wear and servicing. The [mileage split calculator](/mileage-split-calculator) shows the cost using distance and a selected rate. Check what the rate includes before adding other expenses.
+
+## When one transfer is enough
+
+If one person pays for a short journey and everyone rides the same distance, divide the agreed cost by the passenger count. A room is useful when several people pay or the passengers change.
 
 ## Good to know
 
-The official service is free to use and has no paid tier.
+Peanut Split is free to use and has no paid tier.
 
-Adding an expense with no connection is kept on the phone and sent when the signal comes back, which matters on a mountain pass. The room nets the trip down, so the car makes two or three transfers rather than fifteen. Split records a payment rather than making one.
+You can add expenses without a connection; they stay on your device and send when you reconnect. Editing expenses and recording payments need a connection.
+
+Pay each other by cash, bank transfer or another method you agree on, then record the payment in Split. Split does not move money or check with your bank.
 
 <CTA
-  title="Open the room before the first fill"
-  body="Takes ten seconds. No email, no password, no download."
+  title="Track the costs of your drive"
+  body="Share a room link so everyone can add expenses. No account or download required."
   text="Start a split" />
 
 <FAQ>
-<FAQItem question="How do you split fuel costs between passengers?">Put each fill in as it happens under the person who paid, and divide it across whoever is in the car for that leg. It comes out the same as taking turns over a long trip and it survives somebody joining halfway, which taking turns does not.</FAQItem>
-<FAQItem question="What should you charge for using somebody's own car?">Agree a rate per kilometre and put one line in for the whole trip. Several countries publish an official rate for exactly this, which is a defensible number to borrow rather than a figure somebody in the car invented on the motorway.</FAQItem>
-<FAQItem question="Do tolls and parking go in the same pot as fuel?">Yes, and they add up faster than people expect. Anything the car costs while it is carrying the group is the group's; anything it costs while it is sitting outside one person's flat is theirs.</FAQItem>
+<FAQItem question="How do you split fuel costs between passengers?">Record each fuel purchase under whoever paid and split it between the people sharing that part of the journey. Use separate expenses when the passenger group changes.</FAQItem>
+<FAQItem question="What should you charge for using somebody's own car?">Agree whether to share fuel alone or use a mileage rate that also covers wear on the car. Check what the rate includes so fuel is not counted twice.</FAQItem>
+<FAQItem question="Do tolls and parking go in the same pot as fuel?">Include tolls and parking for the shared journey. Agree separately whether the group covers personal detours or other parking.</FAQItem>
 </FAQ>
 
 <RelatedPages>
 <RelatedLink href="/t/road-trip">A room for the car and everything it costs</RelatedLink>
-<RelatedLink href="/mileage-split-calculator">What a shared drive actually costs</RelatedLink>
+<RelatedLink href="/mileage-split-calculator">Split driving costs</RelatedLink>
 <RelatedLink href="/blog/split-expenses-offline">Adding an expense with no signal</RelatedLink>
 </RelatedPages>

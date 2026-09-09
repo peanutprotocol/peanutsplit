@@ -47,14 +47,14 @@ describe('/source release boundary', () => {
     it('publishes the corresponding source and exact stewardship deal after release', () => {
         process.env.NEXT_PUBLIC_FOSS_RELEASED = '1'
         expect(generateMetadata()).toMatchObject({
-            description: expect.stringContaining('AGPL'),
+            description: expect.stringContaining('source code'),
         })
         const html = renderToStaticMarkup(SourceAndStewardshipPage())
 
         expect(html).toContain('AGPL-3.0-or-later')
         expect(html).toContain('sole maintainer')
         expect(html).toContain('maintainer work hours')
-        expect(html).toContain('Open source without contributor theatre')
+        expect(html).toContain('Contributing')
         expect(html).toContain('href="https://github.com/peanutprotocol/peanutsplit"')
         expect(html).toContain(`/tree/${process.env.NEXT_PUBLIC_BUILD_COMMIT}`)
         expect(html).toContain(`/blob/${process.env.NEXT_PUBLIC_BUILD_COMMIT}/LICENSE`)

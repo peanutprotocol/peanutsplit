@@ -30,60 +30,42 @@ generated_from:
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-24
+generated_at: 2026-09-09
 ---
 
-One dinner in Bangkok leaves a receipt in baht, a room in euros, and a card statement in pounds; if
-the group mixes those records, somebody absorbs the difference and resentment can follow everyone
-into the next trip. Let Peanut Split handle that part. It keeps the receipt currency in the room
-and applies one conversion rule to the shared expense.
+Enter the amount and currency printed on the receipt. Use one conversion method for the shared
+total, and keep the payer's card statement as a separate record. Mixing receipt amounts and card
+charges makes the calculation harder to check.
 
-By then, the organiser has a receipt, a calculator, and several screenshots open. Put away the
-guesswork!
+## How to split expenses across currencies
 
-## Split expenses across currencies with one room rule
-
-Mixing methods makes a total hard to check. If Tuesday's dinner uses a manual calculation,
-Thursday's taxi uses an online currency converter, and the villa uses the booking site's value, the
-room has no common basis.
+Choose the currency the group will use to read its balances. In Peanut Split, add each expense in
+its original currency.
 
 <Callout type="info">
-**What Split converts.** The catalogue recognises 162 currency codes, and 156 support automatic
-conversion. Split uses the day's indicative rate and fixes it when the expense is added, so the
-calculated room-currency value stays stable. That rate is separate from the bank's final figure.
+**How conversion works.** Split recognises 162 currency codes and converts 156 automatically into
+the room currency. It uses an indicative rate fixed when the expense is added. The saved rate does
+not change later and may differ from the payer's bank rate.
 </Callout>
 
-## Enter the amount on the receipt
+## Which amount to enter
 
-The receipt says 3,200 baht. Enter that receipt amount rather than replacing it with euros, pounds,
-or an estimate from a phone. The paper is the source the group can check together.
+If a receipt says 3,200 baht, enter 3,200 baht. Do not enter a converted estimate under the baht
+currency label. Keep the receipt so the group can check the original amount.
 
-## Keep the card statement separate
+## Why the card statement can differ
 
-The card statement is the bank's separate record for the purchase. Keep it for the payer's own
-reconciliation rather than replacing the receipt entry with it. Swapping records halfway through
-would mix two methods in one room.
+The bank's exchange rate and any card fees can produce a different charge. Keep that statement for
+checking what the payer spent. If the group wants to share a fee, agree how to handle it separately;
+do not silently replace the original amount with a different calculation.
 
-### Keep the room easy to check
+Before settling, check the receipt currency, participants and any fees the group agreed to share.
+For one receipt between two people, a calculator or spreadsheet may be enough.
 
-- Pick the room currency before the first expense.
-- Keep each receipt until the group has reviewed it.
-- Check the currency symbol before entering the receipt.
-- Ask the payer when a line item is unclear.
+Split is free to use and has no paid tier.
 
-## The hosted price
-
-The official Split service is free to use and has no paid tier. That describes the service
-today; it is not a promise about its price or availability for its entire lifetime.
-
-## When a spreadsheet is the better tool
-
-If two people share one receipt in one currency and settle immediately, one calculation may be all
-they need. A Split room is useful when receipts arrive over time, currencies differ, or several
-people need to check the same running balance.
-
-<CTA text="Start a split" subtitle="Keep the receipts and the shared calculation together." href="https://peanutsplit.com/new?utm_medium=content&utm_source=split-guide&utm_campaign=split-expenses-across-currencies&utm_content=final-cta" variant="card" />
+<CTA text="Start a split" subtitle="Record expenses in their original currency." href="https://peanutsplit.com/new?utm_medium=content&utm_source=split-guide&utm_campaign=split-expenses-across-currencies&utm_content=final-cta" variant="card" />
 
 <RelatedPages title="Related guide">
-<RelatedLink href="/guides/split-a-group-trip-across-countries">How to split a group trip across countries</RelatedLink>
+<RelatedLink href="/guides/ask-a-friend-to-pay-you-back">How to ask a friend to pay you back</RelatedLink>
 </RelatedPages>

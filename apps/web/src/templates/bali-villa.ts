@@ -1,59 +1,56 @@
 import type { RoomTemplate } from './types'
 
-/**
- * The long stay rather than the holiday: a villa taken by the month, in rupiah, by people who met
- * three weeks ago and will not all leave on the same day.
- */
+/** A shared villa stay with balances in Indonesian rupiah. */
 export const baliVilla: RoomTemplate = {
     slug: 'bali-villa',
-    updated: '2026-08-24',
+    updated: '2026-09-09',
     room: { name: 'Bali villa', currency: 'IDR', emblem: 'island' },
     meta: {
         title: 'Split a villa in Bali, in rupiah',
         description:
-            'A room already named and already counting in rupiah, for a villa taken by the month with people you met out there. One link, no signup, nothing to install.',
+            'Track rent, transport and household expenses for a shared villa in Bali. This template starts a room in Indonesian rupiah, with no account needed.',
     },
     headTerm: 'split a villa in bali',
     copy: {
-        h1: 'Split a villa in Bali with people you met out there',
+        h1: 'Split a villa in Bali, in rupiah',
         intro: [
-            'A villa taken by the month is four or five people who have known each other a few weeks, one landlord who wants the whole thing up front, and a scooter rental nobody can remember the price of. Somebody pays in cash on a Tuesday and it leaves no trace at all.',
-            'This link opens a room called Bali villa, counting in rupiah, so a figure typed in the kitchen is the figure everybody sees. Add the villa first, then the driver, the laundry and the water, and whoever leaves early leaves with a number rather than an argument.',
+            'Record the villa rent and shared expenses with who paid and each person’s share. Split shows the group’s balances in Indonesian rupiah.',
+            'This template fills in the room name Bali villa and the currency IDR. Add your name, create the room and share its link with the people staying there.',
         ],
         lines: {
-            title: 'What usually goes in a Bali villa',
-            intro: 'The month has more moving parts than a week does. These are the ones that get forgotten.',
+            title: 'Shared villa expenses',
+            intro: 'Include the costs the group has agreed to share. For a scooter or airport transfer, select only the people using it.',
             items: [
-                'The month on the villa, under whoever transferred it',
-                'The deposit, kept separate so it can come back out',
-                'Scooters, one line per bike',
-                'The driver for the airport run',
-                'Laundry, the water delivery and the cleaner',
-                'The big Pepito shop, whoever happened to be in the car',
+                'Villa rent',
+                'Electricity and water bills',
+                'Shared scooter rental',
+                'Airport transfers',
+                'Laundry, drinking water and cleaning',
+                'Shared groceries',
             ],
         },
         concession: {
-            title: 'When a shared note is the better tool',
-            body: 'Two people splitting one villa fifty-fifty for a month have one number to remember and a note on a phone holds it fine. This is for the house of five where the driver was cash, the villa was a transfer, and the person who leaves on the 14th needs to know what they owe before the taxi comes.',
+            title: 'Agree on dates and rent first',
+            body: 'Decide how to split the rent before booking, including what happens if someone leaves early. Split records the shares you enter; it does not calculate rent from arrival and departure dates.',
         },
-        ctaTitle: 'Open the villa room while everyone is still in it',
+        ctaTitle: 'Create your Bali villa room',
     },
     faqs: [
         {
-            question: 'How do you split a villa in Bali with strangers?',
-            answer: 'Open the room the day the villa is agreed and put the rent in before anybody moves anything else. People who have known each other three weeks have no shared history to fall back on, so the ledger has to be visible from the first payment rather than reconstructed from a group chat in week four.',
+            question: 'How should we split rent for a shared villa?',
+            answer: 'Agree on each person’s share before paying the landlord. An equal split may suit similar rooms and matching stays. If rooms or dates differ, enter the amounts you have agreed for each person. Keep a written agreement about cancellations and refundable deposits.',
         },
         {
             question: 'Does it handle rupiah and euros in the same room?',
-            answer: 'Yes. The room counts in rupiah and an expense paid in another currency is converted at the day’s indicative rate, which is the rate a reference table gives rather than the one a bank charged. Where the two differ, the person who paid can type the rate they actually got.',
+            answer: 'Yes. Euro expenses are converted to rupiah at the day’s indicative rate, fixed when the expense is added. This may differ from the rate your bank charged, and you cannot override the rate for these currencies. If you know the actual rupiah amount you want to share, enter that amount in rupiah.',
         },
         {
             question: 'What about the person who leaves two weeks early?',
-            answer: 'Settle them out on the day they go. Their share of the villa is theirs whether they sleep in it or not unless the house agrees otherwise, and the room records the payment when it is made, so nobody is chasing a transfer from a different time zone.',
+            answer: 'Use the rent arrangement the group agreed, or agree on a change before adjusting the expense. Include their share of bills incurred before they left. They can repay their balance by bank transfer or cash, then record the repayment in Split.',
         },
     ],
     related: [
-        { href: '/t/villa-week', label: 'The same room for a week rather than a month' },
-        { href: '/blog/split-expenses-across-currencies', label: 'Splitting money in a currency you do not bank in' },
+        { href: '/t/villa-week', label: 'Template for a villa holiday' },
+        { href: '/blog/split-expenses-across-currencies', label: 'Sharing expenses in different currencies' },
     ],
 }

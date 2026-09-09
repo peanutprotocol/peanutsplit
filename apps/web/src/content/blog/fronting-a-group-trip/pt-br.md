@@ -1,6 +1,6 @@
 ---
-title: Bancar a viagem do grupo sem virar o banco
-description: Você reservou o Airbnb e o depósito saiu do seu cartão. Como organizar o dinheiro da viagem para o grupo dever um número que todos já viram, não um favor.
+title: 'Adiantar dinheiro para uma viagem em grupo'
+description: 'Combine prazos de pagamento e custos de cancelamento antes de reservar. Reúna reservas e gastos diários para todos conferirem quanto devem.'
 date: 2026-07-30
 type: guide
 tags: [viagens, adiantar, receber]
@@ -14,118 +14,86 @@ claims:
     - hosted-price
     - no-app
     - recap-card
-cast:
-    - lisbon
-    - mo
+cast: []
 faqs:
-    - question: Devo colocar a viagem inteira em um cartão só?
-      answer: É o jeito mais rápido de organizar a viagem e o mais lento de receber de volta. Divida as reservas para que duas ou três pessoas estejam bancando alguma coisa. Quem banca mais é quem carrega o risco se alguém desistir.
-    - question: E se alguém desistir depois que eu já paguei o depósito?
-      answer: Combine a regra antes de reservar, não depois. Um depósito não reembolsável é um custo que a viagem já assumiu, e a única pergunta é quem absorve esse custo. Lançado na sala no dia em que foi pago, é um fato que todo mundo viu. Levantado pela primeira vez depois que alguém sai, soa como uma acusação.
-    - question: Como pedir o dinheiro sem que fique aquele climão?
-      answer: Na maior parte das vezes, não precisando pedir. Se a sala está aberta desde a primeira reserva, o total não é novidade e o último passo é um plano de pagamento que todo mundo enxerga. Mande o link da sala, em vez de um número com um pedido de desculpas na frente.
-draft: true
+    - question: 'Uma pessoa deve pagar todas as reservas?'
+      answer: 'Pague todas as reservas só se puder cobrir o valor até receber a parte dos outros. Recolher contribuições antes ou distribuir as reservas reduz quanto uma pessoa precisa adiantar.'
+    - question: 'E se alguém desistir depois do pagamento do sinal?'
+      answer: 'Confira as condições da reserva e o acordo feito antes de pagar. Veja o que pode ser reembolsado e se outra pessoa pode ocupar a vaga antes de dividir o custo restante.'
+    - question: 'Lançar o sinal significa que os outros já me pagaram?'
+      answer: 'Não. A despesa registra o que você pagou e a parte de cada pessoa. Os pagamentos são registros separados, feitos depois que você recebe o dinheiro.'
 ---
 
 <Hero
-  eyebrow="viagens em grupo"
-  title="Quando toda reserva cai no seu cartão"
-  subtitle="O depósito sai da sua conta em março. O grupo acerta o que deve em agosto. Tudo no meio vai no mesmo cartão."
+  eyebrow="guia"
+  title="Quando você adianta o dinheiro da viagem"
+  subtitle="Combine quanto vai cobrir e quando vai receber antes de fazer a reserva."
   cta="Criar um split"
-  ctaHint="Dez segundos. Sem e-mail, sem senha, sem download." />
+  ctaHint="Sem e-mail, sem senha, sem download." />
 
-"Eu pego as passagens, a gente acerta depois", alguém diz em março. Ninguém acerta depois. O depósito do Airbnb vai no mesmo cartão naquela semana, depois o aluguel do carro, depois a balsa, e quando alguém vai fazer as malas você já está há quatro meses bancando as férias de quatro pessoas. Esse "depois" nunca chega!
+Antes de pagar uma reserva do grupo, combine a parte de cada pessoa, o prazo para receber e o que acontece se alguém desistir. Se o total pesar no seu orçamento, recolha as contribuições antes ou peça que outra pessoa assuma uma reserva.
 
-Se esse dinheiro volta importa mais do que o valor em si. Quando não volta, quem bancou costuma não falar nada, para de ser quem organiza as coisas, e as viagens acabam sem ninguém decidir acabar com elas.
+O Peanut Split permite reunir o sinal da reserva e as outras despesas da viagem em uma sala compartilhada. Cada pessoa pode conferir os valores registrados e seu saldo. A sala não garante que você receberá de volta.
 
-Deixe o Split cuidar do controle desde a primeira reserva. A sala abre em uns dez segundos, não tem conta para criar nem nada para baixar, e o que qualquer um lança aparece na tela de todo mundo na hora em que é lançado. Em agosto o total já é história velha, e a última mensagem no grupo é um plano de pagamento, não um pedido.
-
-## A sala entra antes do depósito
-
-Toda reserva caindo em um cartão só é uma decisão que ninguém tomou de verdade. Aconteceu porque você era quem estava com a aba aberta em março, e em junho isso quer dizer que uma pessoa está carregando as férias e as outras três não estão carregando nada.
-
-<Steps title="Três coisas para acertar antes da primeira reserva">
-<Step title="Abra a sala e só então pague o depósito">Cole o link no grupo enquanto todo mundo ainda está discutindo as datas, e fixe ele lá. O link é a chave, então uma sala que ninguém mais acha é uma sala que só você está mantendo. Uma sala que abre no segundo dia da viagem já perdeu as passagens e o depósito, que são os dois maiores números dela.</Step>
-<Step title="Distribua as reservas">Você não precisa ser o único cartão. Dê o aluguel do carro para uma pessoa e a balsa para outra. Três pessoas bancando um terço cada uma é uma viagem. Uma pessoa bancando tudo é um empréstimo.</Step>
-<Step title="Diga o que acontece se alguém desistir">Depósitos raramente são reembolsáveis, e essa é a discussão que realmente estraga viagens. Combine em março, enquanto é hipotético e não tem o nome de ninguém: [as três formas de dividir o que sobra](/guides/someone-drops-out-of-a-group-trip) são todas mais fáceis de propor antes que uma delas custe dinheiro a uma pessoa com nome e rosto.</Step>
+<Steps title="Antes de reservar">
+<Step title="Confira as condições">Veja quanto deve ser pago agora, as datas das próximas parcelas e as condições de cancelamento. Compartilhe com quem vai participar.</Step>
+<Step title="Combinem quem adianta cada pagamento">Vocês podem distribuir as reservas de hospedagem, carro e atividades. Cada pessoa precisa concordar com o valor que vai cobrir.</Step>
+<Step title="Deixe o acordo por escrito">Uma mensagem no WhatsApp ajuda a esclarecer o plano. Por exemplo: ‘O sinal é de 600 euros, então são 150 por pessoa entre quatro. Por favor, enviem sua parte até sexta’.</Step>
 </Steps>
 
-<Cast name="lisbon" size="md" caption="A sala Fim de semana em Lisboa estava aberta antes da primeira reserva, então o depósito é a primeira linha dela, não um número que alguém teve que defender em agosto." />
+Os custos de cancelamento precisam de um acordo separado. Confira o que pode ser reembolsado, se outra pessoa pode ocupar a vaga e como dividir o custo restante. O [guia sobre desistência de uma viagem](/guides/someone-drops-out-of-a-group-trip) apresenta as opções.
 
-<Callout title="O depósito entra no dia em que você paga">
-Lance pelo valor que você pagou, quatro meses antes de alguém voar. Ele fica com data, e deixa de ser só seu no instante em que está lá dentro.
-</Callout>
+## Lance o sinal quando pagar
 
-## O pinga-pinga que ninguém anota
+Crie uma sala e fixe o link no grupo do WhatsApp. Qualquer pessoa com o link pode abrir a sala e lançar despesas. Registre o valor pago e selecione quem divide a reserva.
 
-As reservas grandes são a parte fácil. Um depósito você lembra. O que esvazia a conta em silêncio é uma semana de "deixa que essa é comigo".
+Durante a viagem, peça que cada pessoa lance suas compras enquanto estiver com o recibo. Se não houver sinal, as despesas novas podem ficar no aparelho e ser enviadas quando a conexão voltar.
 
-Os cafés da manhã. O mercado da primeira noite porque você chegou primeiro no caixa. O protetor solar que ninguém trouxe. A rodada que você pagou porque alguém tinha que pagar. Cada uma é pequena o bastante para que parar e anotar pareça mesquinharia, e na quinta-feira quem vive dizendo isso já está uns duzentos no prejuízo sem perceber.
-
-Você se ofereceu para reservar o Airbnb. Ninguém te pediu para bancar uma financeira sem garantia para quatro pessoas saindo da sua conta corrente.
-
-Então lance na mesa mesmo, enquanto a nota ainda está ali. Demora mais para descrever do que para fazer, e ficar sem sinal não é problema: uma despesa digitada sem conexão espera no celular e vai embora quando a conexão volta.
-
-Lance o que você realmente pagou, na moeda em que pagou. O Split faz a conversão automática para 156 moedas pela taxa indicativa do dia e fixa essa taxa na despesa quando você a lança, então o histórico não muda debaixo de você depois. É uma taxa indicativa, não a do seu banco.
-
-<Cast name="mo" size="md" caption="Mo fez o mercado da primeira noite e lançou tudo ali no caixa, então os outros três viram o número antes do café da manhã." />
-
-## No fim da viagem, um monte de dívidas pequenas
-
-Quatro meses de reservas e uma semana de rodadas pequenas viram dívidas apontando para todo lado, e pagar uma por uma é como uma viagem terminada fica aberta por mais um mês. Em vez disso, a sala compensa umas com as outras e te entrega um plano de pagamento curto: duas ou três transferências em vez de vinte, cada uma uma pessoa só pagando outra pessoa só.
-
-No fim também tem um cartão — quanto a viagem custou e quem bancou mais. Se o depósito foi no seu cartão em março, [essa última linha](/pt-br/blog/end-of-trip-expense-recap) é o único reconhecimento que a viagem vai produzir.
+Use o valor e a moeda originais. O Split tem conversão automática para 156 moedas pelo câmbio indicativo do dia, salvo no momento do lançamento. Essa cotação pode ser diferente da usada na fatura do cartão.
 
 <Calc
-  title="O estrago, ao vivo"
-  presets="Fim de semana=920|Semana=1846|Farra=3210"
+  title="Exemplo de orçamento da viagem"
+  presets="Fim de semana=920|Semana=1846|Viagem longa=3210"
   preset="Semana"
   currency="EUR"
   people="4"
-  eachLabel="por cabeça"
+  eachLabel="por pessoa"
   totalLabel="Total da viagem"
   peopleLabel="Pessoas"
-  shareLabel="Cota de cada um"
-  amountLabel="Cota de cada um"
-  footLabel="Dívidas compactadas"
-  footValue="20 → 3"
-  note="Arredondado ao centavo. A sala calcula isso continuamente conforme as despesas entram." />
+  shareLabel="Parte igual"
+  amountLabel="Parte igual"
+  note="Divisão do total de exemplo por igual, arredondada ao centavo. Os saldos também dependem de quem pagou." />
 
-<Checklist title="Como é receber de volta quando a sala esteve aberta o tempo todo">
-<ChecklistItem title="Um só controle, de março a agosto">O depósito e a rodada de quinta são o mesmo tipo de linha, ambas com data, e nenhuma precisa de explicação.</ChecklistItem>
-<ChecklistItem title="Ninguém é apontado">A sala mostra saldos, não culpa. Nunca tem motivo para postar uma lista de quem ainda não pagou, e fazer isso é como uma viagem terminada vira mágoa.</ChecklistItem>
-<ChecklistItem title="Registrar é um toque">Acertem como vocês acertam, com dinheiro no aeroporto, uma transferência bancária ou outro app de pagamento, e um de vocês toca para dizer que aconteceu. O Split registra o pagamento, não faz o pagamento.</ChecklistItem>
-</Checklist>
+## Confira os saldos e registre os pagamentos
 
-## Bom saber
+Antes de acertar, peça que confiram despesas que faltam e lançamentos duplicados. O Split compensa o que cada pessoa pagou com sua parte e sugere uma lista de pagamentos.
 
-Quatro fatos sobre a sala, que vale a pena ter em março, e não em agosto.
+Paguem por Pix, dinheiro ou outro meio combinado e depois registrem na sala. O Split não movimenta dinheiro nem verifica pagamentos com o banco. Registrar um pagamento precisa de conexão.
 
-- **O serviço oficial é de uso grátis e não tem plano pago.**
-- **Ele não movimenta o dinheiro.** Uma linha acertada quer dizer que alguém tocou para dizer que pagou, não que um pagamento caiu. O Split não confere com nenhum banco e não tem como, o que é tranquilo entre amigos e vale saber sobre o seu próprio controle.
-- **Ele não vai cobrar ninguém.** Sem e-mails de lembrete, sem cutucadas no grupo. Se alguém some, essa parte ainda é sua, e tudo que dá para te oferecer é [o que escrever na primeira vez e o que escrever quando precisa repetir](/pt-br/guides/ask-a-friend-to-pay-you-back).
-- **Ele comporta até vinte pessoas.** Um grupo, não um congresso.
+Se alguém atrasar, fale diretamente com a pessoa e informe o valor e o prazo combinado. O [guia de mensagens para pedir um pagamento](/pt-br/guides/ask-a-friend-to-pay-you-back) tem exemplos que você pode adaptar.
+
+O serviço é gratuito, sem plano pago, para grupos de até vinte pessoas. Depois de quitar a sala, você pode compartilhar um [resumo das despesas](/pt-br/blog/end-of-trip-expense-recap) com o total da viagem e quem adiantou mais dinheiro.
 
 <CTA
-  title="Abra a sala antes de pagar o depósito"
-  body="Um link no grupo, e cada reserva depois dele cai no mesmo lugar."
+  title="Crie uma sala para as reservas"
+  body="Lance o que você pagou e compartilhe a lista com quem vai viajar."
   text="Criar um split" />
 
-<FAQ>
-<FAQItem question="Devo colocar a viagem inteira em um cartão só?">É o jeito mais rápido de organizar a viagem e o mais lento de receber de volta. Divida as reservas para que duas ou três pessoas estejam bancando alguma coisa. Quem banca mais é quem carrega o risco se alguém desistir.</FAQItem>
-<FAQItem question="E se alguém desistir depois que eu já paguei o depósito?">Combine a regra antes de reservar, não depois. Um depósito não reembolsável é um custo que a viagem já assumiu, e a única pergunta é quem absorve esse custo. Lançado na sala no dia em que foi pago, é um fato que todo mundo viu. Levantado pela primeira vez depois que alguém sai, soa como uma acusação.</FAQItem>
-<FAQItem question="Como pedir o dinheiro sem que fique aquele climão?">Na maior parte das vezes, não precisando pedir. Se a sala está aberta desde a primeira reserva, o total não é novidade e o último passo é um plano de pagamento que todo mundo enxerga. Mande o link da sala, em vez de um número com um pedido de desculpas na frente.</FAQItem>
+<FAQ title="Perguntas">
+<FAQItem question="Uma pessoa deve pagar todas as reservas?">Pague todas as reservas só se puder cobrir o valor até receber a parte dos outros. Recolher contribuições antes ou distribuir as reservas reduz quanto uma pessoa precisa adiantar.</FAQItem>
+<FAQItem question="E se alguém desistir depois do pagamento do sinal?">Confira as condições da reserva e o acordo feito antes de pagar. Veja o que pode ser reembolsado e se outra pessoa pode ocupar a vaga antes de dividir o custo restante.</FAQItem>
+<FAQItem question="Lançar o sinal significa que os outros já me pagaram?">Não. A despesa registra o que você pagou e a parte de cada pessoa. Os pagamentos são registros separados, feitos depois que você recebe o dinheiro.</FAQItem>
 </FAQ>
 
 <Share
-  title="Mande o split, não um sermão"
-  body="Quem está prestes a colocar quatro meses de reservas em um cartão só é a pessoa para quem isso serve. Um link é mais fácil de mandar em março do que um número é de pedir em agosto."
-  buttonLabel="Mande isso para o grupo"
+  title="Compartilhe o guia de organização da viagem"
+  body="Envie para quem está cuidando das reservas."
+  buttonLabel="Compartilhar o guia"
   doneLabel="Link copiado" />
 
 <RelatedPages>
-<RelatedLink href="/pt-br/blog/split-a-group-trip-across-countries">Dividir uma viagem quando ninguém compartilha banco</RelatedLink>
-<RelatedLink href="/pt-br/blog/end-of-trip-expense-recap">O cartão que diz quanto a viagem custou</RelatedLink>
-<RelatedLink href="/pt-br/blog/split-expenses-across-currencies">Dividir quando você pagou em uma moeda e deve em outra</RelatedLink>
-<RelatedLink href="/pt-br/mileage-split-calculator">Quanto a viagem de carro custou, dividido entre os passageiros</RelatedLink>
+<RelatedLink href="/pt-br/blog/split-a-group-trip-across-countries">Dividir despesas de viagem entre países</RelatedLink>
+<RelatedLink href="/pt-br/blog/end-of-trip-expense-recap">Compartilhar o resumo de despesas da viagem</RelatedLink>
+<RelatedLink href="/pt-br/blog/split-expenses-across-currencies">Dividir despesas em moedas diferentes</RelatedLink>
+<RelatedLink href="/pt-br/mileage-split-calculator">Dividir o custo da viagem de carro</RelatedLink>
 </RelatedPages>

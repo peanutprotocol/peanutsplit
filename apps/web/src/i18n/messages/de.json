@@ -4,7 +4,7 @@
             "title": "SCHICK DEN LINK WEITER",
             "controlTitleAccessible": "SCHICK DEN LINK WEITER",
             "titleAccessible": "LINK TEILEN. FERTIG.",
-            "subtitle": "weil faires Abrechnen Freundschaften schont",
+            "subtitle": "Teilt Ausgaben mit Freunden und seht, wer wem etwas schuldet.",
             "cta": "Link erstellen",
             "linkExplainerTrigger": "So funktioniert der Link",
             "chat": {
@@ -108,7 +108,7 @@
             "button": "Gruppe erstellen"
         },
         "honesty": {
-            "title": "Ganz ehrlich",
+            "title": "Über Split",
             "item1": {
                 "title": "Kostenlos nutzbar"
             },
@@ -124,7 +124,7 @@
             "createSplit": "Gruppe erstellen",
             "toolsLink": "Rechner",
             "importLink": "Aus Splitwise importieren",
-            "sourceStewardship": "Quellcode & Verantwortung",
+            "sourceStewardship": "Quellcode",
             "colCompare": "Vergleich",
             "colGuides": "Ratgeber",
             "allGuides": "Alle Ratgeber",
@@ -223,8 +223,8 @@
             "done": "Verstanden"
         },
         "readMore": {
-            "toggle": "NOCH NEUGIERIG?",
-            "toggleHint": "Wer Split betreibt, warum der offizielle Dienst kostenlos nutzbar ist und wie Gruppenlinks funktionieren.",
+            "toggle": "MEHR ÜBER SPLIT",
+            "toggleHint": "Funktionen, Finanzierung und Zugang zu eurer Gruppe.",
             "join": {
                 "title": "Was deine Freunde sehen",
                 "roomName": "Skireise",
@@ -240,20 +240,20 @@
                     "body": "Automatische Umrechnung für 156 Währungen; sechs weitere funktionieren ohne Umrechnung."
                 },
                 "splits": {
-                    "title": "Ungleiche Aufteilungen",
+                    "title": "Jede Rechnung passend aufteilen",
                     "body": "Gleich, prozentual, nach Anteilen, nach genauen Beträgen oder nur unter ausgewählten Personen."
                 },
                 "exact": {
-                    "title": "Geht auf den Cent genau auf",
+                    "title": "Berechnung ansehen",
                     "body": "Öffne einen Saldo, um die Aufschlüsselung zu sehen."
                 },
                 "live": {
-                    "title": "Alle sehen alles sofort",
-                    "body": "Neue Ausgaben erscheinen sofort bei allen."
+                    "title": "Gemeinsame Ausgabenliste",
+                    "body": "Neue Ausgaben erscheinen bei allen, die online sind."
                 },
                 "offline": {
-                    "title": "Funktioniert ohne Empfang",
-                    "body": "Ausgaben werden synchronisiert, sobald du wieder online bist."
+                    "title": "Ausgaben offline hinzufügen",
+                    "body": "Neue Ausgaben bleiben auf deinem Gerät und werden gesendet, sobald du wieder online bist. Bearbeiten und Rückzahlungen eintragen geht nur mit Verbindung."
                 },
                 "home": {
                     "title": "Zum Home-Bildschirm hinzufügen",
@@ -271,7 +271,7 @@
             },
             "team": {
                 "title": "Das Team dahinter",
-                "intro": "Split hat noch keine Nutzer, also können wir nur uns selbst zitieren.",
+                "intro": "Konrad und Hugo haben Split gebaut. Hier erzählen sie, warum.",
                 "konrad": {
                     "name": "Konrad",
                     "role": "hat Split gebaut",
@@ -284,38 +284,38 @@
                 }
             },
             "who": {
-                "title": "Wer Split betreibt – und warum der offizielle Dienst kostenlos nutzbar ist",
+                "title": "Wer Split betreut und finanziert",
                 "built": {
                     "title": "Squirrel Labs betreut Split",
                     "body": "Derzeit betreut nur Squirrel Labs das Projekt und übernimmt alle Kosten, auch die Arbeitszeit."
                 },
                 "free": {
-                    "title": "Hinweise bleiben optional, nie eine Pflicht",
-                    "body": "Das ist die faire Vereinbarung: ein paar unaufdringliche Hinweise – nie ein erzwungener Klick, lästige Aufforderungen oder eine Funktionssperre."
+                    "title": "Optionale Links",
+                    "body": "Links zu anderen Diensten sind optional. Sie erzwingen nie einen Klick, wiederholen keine Aufforderungen und sperren keine Funktionen."
                 },
                 "data": {
-                    "title": "Hier gibt es kaum Daten, die nach außen dringen könnten",
-                    "body": "Gruppenlinks schließen wir aus unseren eigenen Analysen aus, denn der Link ist ein Schlüssel."
+                    "title": "Gruppenlinks und Nutzungsanalyse",
+                    "body": "Wir erfassen Gruppenlinks nicht in unserer Nutzungsanalyse. Alle mit dem Link können die Gruppe öffnen."
                 }
             },
             "faq": {
-                "title": "Was die Leute wirklich fragen",
+                "title": "Häufige Fragen",
                 "retype": {
                     "q": "Muss ich alles aus dem Gruppenchat noch einmal eingeben?",
-                    "a": "Bei einer Reise, die schon vorbei ist: ja. Die Ausgaben werden einmal eingetragen. Das geht schneller als gedacht, weil alle in der Gruppe ihre eigenen Ausgaben eintragen können und nicht alles an dir hängen bleibt.",
-                    "import": "Wenn du von Splitwise kommst, übernimmt die Importseite eine ganze Gruppe, mit Verlauf und Salden."
+                    "a": "Ja. Tragt jede Ausgabe einmal ein. Alle in der Gruppe können ihre eigenen Ausgaben hinzufügen.",
+                    "import": "Du kannst eine Splitwise-Gruppe importieren und die Salden vorher prüfen. Ältere Ausgaben können zu Anfangssalden zusammengefasst werden."
                 },
                 "access": {
                     "q": "Wer kann unsere Gruppe sehen?",
-                    "a": "Alle mit dem Link. Er wird von Suchmaschinen ferngehalten und lässt sich nicht erraten. Aber er ist ein Schlüssel – behaltet ihn im Gruppenchat und teilt ihn nicht öffentlich."
+                    "a": "Alle mit dem Link können die Gruppe öffnen. Teilt ihn nur mit eurer Gruppe. Wir bitten Suchmaschinen, Gruppen nicht zu indexieren."
                 },
                 "lost": {
                     "q": "Wie kommen wir zurück zur Gruppe?",
                     "a": "Lasst den Link im Gruppenchat, damit ihn alle dort finden. Split speichert geöffnete Gruppen außerdem auf diesem Gerät. Auf der Startseite kannst du den Link einfügen und die Gruppe wieder hinzufügen."
                 },
                 "limits": {
-                    "q": "Wie viele Ausgaben können wir eintragen?",
-                    "a": "So viele, wie ihr möchtet. Auch fünfzig an einem Nachmittag, wenn eure Reise eben so läuft."
+                    "q": "Gibt es ein Tageslimit für Ausgaben?",
+                    "a": "Es gibt kein Tageslimit für Ausgaben."
                 }
             },
             "compare": {

@@ -1,80 +1,68 @@
 ---
-title: Splitting expenses in real time
-description: Everyone watching the same total on their own phone, with nobody refreshing. What a live shared expense list fixes at the table, and what it still cannot do.
+title: 'How shared expenses update'
+description: 'Expenses and balances update on the group’s phones without a refresh. Learn what happens when someone loses their connection.'
 date: 2026-07-28
 type: guide
 tags: [groups, live]
 claims:
+    - no-app
     - settle-is-a-record
     - link-is-the-key
     - live-room-stream
 cast: []
 faqs:
-    - question: Do the other people have to refresh to see my expense?
-      answer: No. Every open room holds a stream, and an expense you add shows up on the other phones a second or two later. Nobody has to reload, and nobody has to be told to.
-    - question: What happens if somebody's connection drops?
-      answer: Their room keeps checking on its own, about every eight seconds, and reconnects the stream in the background. When it comes back they are already up to date — there is no "stale room" state to get stuck in.
-    - question: Can two people add an expense at the same time?
-      answer: Yes. Both land, both show up for everyone, and the balances are recomputed from the whole list rather than nudged, so two simultaneous writes cannot leave a total that is nearly right.
-    - question: Does live updating drain my battery?
-      answer: It should not. While the stream is open the room stops polling on a short timer and only checks every 45 seconds as a backstop, so an open room is cheaper than one hammering the server for changes.
+    - question: 'Do I have to refresh to see someone’s expense?'
+      answer: 'An open Split room fetches changes automatically, so you normally do not need to refresh the page. A poor connection can delay the update.'
+    - question: 'How often does the room check for changes?'
+      answer: 'While the update stream is open, it also checks every 45 seconds. If that stream drops, it checks about every eight seconds while trying to reconnect.'
+    - question: 'Can two people add expenses at once?'
+      answer: 'Yes. Both entries can be saved, and the balances are recalculated from the shared expense list.'
 ---
 
 <Hero
-  eyebrow="live"
-  title="Everyone looking at the same number"
-  subtitle="Six people, one evening, and four of them are adding things. A shared list that only updates when you pull it down is a list people argue with."
+  eyebrow="guide"
+  title="Keep the group’s expense list up to date"
+  subtitle="Changes appear on other connected phones without anyone reloading the page."
   cta="Start a split"
-  ctaHint="Takes ten seconds. No email, no password, no download." />
+  ctaHint="No email, no password, no download." />
 
-There is a specific round of messages that happens on every trip, and it is not about money. It is about state.
+When someone adds an expense in Peanut Split, it normally appears on other connected phones a second or two later. Each open room updates its expense list and balances automatically.
 
-"Did you put in the taxi?" "I did it earlier." "I don't see it." "Try refreshing." "Still nothing." Somebody adds it again. Now it is in twice, and the person who notices is the person who has to explain it.
+You can check what has been added while everyone is still together. That helps you spot a missing receipt or a duplicate before paying each other back.
 
-None of that is an arithmetic problem. It is four people looking at four slightly different copies of the same list.
+## Check the shared list before adding a bill
 
-## What "live" means in a room
+Keep the room link in the group chat so everyone can find the same list. After adding an expense, check the amount, payer and people sharing it. If someone else paid, give them a chance to enter it before doing it for them.
 
-Every open room holds a stream to the server. When anyone adds an expense, edits one, records a payment, reacts to something or changes the room's colours, the other phones are poked and pull the room again — a second or two, no refresh, no tap.
+Automatic updates help you see what is already there, but they cannot tell whether two similar entries are the same purchase. Review possible duplicates before removing anything.
 
-<Steps title="What that changes at the table">
-<Step title="Nobody asks whether it landed">The person who added it sees it on the list; so does everyone else, at the same time. The question stops being asked because the answer is on screen.</Step>
-<Step title="Nothing gets entered twice">Duplicates come from doubt. When the taxi is visibly there, nobody adds the taxi again.</Step>
-<Step title="The totals are true while you are still in the room">You can settle up standing at the table instead of three days later, because the number in front of everyone is the current one.</Step>
-</Steps>
+Two people can add different expenses at the same time. After the entries reach the server, the room recalculates balances from the full list.
 
-## What happens when the connection is bad
+## If a phone loses its connection
 
-This is the part that decides whether "real time" is a feature or a liability. A room that depends on its stream is a room that silently goes stale in a lift.
+A disconnected phone may show an older copy of the room. Split keeps trying to reconnect in the background and fetches the current list when it can reach the server again.
 
-<Callout title="The stream is never the only way in">
-Polling never goes away. While the stream is genuinely open, the room stretches to checking every 45 seconds — the stream is doing the work, so the timer is only a backstop. The moment the stream is down, that drops to every eight seconds, and the reconnection is attempted in the background with a growing, randomised delay so a server that restarts does not get every phone in every room back at the same millisecond.
-</Callout>
+If an expense has not appeared, check the connection before entering it a second time. For adding a new expense with no signal, see [how the offline queue works](/blog/split-expenses-offline).
 
-The effect is that there is no stale state to get stuck in and nothing to tap to recover. A phone that was in a tunnel for ten minutes catches up on its own.
+## Check payments separately
 
-## What live updating does not fix
+A payment appearing in the room means someone recorded it. Split does not check a bank account or verify that money arrived. If a transfer is delayed, ask the recipient to check before treating it as received.
 
-<Checklist title="Still true, and worth saying">
-<ChecklistItem title="A room is not a chat">There is no message thread, by decision. You get reactions on expenses and that is the whole social surface — the conversation is already happening in the group chat you pasted the link into.</ChecklistItem>
-<ChecklistItem title="Live is not the same as verified">Watching a payment appear means somebody recorded it, not that a bank moved anything. No expense splitter is watching your account, and it is worth knowing which of the two you are looking at.</ChecklistItem>
-<ChecklistItem title="Somebody still has to type it">The bill does not add itself. Live updating makes everyone see an expense quickly; it does not decide what the expense should say.</ChecklistItem>
-</Checklist>
+Use your group chat for questions about a bill or the agreed division. The room keeps the amounts together; there is no message thread for discussing them.
 
 <CTA
-  title="Paste one link, watch one list"
-  body="Everyone opens the same room and adds what they paid. No accounts, no invitations one at a time, nothing to refresh."
+  title="Open a room for your group"
+  body="Share the link so everyone can check the expense list."
   text="Start a split" />
 
-<FAQ>
-<FAQItem question="Do the other people have to refresh to see my expense?">No. Every open room holds a stream, and an expense you add shows up on the other phones a second or two later.</FAQItem>
-<FAQItem question="What happens if somebody's connection drops?">Their room keeps checking on its own, about every eight seconds, and reconnects the stream in the background. When it comes back they are already up to date.</FAQItem>
-<FAQItem question="Can two people add an expense at the same time?">Yes. Both land, both show up for everyone, and the balances are recomputed from the whole list rather than nudged, so two simultaneous writes cannot leave a total that is nearly right.</FAQItem>
-<FAQItem question="Does live updating drain my battery?">It should not. While the stream is open the room stops polling on a short timer and only checks every 45 seconds as a backstop.</FAQItem>
+<FAQ title="Questions">
+<FAQItem question="Do I have to refresh to see someone’s expense?">An open Split room fetches changes automatically, so you normally do not need to refresh the page. A poor connection can delay the update.</FAQItem>
+<FAQItem question="How often does the room check for changes?">While the update stream is open, it also checks every 45 seconds. If that stream drops, it checks about every eight seconds while trying to reconnect.</FAQItem>
+<FAQItem question="Can two people add expenses at once?">Yes. Both entries can be saved, and the balances are recalculated from the shared expense list.</FAQItem>
 </FAQ>
 
 <RelatedPages>
-<RelatedLink href="/blog/split-expenses-offline">Adding expenses where there is no signal</RelatedLink>
-<RelatedLink href="/blog/split-a-group-trip-across-countries">Splitting a trip across countries and currencies</RelatedLink>
-<RelatedLink href="/blog/split-bills-without-an-app">Splitting bills without making anyone sign up</RelatedLink>
+<RelatedLink href="/blog/split-expenses-offline">Add expenses offline</RelatedLink>
+<RelatedLink href="/blog/split-a-group-trip-across-countries">Split trip expenses across countries</RelatedLink>
+<RelatedLink href="/blog/split-bills-without-an-app">Split bills without an app</RelatedLink>
 </RelatedPages>

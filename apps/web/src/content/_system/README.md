@@ -49,8 +49,8 @@ Which of those keys, and which blocks, each `type` uses is in `stylebook.md`, no
 2. Draft into `src/content/{collection}/{slug}/{locale}.md` — pick the collection above.
 3. Every product claim must trace to a block in `product-truths.md`, and must use that block's
    `safe` phrasing. Every competitor fact must trace to a row in `competitor-claims.md`.
-4. Run `pnpm typecheck && pnpm test && pnpm format` from the repo root. There is no CI in front of
-   `main` and a push is production in about five minutes, so this is the whole gate.
+4. Run `pnpm verify` from the repo root, then `pnpm format` from `apps/web`. Run the existing
+   end-to-end tests for the changed surfaces. Follow the split-ship skill through live verification.
 5. Anything mechanical that a reviewer catches twice belongs in `NEVER_STRINGS` in
    `src/lib/content.test.ts`, not in a paragraph here. A rule nobody runs is a rule nobody keeps.
 
@@ -58,10 +58,13 @@ Which of those keys, and which blocks, each `type` uses is in `stylebook.md`, no
 assembles the files above into one brief and writes the answer with `draft: true` in frontmatter —
 no route, sitemap entry or hub card can reach it, every gate still runs on it, and review is deleting that line.
 
-## What is not here yet
+## Source ownership
 
-`templates/` and `workflows/` (one file per content type, one per drafting pass) and `AUDITS.md`
-(dated cold-read findings, each landing as a stylebook line).
+These Markdown pages are authored sources. Their drafting instructions live in this directory.
+The `/source` page is authored in `src/app/(product-shell)/(marketing)/source/page.tsx`.
+Landing copy lives in `src/i18n/messages/`; calculator copy lives in `src/tools/`.
+Generated `/guides/` pages come from mono `split-content/_system/`. Update those inputs,
+regenerate the affected outputs and use the Split mirror; never hand-edit `src/generated/seo`.
 
 `stylebook.md` here is the master for this corpus — read it, draft against it, and edit the rules
 here. Mono `projects/peanut-split/seo/stylebook.md` is history, and mono `split-content/_system/`

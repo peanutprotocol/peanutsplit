@@ -1,13 +1,13 @@
 ---
 title: "How to ask a friend to pay you back"
-description: "Three messages to send when a friend owes you for a shared expense, when to send each one, and how a shared room takes the ask out of your hands."
+description: "What to say when a friend owes you for a shared expense: a first request, a reminder and a group message, with examples you can adapt before sending."
 slug: ask-a-friend-to-pay-you-back
 type: guide
 lang: en
 author: Squirrel Labs
 date: 2026-08-12
 tags: [getting paid back, shared expenses]
-claims: [link-is-the-key, no-app, settle-is-a-record]
+claims: [link-is-the-key, no-app, settle-is-a-record, hosted-price]
 cast: []
 canonical: https://peanutsplit.com/guides/ask-a-friend-to-pay-you-back
 schema_types: [BlogPosting]
@@ -30,100 +30,59 @@ generated_from:
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-24
+generated_at: 2026-09-09
 ---
 
-You covered the table on Saturday, and a week later the money has not come back; you have counted it
-twice and said nothing, and if nobody says anything the friendship quietly takes the difference. Let
-Peanut Split hold the number instead. It keeps the expense and the amount in one shared room, so
-the figure sits where both of you can read it and nobody has to send a message about it.
+Ask privately, name the expense and give the amount. If you need the money by a particular date,
+say so. You can adapt these messages for shared expenses such as dinner or a trip.
 
-Every message below is about a shared expense: one bill, one night, a receipt behind it. None of
-them is about a personal loan, and a room records only what people spent together.
+## How to ask a friend to pay you back
 
-## How to ask a friend to pay you back the first time
+Send the first message once you know their share. Include a payment method or your details if they
+do not already have them.
 
-Send it while the night is still something you both remember. Name the expense, name the number, and
-give them a way to close it. The same words that read as admin on Sunday read as a confrontation
-three weeks later.
+> Saturday's dinner was £58, so your half is £29. Could you send it over this week?
 
-> Saturday's dinner came to £58 and I put it on my card so we could get out of there. Your half is
-> £29 — send it whenever suits this week.
-
-Nothing has to be worked out at the other end. The reason, the amount and the timing arrive
-together, and your friend never has to come back to you for the receipt to check any of it.
+There is no need to apologise for asking. Attach the receipt if it will help them check the amount.
 
 ## How to politely remind someone to pay you
 
-A reminder is the same ask sent twice, and it goes wrong when it arrives with no reason for arriving
-now. Give it one that is about you rather than about them: a card to clear, a room to close, a trip
-to finish. Keep it shorter than the first message, and put the original amount back in it so nobody
-has to scroll up.
+Repeat the amount so your friend does not need to search the chat. Use a deadline you actually need;
+you do not have to invent a reason to ask.
 
-> Nudging on Saturday's £29. I'm clearing the card on Friday, so any time before then is fine.
+> Following up on the £29 for Saturday's dinner. Could you send it by Friday? Let me know if you need more time.
 
-Leave out "sorry to be annoying". It tells the other person the ask was rude when it was not, and it
-invites them to agree with you. Leave the group chat out of it as well. A reminder addressed to
-everybody about one person is a public balance, and that costs more than the money does.
+If they miss the date, ask privately when they can pay. If they dispute the amount, check the bill
+together before sending another reminder.
 
-## How to send a text message to ask a group for money owed
+## A message for a group
 
-Past two people, the message stops being an ask and becomes a statement of the total. Post the
-number once, to everyone, with the working under it, and put nobody's name in it. A house that
-families share divides differently,
-[per person or per room](/guides/split-holiday-house-per-person-or-per-room), so the working has to
-say which one produced the number. Everybody who reads it can then check their own share against the
-same lines.
+Send everyone the total and the calculation. Follow up with individual people privately.
 
-> The house was £240 and the van was £72, so it comes to £78 each. Here is what I paid and when.
-> Tell me if a line looks wrong.
+> The house was £240 and the van was £72. Between four of us, that's £78 each. I've attached the breakdown; please check your share before paying.
 
-Everyone gets the same information at the same moment, which is what keeps it neutral. One person
-still has to write it, and that same person still has to send it a second time.
+This example uses equal shares. If people had different rooms or stayed fewer nights, agree the
+[holiday-house split](/guides/split-holiday-house-per-person-or-per-room) first.
 
-## Send the room link instead of the reminder
+## Keep several shared expenses in one room
 
-Each of those messages costs you a draft, a reread and a decision about tone, and the good version
-still has to be written by the person who is owed. Skip that part!
+For one bill, a message may be enough. For a trip with several payers, Peanut Split gives the group
+a shared record to check. Anyone with the room link can open it and add expenses. Keep the link in
+the group chat: there is no account or password recovery.
 
-The link is the key. Paste it in the group chat, and whoever opens it can read the expenses and add
-one. There is no login and no password recovery, so keep the link somewhere you can still find it
-in a month. Split opens in a browser, and no app store or account is required before anyone can
-join.
+The room opens in a browser, with no app-store install required. A shared record can help explain an
+amount, but you may still need to ask for payment. If a suggested payee seems unfamiliar, check
+[how debt simplification works](/guides/why-do-i-owe-someone-i-never-paid).
 
-The number then belongs to the room rather than to you. It sits beside the expense that produced it,
-and a friend who thinks it is wrong can argue with a line in the room rather than with you. The
-usual objection is that they never paid you, and
-[why the room can name somebody you never paid](/guides/why-do-i-owe-someone-i-never-paid) answers
-it.
+Pay by your usual method, then record the payment in Split. Split does not send the money or check
+it with a bank; a paid status means someone marked it paid.
 
-### Keep the ask easy to answer
+Split is free to use and has no paid tier. If your
+group already uses another app, the [Splitwise and Settle Up comparison](/guides/splitwise-vs-settle-up)
+can help you decide whether to keep using it.
 
-- Put the expense, the date and the amount in the same message.
-- Say when you need it, or say plainly that you do not.
-- Send it to the person, never to the group about the person.
-- Keep the receipt photo until everybody is all square.
-
-## Marking it paid is a record, not a payment
-
-Settle however you like: cash, a bank transfer, or another payment app. Then record it in the room. Split records
-the payment, it does not make it. It does not verify with any bank and cannot. The tap is one person
-saying the money moved, and the room takes their word for it in the way you would have taken it over
-the table.
-
-
-## When a plain message is the better tool
-
-One expense, one person, and you are seeing them on Friday: send the first message above and leave
-the room out of it. A room earns its place when expenses keep arriving, when more than two people
-are involved, or when the settling will happen weeks after the night itself. If the group has
-already installed something else, [Splitwise vs Settle Up](/guides/splitwise-vs-settle-up) sets out
-what each one asks of the people who did not pick it. A room does not make anyone pay, and whether
-the money moves is still a decision a person makes. What it does is take the asking out of your
-hands and keep the figure somewhere neither of you has to hold in their head.
-
-<CTA text="Start a split" subtitle="Open the room the night you pay for something shared." href="https://peanutsplit.com/new?utm_medium=content&utm_source=split-guide&utm_campaign=ask-a-friend-to-pay-you-back&utm_content=final-cta" variant="card" />
+<CTA text="Start a split" subtitle="Keep your shared expenses together." href="https://peanutsplit.com/new?utm_medium=content&utm_source=split-guide&utm_campaign=ask-a-friend-to-pay-you-back&utm_content=final-cta" variant="card" />
 
 <RelatedPages title="Related guide">
-<RelatedLink href="/guides/someone-drops-out-of-a-group-trip">When someone drops out of a group trip</RelatedLink>
+<RelatedLink href="/guides/someone-drops-out-of-a-group-trip">What happens if someone drops out of a holiday</RelatedLink>
 </RelatedPages>

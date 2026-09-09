@@ -4,7 +4,7 @@
             "title": "FAIS TOURNER LE LIEN",
             "controlTitleAccessible": "FAIS TOURNER LE LIEN",
             "titleAccessible": "UN LIEN. ON PARTAGE. C’EST RÉGLÉ.",
-            "subtitle": "parce que les bons comptes font les bons amis",
+            "subtitle": "Partagez vos dépenses entre amis et voyez qui doit quoi.",
             "cta": "Créer le lien",
             "linkExplainerTrigger": "Comment fonctionne le lien",
             "chat": {
@@ -108,7 +108,7 @@
             "button": "Créer un groupe"
         },
         "honesty": {
-            "title": "En toute transparence",
+            "title": "À propos de Split",
             "item1": {
                 "title": "Utilisation gratuite"
             },
@@ -124,7 +124,7 @@
             "createSplit": "Créer un groupe",
             "toolsLink": "Outils de calcul",
             "importLink": "Importer depuis Splitwise",
-            "sourceStewardship": "Code source et maintenance",
+            "sourceStewardship": "Code source",
             "colCompare": "Comparer",
             "colGuides": "Guides",
             "allGuides": "Tous les guides",
@@ -223,8 +223,8 @@
             "done": "Compris"
         },
         "readMore": {
-            "toggle": "ENVIE D’EN SAVOIR PLUS ?",
-            "toggleHint": "Qui maintient Split, pourquoi le service officiel est gratuit et comment fonctionnent les liens de groupe.",
+            "toggle": "EN SAVOIR PLUS SUR SPLIT",
+            "toggleHint": "Fonctions, financement et accès à ton groupe.",
             "join": {
                 "title": "Ce que voient tes amis",
                 "roomName": "Séjour au ski",
@@ -240,20 +240,20 @@
                     "body": "Conversion automatique pour 156 devises ; six autres fonctionnent sans conversion."
                 },
                 "splits": {
-                    "title": "Des répartitions sur mesure",
+                    "title": "Choisis comment répartir chaque dépense",
                     "body": "À parts égales, en pourcentage, par parts, par montants exacts ou entre certaines personnes."
                 },
                 "exact": {
-                    "title": "Toujours juste au centime près",
+                    "title": "Voir le calcul",
                     "body": "Ouvre un solde pour voir le détail."
                 },
                 "live": {
-                    "title": "Tout le monde le voit immédiatement",
-                    "body": "Les nouvelles dépenses apparaissent immédiatement chez tout le monde."
+                    "title": "Liste de dépenses partagée",
+                    "body": "Les nouvelles dépenses apparaissent pour les personnes connectées."
                 },
                 "offline": {
-                    "title": "Fonctionne sans réseau",
-                    "body": "Les dépenses se synchronisent dès que tu es de nouveau en ligne."
+                    "title": "Ajoute des dépenses hors ligne",
+                    "body": "Les nouvelles dépenses restent sur ton appareil et sont envoyées au retour de la connexion. Modifier une dépense ou noter un remboursement nécessite une connexion."
                 },
                 "home": {
                     "title": "Ajoute Split à ton écran d’accueil",
@@ -271,7 +271,7 @@
             },
             "team": {
                 "title": "Les personnes qui l’ont créé",
-                "intro": "Split n’a pas encore d’utilisateurs, alors il n’y a que nous à citer.",
+                "intro": "Konrad et Hugo ont créé Split. Voici pourquoi.",
                 "konrad": {
                     "name": "Konrad",
                     "role": "a créé Split",
@@ -284,38 +284,38 @@
                 }
             },
             "who": {
-                "title": "Qui maintient Split, et pourquoi le service officiel est gratuit",
+                "title": "Qui maintient et finance Split",
                 "built": {
                     "title": "Squirrel Labs maintient Split",
                     "body": "Pour l’instant, Squirrel Labs assure seul la maintenance et prend en charge tous les coûts, y compris le temps de travail."
                 },
                 "free": {
-                    "title": "Les mentions restent facultatives, jamais obligatoires",
-                    "body": "C’est l’accord : quelques mentions discrètes, jamais de clic forcé, de relance ni de fonction bloquée."
+                    "title": "Liens facultatifs",
+                    "body": "Les liens promotionnels sont facultatifs. Ils ne forcent jamais un clic, ne relancent pas sans cesse et ne bloquent aucune fonction."
                 },
                 "data": {
-                    "title": "Très peu de données peuvent fuiter",
-                    "body": "Les liens de groupe sont exclus de nos propres outils d’analyse, car un lien est une clé."
+                    "title": "Liens de groupe et statistiques",
+                    "body": "Nous excluons les liens de groupe de nos statistiques. Toute personne ayant le lien peut ouvrir le groupe."
                 }
             },
             "faq": {
-                "title": "Les vraies questions",
+                "title": "Questions fréquentes",
                 "retype": {
                     "q": "Dois-je tout ressaisir depuis la conversation du groupe ?",
-                    "a": "Pour un voyage déjà terminé, oui : les dépenses doivent être saisies une fois. C’est plus simple qu’il n’y paraît, car chacun peut ajouter les siennes au lieu que tout repose sur toi.",
-                    "import": "Si tu viens de Splitwise, la page d’importation transfère tout un groupe, historique et soldes compris."
+                    "a": "Oui. Saisissez chaque dépense une fois. Chaque personne du groupe peut ajouter ce qu’elle a payé.",
+                    "import": "Tu peux importer un groupe Splitwise et vérifier les soldes avant de confirmer. Les anciennes dépenses peuvent être regroupées en soldes initiaux."
                 },
                 "access": {
                     "q": "Qui peut voir notre groupe ?",
-                    "a": "Toute personne ayant le lien. Il n’est pas référencé par les moteurs de recherche et son URL est impossible à deviner, mais c’est une clé : garde-le dans la conversation du groupe, pas en public."
+                    "a": "Toute personne ayant le lien peut ouvrir le groupe. Partage-le uniquement avec ton groupe. Nous demandons aux moteurs de recherche de ne pas indexer les groupes."
                 },
                 "lost": {
                     "q": "Comment revenir au groupe ?",
                     "a": "Laisse le lien dans la conversation du groupe pour que chacun puisse le retrouver. Split enregistre aussi les groupes ouverts sur cet appareil, et tu peux coller le lien sur la page d’accueil pour l’ajouter de nouveau."
                 },
                 "limits": {
-                    "q": "Y a-t-il une limite au nombre de dépenses que nous pouvons ajouter ?",
-                    "a": "Non. Ajoute-en cinquante en un après-midi si c’est ce genre de voyage."
+                    "q": "Y a-t-il une limite quotidienne de dépenses ?",
+                    "a": "Il n’y a pas de limite quotidienne de dépenses."
                 }
             },
             "compare": {

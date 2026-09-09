@@ -240,7 +240,7 @@ describe('the route builders', () => {
             await cardFor(
                 contentOgImage(['blog'], 'en', 'slug')({ params: Promise.resolve({ slug: 'split-expenses-offline' }) })
             )
-        ).toEqual({ lines: ['SPLIT', 'GUIDES'], tagline: 'Splitting expenses offline, with no signal' })
+        ).toEqual({ lines: ['SPLIT', 'GUIDES'], tagline: 'Add shared expenses offline' })
 
         expect(
             await cardFor(
@@ -273,7 +273,7 @@ describe('the route builders', () => {
             await cardFor(
                 splitGuideOgImage('es-419')({ params: Promise.resolve({ slug: 'why-do-i-owe-someone-i-never-paid' }) })
             )
-        ).toEqual({ lines: ['SPLIT', 'GUIDES'], tagline: 'Por qué le debes a alguien a quien nunca le pagaste' })
+        ).toEqual({ lines: ['SPLIT', 'GUIDES'], tagline: 'Por qué le debes a alguien que no pagó por ti' })
     })
 
     /**

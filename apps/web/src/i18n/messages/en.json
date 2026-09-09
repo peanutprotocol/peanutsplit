@@ -4,7 +4,7 @@
             "title": "PASS IT",
             "controlTitleAccessible": "PASS IT",
             "titleAccessible": "LINK. SPLIT. DONE.",
-            "subtitle": "because better accounting makes better friends",
+            "subtitle": "Share expenses with friends and see who owes what.",
             "cta": "Make the link",
             "linkExplainerTrigger": "How the link works",
             "chat": {
@@ -108,7 +108,7 @@
             "button": "Start a split"
         },
         "honesty": {
-            "title": "The honest bit",
+            "title": "About Split",
             "item1": {
                 "title": "Free to use"
             },
@@ -124,7 +124,7 @@
             "createSplit": "Start a split",
             "toolsLink": "Calculators",
             "importLink": "Import from Splitwise",
-            "sourceStewardship": "Source & stewardship",
+            "sourceStewardship": "Source code",
             "colCompare": "Compare",
             "colGuides": "Guides",
             "allGuides": "All guides",
@@ -223,8 +223,8 @@
             "done": "Got it"
         },
         "readMore": {
-            "toggle": "STILL CURIOUS?",
-            "toggleHint": "Who maintains Split, why the official service is free to use, and how room links work.",
+            "toggle": "MORE ABOUT SPLIT",
+            "toggleHint": "Features, funding and access to your room.",
             "join": {
                 "title": "What your friends see",
                 "roomName": "Ski trip",
@@ -240,20 +240,20 @@
                     "body": "Automatic conversion for 156 currencies; six more work without conversion."
                 },
                 "splits": {
-                    "title": "Splits that are not even",
+                    "title": "Choose how to split each bill",
                     "body": "Equal, percentages, shares, exact amounts, or selected people."
                 },
                 "exact": {
-                    "title": "Reconciles to the cent",
+                    "title": "See the calculation",
                     "body": "Open any balance to see the breakdown."
                 },
                 "live": {
-                    "title": "Everyone sees it at once",
-                    "body": "New expenses appear for everyone immediately."
+                    "title": "Shared expense list",
+                    "body": "New expenses appear for everyone who is connected."
                 },
                 "offline": {
-                    "title": "Works with no signal",
-                    "body": "Expenses sync when you are back online."
+                    "title": "Add expenses offline",
+                    "body": "New expenses wait on your device and sync when you reconnect. Editing and recording repayments need a connection."
                 },
                 "home": {
                     "title": "Add it to your home screen",
@@ -271,7 +271,7 @@
             },
             "team": {
                 "title": "The people who built it",
-                "intro": "Split has no users yet, so there is nobody to quote but us.",
+                "intro": "Konrad and Hugo built Split. Here is why.",
                 "konrad": {
                     "name": "Konrad",
                     "role": "built Split",
@@ -284,38 +284,38 @@
                 }
             },
             "who": {
-                "title": "Who maintains this, and why the official service is free to use",
+                "title": "Who maintains and funds Split",
                 "built": {
                     "title": "Squirrel Labs maintains Split",
                     "body": "For now, Squirrel Labs is the sole maintainer and pays every cost, including maintainer work hours."
                 },
                 "free": {
-                    "title": "References stay optional, never required",
-                    "body": "That is the fair deal: a few quiet references, never a forced click, nag, or feature gate."
+                    "title": "Optional links",
+                    "body": "Any promotional links are optional. They never require a click, send repeated prompts or block a feature."
                 },
                 "data": {
-                    "title": "There is not much here to leak",
-                    "body": "Room links are kept out of our own analytics, because a link is a key."
+                    "title": "Room links and analytics",
+                    "body": "We exclude room links from our analytics. Anyone with the link can access the room."
                 }
             },
             "faq": {
-                "title": "Questions people actually ask",
+                "title": "Common questions",
                 "retype": {
                     "q": "Do I have to retype everything from the group chat?",
-                    "a": "For a trip that already happened, yes — the expenses get typed in once. It is lighter than it sounds, because everyone in the room can add their own instead of it all landing on you.",
-                    "import": "If you are coming from Splitwise, the import page brings a whole group across, history and balances included."
+                    "a": "Yes. Add each expense once; everyone in the room can enter what they paid.",
+                    "import": "You can import a Splitwise group and check the balances first. Older expenses may be combined into opening balances."
                 },
                 "access": {
                     "q": "Who can see our room?",
-                    "a": "Anyone with the link. It is kept out of search engines and cannot be guessed, but it is a key — keep it in the group chat rather than anywhere public."
+                    "a": "Anyone with the link can open the room. Share it only with your group. We ask search engines not to index rooms."
                 },
                 "lost": {
                     "q": "How do we get back to the room?",
                     "a": "Leave the link in the group chat so everyone can find it there. Split also saves rooms you open on this device, and you can paste the link on the home page to add it back."
                 },
                 "limits": {
-                    "q": "Is there a limit on how many expenses we can add?",
-                    "a": "No. Add fifty in an afternoon if that is the kind of trip it is."
+                    "q": "Is there a daily limit on expenses?",
+                    "a": "There is no daily expense limit."
                 }
             },
             "compare": {

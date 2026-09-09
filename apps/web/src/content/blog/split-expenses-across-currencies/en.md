@@ -1,83 +1,70 @@
 ---
-title: Splitting expenses across currencies
-description: You paid in baht, the room counts in euros, your card settled in pounds. Which rate matters, which one does not, and where the group loses money.
+title: 'Split expenses in different currencies'
+description: 'Enter expenses in their original currency and use one currency for the totals. Understand indicative rates, card charges and repayments.'
 date: 2026-07-26
 type: guide
 tags: [currencies, trips]
 claims:
+    - no-app
+    - link-is-the-key
     - automatic-currency-conversion
     - hosted-price
 cast: []
 faqs:
-    - question: Which exchange rate should the group use?
-      answer: Agree the room currency once and let Split convert each expense as it goes in. The rates are indicative (a daily reference rate, not your bank's), so treat the totals as exact and the conversion as close enough to split by.
-    - question: Should I enter the amount I paid or what it cost me?
-      answer: Enter what you paid, in the currency you paid it in. That is the number on the receipt and the only one you can prove.
-    - question: Does Split charge for converting currencies?
-      answer: No. Converting currencies is free to use, with no paid tier to upgrade to.
+    - question: 'Does an expense change when exchange rates move?'
+      answer: 'Split fixes the conversion rate when you add an expense and reuses it when you edit that expense.'
+    - question: 'Should I enter baht or the pounds on my card statement?'
+      answer: 'Use the amount in baht if the group agreed to share receipt amounts. If you agreed to reimburse actual card costs, use the statement amount consistently and do not enter the purchase twice.'
+    - question: 'Which currencies support automatic conversion?'
+      answer: 'The catalog recognises 162 currency codes; automatic conversion is available for 156 of them. Check that your expense currency supports conversion before relying on it.'
 ---
 
 <Hero
-  eyebrow="splitting across currencies"
-  title="Splitting across currencies without losing money in the gap"
-  subtitle="Three different rates can apply to the same dinner. Only one of them should end up in the group's maths."
+  eyebrow="guide"
+  title="Split expenses in different currencies"
+  subtitle="Keep the receipt amount and let the room convert it for the group."
   cta="Start a split"
-  ctaHint="Converting currencies is free to use. No paid tier." />
+  ctaHint="No email, no password, no download." />
 
-Here is a dinner in Bangkok, paid by one person, split four ways.
+Choose one currency for your group's totals, then enter each expense in the currency you paid. Peanut Split converts it at the day's indicative rate and fixes that rate when you add the expense.
 
-The bill was 3,200 baht. The person who paid has a card that bills in pounds, so their statement eventually says £71.40. The group agreed the trip counts in euros. Three of the four owe money on it.
+For example, a dinner costs 3,200 baht and is shared by four people. Each person's share is 800 baht. If your room uses euros, Split converts the expense to euros before calculating the balances. You can still refer to the receipt to check the original amount.
 
-There are now at least three defensible numbers for the same dinner. The rule that keeps them from fighting is: pick the room's currency once, and let one system do every conversion.
+## Choose a consistent way to convert
 
-## One room currency, converted as you go
+The currency used for most of the trip is a practical choice for the room. Agree it before you start adding expenses, especially if your group has bank accounts in different currencies.
 
-The specific rate matters less than the consistency.
+Use the same conversion method throughout. Mixing a receipt amount, a card statement total and a manual estimate makes it harder to check what the group owes.
 
-Mixing rates is what breaks things. If Tuesday's dinner is converted at Tuesday's rate by one person, Thursday's taxi by a currency app, and the villa at whatever the booking site charged, then everybody is working from a different set of numbers and the group stops trusting the total.
+Split supports automatic conversion for 156 currencies. The rate is indicative and may differ from your bank's rate. Once an expense is saved, later exchange-rate changes do not change its conversion.
 
-<Callout title="What Split actually does">
-Agree the room currency once and let Split convert each expense as it goes in, at a daily reference rate. The rates are indicative — not your bank's, and not locked for the whole trip — so treat the balances as exact to the cent and the conversion as close enough to split by.
-</Callout>
+## Agree how to handle card costs
 
-## Enter the amount you actually paid
+A card statement may show a different amount because it uses another rate or includes a fee. For a shared expense, decide whether you will divide the receipt amount or reimburse the cardholder's actual cost. Either approach needs everyone's agreement.
 
-Put in 3,200 baht. Not €84, not £71.40, not your phone's guess from the taxi queue.
+The receipt amount is the easiest default to check. If you agree to share a separately charged fee, record it separately and keep the statement showing it. Avoid entering both the original purchase and the converted card charge as two expenses.
 
-The receipt says 3,200, and it is the one number in the chain that is not an estimate — if the group ever needs to check an expense, that is what they will check against. Your own card's number is also not the group's business: your bank's spread is a cost of your card, not a cost of the dinner. Push it into the shared total and you have quietly asked three friends to subsidise your choice of bank.
+## Agree the repayment currency
 
-## Your card's rate is a separate problem
+A balance in euros tells you the amount owed in euros. If someone will repay in another currency, agree the conversion and any transfer fees before sending the money.
 
-When you pay 3,200 baht on a card that bills in pounds, your bank picks a rate and usually adds something to it. That happens between you and your bank, days later, and no expense splitter can see it or change it. If your statement says £71.40 and the group's maths says the equivalent of £69.80, that £1.60 is what your card charged you, not an error in the split.
+Split's conversion is free to use, with no paid tier. It calculates the shared expense; it does not set the exchange rate offered by your payment provider.
 
-The only fix is a different card, or being the person who pays in cash.
-
-<Checklist title="Keeping a room clean across currencies">
-<ChecklistItem title="Pick the room currency before the first expense">Choose whatever most of the spending is actually in, not whatever your own bank uses.</ChecklistItem>
-<ChecklistItem title="Log local amounts, always">The currency on the receipt is the currency you enter. Converting at entry throws away the provable number.</ChecklistItem>
-<ChecklistItem title="Settle in the room's currency">If the room counts in euros, the transfers at the end are in euros. Converting again on the way out reintroduces the gap you avoided.</ChecklistItem>
-<ChecklistItem title="Expect the balances to reconcile to the cent">Shares are rounded so the room always nets to zero. If a number looks wrong, check the expense, not the arithmetic.</ChecklistItem>
-</Checklist>
-
-## Why conversion is not a paid feature here
-
-Groups that share a currency have easier options. The groups that genuinely need a splitter are the ones spread across countries, and charging those groups for the conversion is charging for the only part they came for, which is [what a free Splitwise group runs into](/guides/splitwise-currency-conversion): changing the currency on an expense relabels the amount and does not convert it.
-
-So it is free to use, and there is no tier above it.
+For a comparison, see [how currency conversion works in Splitwise](/guides/splitwise-currency-conversion).
 
 <CTA
-  title="Set the currency once, forget about it"
-  body="Add expenses in whatever you actually spent and let Split do the conversion. No paid tier."
+  title="Choose your room currency"
+  body="Add each expense with its original amount and currency."
   text="Start a split" />
 
-<FAQ>
-<FAQItem question="Which exchange rate should the group use?">Agree the room currency once and let Split convert each expense as it goes in. The rates are indicative (a daily reference rate, not your bank's), so treat the totals as exact and the conversion as close enough to split by.</FAQItem>
-<FAQItem question="Should I enter the amount I paid or what it cost me?">Enter what you paid, in the currency you paid it in. That is the number on the receipt and the only one you can prove.</FAQItem>
-<FAQItem question="Does Split charge for converting currencies?">No. Converting currencies is free to use, with no paid tier to upgrade to.</FAQItem>
+<FAQ title="Questions">
+<FAQItem question="Does an expense change when exchange rates move?">Split fixes the conversion rate when you add an expense and reuses it when you edit that expense.</FAQItem>
+<FAQItem question="Should I enter baht or the pounds on my card statement?">Use the amount in baht if the group agreed to share receipt amounts. If you agreed to reimburse actual card costs, use the statement amount consistently and do not enter the purchase twice.</FAQItem>
+<FAQItem question="Which currencies support automatic conversion?">The catalog recognises 162 currency codes; automatic conversion is available for 156 of them. Check that your expense currency supports conversion before relying on it.</FAQItem>
 </FAQ>
 
 <RelatedPages>
-<RelatedLink href="/blog/split-a-group-trip-across-countries">Splitting a trip when nobody shares a bank</RelatedLink>
-<RelatedLink href="/blog/split-bills-without-an-app">Splitting bills without making anyone download an app</RelatedLink>
+<RelatedLink href="/blog/split-a-group-trip-across-countries">Split trip expenses across countries</RelatedLink>
+<RelatedLink href="/blog/split-bills-without-an-app">Split bills without an app</RelatedLink>
 <RelatedLink href="/tricount-alternative">How Split compares to Tricount</RelatedLink>
 </RelatedPages>

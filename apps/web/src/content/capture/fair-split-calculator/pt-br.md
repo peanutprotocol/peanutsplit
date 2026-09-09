@@ -1,9 +1,9 @@
 ---
-title: Calculadora de divisão justa e desigual
-description: A conta que você quer depende do que é desigual — um quarto, uma viagem de carro ou uma despesa. Cada uma vai para um lugar, e uma delas nem é calculadora.
+title: 'Calculadora para dividir despesas'
+description: 'Compare formas de dividir aluguel, viagens de carro e contas compartilhadas. Combine o critério e calcule a parte de cada pessoa.'
 date: 2026-07-31
 type: capture
-headTerm: calculadora de divisão justa
+headTerm: 'calculadora dividir despesas'
 intent: split bill by income calculator
 tags: [justiça, grupos]
 claims:
@@ -15,57 +15,57 @@ claims:
     - automatic-currency-conversion
 cast: []
 faqs:
-    - question: Existe uma calculadora que divide a conta por renda?
-      answer: Para uma conta única, não. A ponderação por renda fica na calculadora de divisão de aluguel, como um controle deslizante em vez de um campo perguntando quanto você ganha, porque ela pertence a um arranjo que se repete. Para um jantar, é uma conversa que o grupo tem uma vez, e a sala guarda o que ela produziu.
-    - question: Como dividir a conta do jantar quando alguém não bebeu?
-      answer: Tire o vinho por cima e divida entre quem bebeu, depois divida o que sobrou por igual. Numa sala, isso são duas despesas em vez de uma, e é por isso que aguenta uma pergunta uma semana depois.
-    - question: Como dividir o aluguel de forma desigual?
-      answer: 'Duas coisas carregam quase tudo: a área e quem está em melhor situação. Meça os quartos primeiro, porque ninguém precisa revelar nada para concordar com essa parte. Decida a segunda em voz alta, uma vez, e depois não mexa mais.'
+    - question: 'Existe uma calculadora que divide a conta por renda?'
+      answer: 'A calculadora de aluguel permite ajustar a divisão. Para uma conta avulsa, combinem o valor de cada pessoa e registrem esses valores em uma sala do Split.'
+    - question: 'Como dividir a conta do jantar quando alguém não bebeu?'
+      answer: 'Registre as bebidas como uma despesa entre quem bebeu. Adicione a comida separadamente e divida entre quem comeu.'
+    - question: 'Como dividir o aluguel de forma desigual?'
+      answer: 'Escolha um critério, como a área dos quartos, e combine ajustes por comodidades ou renda. A calculadora mostra a parte de cada pessoa.'
 draft: true
 ---
 
-# Uma calculadora de divisão justa para um rateio desigual
+# Calculadora para dividir despesas
 
-Justo é uma palavra que faz vários papéis, e a conta que você quer depende do que está desigual. Um quarto maior é uma pergunta; uma viagem de carro mais longa é outra; e um jantar em que uma pessoa pediu o menu degustação e outra só uma sopa é a terceira.
+Antes de calcular, escolha o que a divisão vai considerar: tamanho do quarto, distância da viagem ou consumo de cada pessoa. Dividir por igual também funciona quando todos concordam que as diferenças são pequenas.
 
-Errar nisso raramente é dramático. É a pessoa que fez a conta virando a pessoa que tem que defendê-la, três semanas depois, no grupo do WhatsApp, com os cálculos no celular e em nenhum outro lugar. O Split guarda o número para ninguém precisar ser essa pessoa.
+## Aluguel
 
-## Qual conta você realmente quer
+A [calculadora de aluguel](/pt-br/rent-split-calculator) usa a área dos quartos e permite ajustar a divisão. Você pode partir da metragem e combinar ajustes por banheiro privativo ou diferenças de orçamento.
 
-Se for os quartos, o número segue a área: meça os quartos privativos, deixe as áreas comuns de fora, e cada pessoa paga a fração do aluguel que o quarto dela representa do total. Essa é a [calculadora de divisão de aluguel](/pt-br/rent-split-calculator), que coloca um controle deslizante ao lado de cada nome para a metade que a área não resolve.
+## Viagens de carro
 
-Se for a direção, o número segue a distância a uma taxa que precifica o carro, não a gasolina. Um valor justo por quilômetro cobre os pneus, a revisão e o valor que o carro perde com o tempo, e por isso o número oficial fica acima do preço da bomba. A [calculadora de divisão por quilometragem](/pt-br/mileage-split-calculator) calcula uma viagem assim e a divide entre todo mundo que estava dentro.
+A [calculadora de quilometragem](/pt-br/mileage-split-calculator) multiplica a distância por uma taxa por quilômetro e divide o custo entre os passageiros. Essa taxa pode incluir combustível e desgaste do carro. Confira o que ela cobre antes de somar combustível à parte.
 
-Se for uma despesa entre pessoas, aqui não tem calculadora e não vai ter. Um número num formulário é um número que uma pessoa redigita no grupo do WhatsApp, e esse é o trabalho inteiro. [Abra uma sala](/new): cada um lança o que pagou, e tudo se reduz a dois ou três pagamentos em vez de vinte.
+## Refeições e outras despesas compartilhadas
 
-## Onde isso deixa de valer a pena
+Em uma [sala do Split](/new?locale=pt-br), registre quem pagou e quem participou de cada despesa. Você pode informar valores diferentes para cada pessoa.
 
-Sempre tem alguém que aponta que ninguém está medindo a cozinha, nem a luz, nem as idas ao banheiro, e essa pessoa tem razão. A maioria das casas traça a linha no mesmo ponto: divide o que uma pessoa claramente consome e deixa o que é de todos como coisa de todos.
+Por exemplo, divida o vinho entre quem bebeu e a comida entre quem comeu. Registre como duas despesas. A sala calcula o saldo de cada pessoa a partir dos pagamentos e das partes que lhe cabem.
 
-Saber a hora de parar é a outra metade. Um método que mexe com muito pouco dinheiro por mês custa mais em mal-estar do que resolve em dinheiro. Faça a conta e olhe a diferença antes de decidir levar isso adiante.
+## Quando dividir por igual basta
 
-## Quando dividir em partes iguais ainda ganha
-
-Isso acerta mais vezes do que os resultados de busca sugerem: quando a diferença é pequena, quando o grupo prefere não ficar medindo cada um, e quando aquilo é uma vez só que ninguém vai lembrar.
+Se os quartos ou os pedidos são parecidos, uma divisão igual poupa cálculos. Consulte quem vai pagar: uma diferença pequena para alguém pode ser importante para outra pessoa.
 
 ## Bom saber
 
-O serviço oficial é de uso grátis e não tem plano pago.
+O Peanut Split é grátis e não tem plano pago.
 
-As calculadoras fazem a ponderação e a sala mantém o saldo. Ela converte automaticamente 156 moedas pela taxa indicativa do dia e comporta até vinte pessoas. O Split registra um pagamento, não faz o pagamento. Ele não confere com nenhum banco, e não tem como.
+O Split converte automaticamente 156 moedas pela taxa de câmbio indicativa do dia. Seu banco pode usar outra taxa.
+
+Paguem em dinheiro, por transferência ou pelo meio que combinarem e registrem o pagamento no Split. O Split não movimenta dinheiro nem verifica o pagamento com o banco.
 
 <CTA
-  title="A parte desigual é uma decisão, o resto é uma sala"
-  body="Dez segundos. Sem e-mail, sem senha, sem download."
+  title="Registre os valores combinados"
+  body="Compartilhe o link para que todos possam adicionar despesas. Não é preciso criar uma conta nem baixar nada."
   text="Criar um split" />
 
 <FAQ>
-<FAQItem question="Existe uma calculadora que divide a conta por renda?">Para uma conta única, não. A ponderação por renda fica na calculadora de divisão de aluguel, como um controle deslizante em vez de um campo perguntando quanto você ganha, porque ela pertence a um arranjo que se repete. Para um jantar, é uma conversa que o grupo tem uma vez, e a sala guarda o que ela produziu.</FAQItem>
-<FAQItem question="Como dividir a conta do jantar quando alguém não bebeu?">Tire o vinho por cima e divida entre quem bebeu, depois divida o que sobrou por igual. Numa sala, isso são duas despesas em vez de uma, e é por isso que aguenta uma pergunta uma semana depois.</FAQItem>
-<FAQItem question="Como dividir o aluguel de forma desigual?">Duas coisas carregam quase tudo: a área e quem está em melhor situação. Meça os quartos primeiro, porque ninguém precisa revelar nada para concordar com essa parte. Decida a segunda em voz alta, uma vez, e depois não mexa mais.</FAQItem>
+<FAQItem question="Existe uma calculadora que divide a conta por renda?">A calculadora de aluguel permite ajustar a divisão. Para uma conta avulsa, combinem o valor de cada pessoa e registrem esses valores em uma sala do Split.</FAQItem>
+<FAQItem question="Como dividir a conta do jantar quando alguém não bebeu?">Registre as bebidas como uma despesa entre quem bebeu. Adicione a comida separadamente e divida entre quem comeu.</FAQItem>
+<FAQItem question="Como dividir o aluguel de forma desigual?">Escolha um critério, como a área dos quartos, e combine ajustes por comodidades ou renda. A calculadora mostra a parte de cada pessoa.</FAQItem>
 </FAQ>
 
 <RelatedPages>
-<RelatedLink href="/pt-br/rent-split-calculator">Divisão de aluguel por tamanho do quarto, com um controle deslizante para quem está em melhor situação</RelatedLink>
-<RelatedLink href="/pt-br/mileage-split-calculator">Um carro compartilhado, calculado pela taxa oficial</RelatedLink>
+<RelatedLink href="/pt-br/rent-split-calculator">Dividir o aluguel pelo tamanho dos quartos</RelatedLink>
+<RelatedLink href="/pt-br/mileage-split-calculator">Dividir o custo da viagem de carro</RelatedLink>
 </RelatedPages>

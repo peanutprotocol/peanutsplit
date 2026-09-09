@@ -130,7 +130,7 @@ describe('official-host Peanut reference budget', () => {
 
         expect(mentions).toEqual([
             'Peanut',
-            ', including an optional settlement method. They never require a click, nag the user, become preselected, or gate a feature. They are part of the official hosted service, not a condition of the AGPL license. Forks and self-hosters do not owe Peanut or Squirrel Labs promotion.',
+            ', including an option to pay someone back. These links never require a click, send repeated prompts, come preselected or block a feature. The license does not require them: forks and self-hosted copies have no obligation to promote Peanut or Squirrel Labs.',
         ])
     })
 

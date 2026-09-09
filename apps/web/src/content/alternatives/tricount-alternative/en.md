@@ -1,6 +1,6 @@
 ---
-title: Tricount alternative for cross-border groups
-description: Tricount settles up through a bank account and a bunq card. If your group shares neither, here is what a link-based split does instead.
+title: 'Tricount alternative with no download'
+description: 'Compare Tricount with Peanut Split: shared expenses, payment requests, bunq card tracking and a browser-based room with no account.'
 date: 2026-07-28
 type: comparison
 headTerm: tricount alternative
@@ -18,38 +18,35 @@ competitorClaims:
     - tricount-bunq-card
     - tricount-100-free
 faqs:
-    - question: Is Split free to use?
-      answer: Yes. The official service is free to use and has no paid tier.
-    - question: Do I have to download anything?
-      answer: No. A room is a web link. Whoever opens it types a name and starts adding expenses. No app store, no account, no email.
-    - question: Can we still settle by bank transfer or cash?
-      answer: Yes. Split nets the debts down so you make two or three transfers instead of twenty, and records each one however it happened. It does not require anyone to use a particular bank or app.
-    - question: How do I get back into a room?
-      answer: Open the link again. There is no login to recover and no password to reset, so the link is the key. Keep it pinned in the group chat, where anybody who needs it can find it.
+    - question: 'Is Split free to use?'
+      answer: 'Split is free to use and has no paid tier.'
+    - question: 'Do I have to download anything?'
+      answer: 'No. Open the room link in a browser and enter your name to add expenses.'
+    - question: 'Can we still settle by bank transfer or cash?'
+      answer: 'Yes. Pay by cash, bank transfer or another agreed method, then record the payment. Split calculates balances but does not make or verify payments.'
+    - question: 'How do I get back into a room?'
+      answer: 'Open the room link again. Keep it in the group chat because there is no account or password recovery.'
 ---
 
-{/* Every claim about Tricount on this page is a verbatim quote from tricount.com/en, checked
-against the page source on 2026-07-28. Don't add a claim you have not opened the page for,
-and don't add one that needs updating when they change a price. */}
+{/* Competitor quotations were last checked against the linked sources on 2026-07-28. Keep quoted text unchanged.
+Sources and claim IDs are recorded in ../_system/competitor-claims.md. */}
 
 <Hero
-  eyebrow="tricount alternative"
-  title="For groups that do not share a bank"
-  subtitle="Tricount does the maths and then hands you to a bank account. That last step is the one that stalls when your group is spread across four countries."
+  eyebrow="Comparison"
+  title="Tricount alternative with no download"
+  subtitle="Peanut Split lets everyone add expenses in a browser without an account. Tricount also tracks shared costs and offers payment requests and automatic expense entry with a bunq card."
   cta="Start a split"
-  ctaHint="Takes ten seconds. No email, no password, no download." />
+  ctaHint="No account or download required." />
 
-Tricount is good at the part it is built for:
+## What Tricount offers
+
+Tricount describes its core function this way:
 
 <Quote source="tricount.com">
 tricount helps you keep track of who paid what. Invite your friends, add your expenses, focus on the fun.
 </Quote>
 
-If that is the problem you have, you do not need an alternative. People go looking for one for a different reason, and it is not the maths — it is what happens after the maths.
-
-## Look at how it expects you to settle up
-
-Two lines from Tricount's own homepage describe the settle path, and both assume something about your group.
+Its homepage also advertises bank payment requests and bunq card integration:
 
 <Quote source="tricount.com">
 Send a payment request straight from the app and get paid directly to your bank account.
@@ -59,52 +56,42 @@ Send a payment request straight from the app and get paid directly to your bank 
 Pay with your bunq card and the expense gets automatically added to your tricount.
 </Quote>
 
-Both quotes name the rail: a bank account, and a bunq card. If your group has neither in common, neither line applies to you.
+These describe features you may find useful. They do not establish that everyone in a group needs the same bank or a bunq card.
 
-A group of four in Berlin will have a fine time. A group of four in Berlin, Buenos Aires, Lisbon and Bangkok will get to a correct number and then spend three weeks not paying it.
+## What Split offers
 
-## What the Tricount alternative does differently
-
-|                 | Peanut Split                                                                        | Tricount                                                 |
-| --------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| Cost            | Free to use, no paid tier                                                           | "100% free"                                              |
-| Doing the maths | Balances reconcile to the cent                                                      | "tricount does the math for you"                         |
-| Settling up     | Whatever the two people can actually use: cash, a local transfer, or a payment link | "get paid directly to your bank account", or a bunq card |
-| Best case       | Group spread across countries, banks and currencies                                 | Group that shares banking rails                          |
-
-Quotes taken from tricount.com/en in July 2026.
-
-Settling up is the row that matters. The rest is close enough that it should not decide anything.
-
-## The two things that break a cross-border group
-
-<Checklist title="Where a split actually fails">
-<ChecklistItem title="Nobody has the same app">"Just send it to me" collapses when one person has Revolut, one has a bank that shuts at four, and one is in a country neither reaches. So don't require a particular one.</ChecklistItem>
-<ChecklistItem title="You paid in one currency and owe in another">Pick what the room counts in, add expenses in whatever you actually spent, and Split converts. Free to use, and not a feature behind a tier.</ChecklistItem>
+<Checklist title="Sharing expenses in a browser">
+<ChecklistItem title="No account or download">Create a room and share its link. Each person enters a name and can add expenses.</ChecklistItem>
+<ChecklistItem title="Currency conversion">Choose the room currency. Split converts expenses in 156 currencies at the day's indicative rate, which may differ from your bank's.</ChecklistItem>
+<ChecklistItem title="Payment records">The room suggests who should pay whom. Pay by a method you both accept, then record the payment. Split does not move money or check with a bank.</ChecklistItem>
 </Checklist>
 
-## When Tricount is the better tool
+## When Tricount may suit you better
 
-If your group shares a bank — or several of you hold a bunq card — Tricount will be smoother than this. Split is smaller and does less.
+If you want its advertised bank payment requests or automatic expense entry through a bunq card, check whether those features are available to you. Split does not have a card integration or send the bank transfer for you.
 
-There is no card that logs your spending for you, and there is no bank behind us doing the transfer. Two people settle however they settle, and one of them taps to record it. Split does not check with a bank, and cannot.
+## Cost and access
 
-That is the trade. Less product, fewer assumptions about who you bank with.
+Tricount describes its service as “100% free”. Split is also free to use and has no paid tier.
+
+Keep your Split room link in the group chat. Anyone with the link can access the room, and there is no account recovery if you lose it.
+
+Tricount quotations were checked on [its homepage](https://tricount.com/en) on 28 July 2026.
 
 <CTA
-  title="Try it on the next dinner"
-  body="Paste a link in the chat. No app store, no accounts, and settling up does not route through anyone's bank."
+  title="Create a room for your group"
+  body="Share a room link so everyone can add expenses. No account or download required."
   text="Start a split" />
 
 <FAQ>
-<FAQItem question="Is Split free to use?">Yes. The official service is free to use and has no paid tier.</FAQItem>
-<FAQItem question="Do I have to download anything?">No. A room is a web link. Whoever opens it types a name and starts adding expenses. No app store, no account, no email.</FAQItem>
-<FAQItem question="Can we still settle by bank transfer or cash?">Yes. Split nets the debts down so you make two or three transfers instead of twenty, and records each one however it happened. It does not require anyone to use a particular bank or app.</FAQItem>
-<FAQItem question="How do I get back into a room?">Open the link again. There is no login to recover and no password to reset, so the link is the key. Keep it pinned in the group chat, where anybody who needs it can find it.</FAQItem>
+<FAQItem question="Is Split free to use?">Split is free to use and has no paid tier.</FAQItem>
+<FAQItem question="Do I have to download anything?">No. Open the room link in a browser and enter your name to add expenses.</FAQItem>
+<FAQItem question="Can we still settle by bank transfer or cash?">Yes. Pay by cash, bank transfer or another agreed method, then record the payment. Split calculates balances but does not make or verify payments.</FAQItem>
+<FAQItem question="How do I get back into a room?">Open the room link again. Keep it in the group chat because there is no account or password recovery.</FAQItem>
 </FAQ>
 
 <RelatedPages>
 <RelatedLink href="/splitwise-alternative">How Split compares to Splitwise</RelatedLink>
-<RelatedLink href="/blog/split-a-group-trip-across-countries">Splitting a trip when nobody shares a bank</RelatedLink>
-<RelatedLink href="/blog/split-expenses-across-currencies">Splitting when you paid in one currency and owe in another</RelatedLink>
+<RelatedLink href="/blog/split-a-group-trip-across-countries">Split trip expenses across countries</RelatedLink>
+<RelatedLink href="/blog/split-expenses-across-currencies">Split expenses across currencies</RelatedLink>
 </RelatedPages>

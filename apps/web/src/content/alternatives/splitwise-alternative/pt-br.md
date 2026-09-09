@@ -1,8 +1,8 @@
 ---
-title: Alternativa ao Splitwise, grátis e sem limite
-description: Uma alternativa ao Splitwise de uso grátis hoje, sem conta nem app. Compartilhe um link, lance despesas sem limite diário e use todos os recursos sem plano pago.
+title: 'Alternativa ao Splitwise grátis e sem conta'
+description: 'Use o Peanut Split sem cadastro nem limite diário de despesas. Compare a conversão de moedas e compartilhe uma sala com o grupo.'
 publicSourceTitle: Alternativa ao Splitwise de código aberto
-publicSourceDescription: O serviço oficial do Peanut Split é de uso grátis e não tem plano pago. O código AGPL pode ser auto-hospedado, com esquema e limites documentados.
+publicSourceDescription: 'Consulte o código AGPL ou hospede sua cópia. A Squirrel Labs mantém o Peanut Split, e o serviço oficial é grátis.'
 date: 2026-07-25
 updated: 2026-08-24
 type: comparison
@@ -10,6 +10,7 @@ releaseGate: public-source
 headTerm: alternativa splitwise
 tags: [alternativas]
 claims:
+    - room-size-20
     - hosted-price
     - squirrel-labs-stewardship
     - public-source-and-self-hosting
@@ -26,163 +27,105 @@ competitorClaims:
     - splitwise-pro-ad-free
     - splitwise-free-daily-cap
 publicSourceFaqs:
-    - question: O Split é FOSS ou só é de uso grátis?
-      answer: As duas coisas, mas são afirmações diferentes. O serviço oficial é de uso grátis e não tem plano pago. O software publicado usa AGPL-3.0-or-later, que permite inspecionar, executar, modificar, compartilhar e auto-hospedar essa versão.
-    - question: Posso auto-hospedar o Split?
-      answer: Sim. O repositório público inclui Compose, as migrações do PostgreSQL e a documentação do esquema e da API. Você opera o domínio e TLS, o banco de dados, os backups, os segredos, as atualizações, o monitoramento e qualquer integração opcional.
-    - question: Quem mantém o Split e por que outro produto pode aparecer?
-      answer: A Squirrel Labs é hoje a única mantenedora e paga todos os custos do projeto, incluindo as horas de trabalho e a operação do peanutsplit.com. O serviço oficial pode ter poucas referências discretas e contextuais de pagamento; elas nunca exigem clique, insistem nem bloqueiam recursos, e os forks não precisam mantê-las.
+    - question: 'O Split é FOSS ou só é de uso grátis?'
+      answer: 'O Split é grátis, e seu código publicado usa a licença AGPL-3.0-or-later. A licença permite consultar, executar, modificar, compartilhar e hospedar o software conforme suas condições.'
+    - question: 'Posso auto-hospedar o Split?'
+      answer: 'Sim. O repositório público inclui instruções de implantação, migrações e documentação da API. Você cuida da hospedagem, dos backups, das atualizações e das integrações.'
+    - question: 'Quem mantém o Split?'
+      answer: 'A Squirrel Labs mantém o Split e paga seus custos, incluindo as horas de trabalho.'
 faqs:
-    - question: Preciso de conta?
-      answer: Não, e nem quem receber o link. Não tem e-mail, não tem senha e não tem cadastro em lugar nenhum do Split.
-    - question: Tem limite de quantas despesas dá para lançar?
-      answer: Não tem. Lance cinquenta numa tarde, se a viagem for desse tipo.
+    - question: 'Preciso de conta?'
+      answer: 'Todos podem entrar em uma sala do Split pelo link e digitar o nome. Não é preciso e-mail, senha ou verificação de identidade.'
+    - question: 'Tem limite de quantas despesas dá para lançar?'
+      answer: 'Não há limite diário de despesas. Uma sala guarda 500 registros; ao importar um histórico maior, algumas entradas podem ser agrupadas em saldos iniciais.'
 ---
 
-{/* Toda afirmação sobre o Splitwise nesta página é uma citação textual de uma página do Splitwise,
-cada uma reaberta e conferida contra o texto dela em 2026-08-21:
-
-- https://www.splitwise.com/pro — as três citações do Pro em "Por que as pessoas procuram outra coisa"
-- https://kb.splitwise.com/pro/what-is-splitwise-pro-and-who-can-use-it — a citação do limite diário
-
-As citações ficam em inglês de propósito: são a prova. A linha sobre anúncio é citada do jeito que o
-Splitwise escreve, como título e sem ponto final; a versão anterior desta página acrescentava um, e
-ponto final é pontuação que não é nossa. O Splitwise não publica preço nenhum no próprio site, então
-esta página diz o que eles dizem sobre a divisão entre grátis e pago, e nenhum número. A página de
-importação ainda é só em inglês, então esta versão não aponta para ela. Não acrescente uma
-afirmação sem ter aberto a página, e não acrescente uma que estraga quando eles mudam um preço. */}
+{/* Citações conferidas contra as fontes indicadas em 2026-08-21. Keep quoted text unchanged.
+Sources and claim IDs are recorded in ../_system/competitor-claims.md. */}
 
 <Hero
-  eyebrow="alternativa ao splitwise"
-  title="Uma alternativa ao Splitwise grátis e sem conta"
-  subtitle="O Splitwise funciona. Ele também pede que cada pessoa do grupo crie uma conta antes de lançar uma única despesa, e é aí que a maioria dos grupos desiste em silêncio. O Split é um link. Você manda, as pessoas digitam um nome, e cada uma lança o que pagou."
+  eyebrow="Comparativo"
+  title="Alternativa ao Splitwise grátis e sem conta"
+  subtitle="O Peanut Split é grátis. Compartilhe o link de uma sala, digite seu nome e adicione despesas sem limite diário."
   cta="Criar um split"
-  ctaHint="Dez segundos. Sem e-mail, sem senha, sem download." />
+  ctaHint="Sem cadastro nem download." />
 
-<PublicSourceOnly>
+## Despesas, moedas e preço
 
-## Grátis e de código aberto são promessas diferentes
-
-O serviço oficial é de uso grátis e não tem plano pago, e isso não vai mudar: se um dia não
-pudermos bancar o peanutsplit.com, a gente desliga em vez de começar a cobrar. Grátis para sempre é
-uma promessa sobre o preço, não uma promessa de que um servidor vai existir para sempre.
-
-O software publicado usa a licença AGPL-3.0-or-later. Código aberto descreve o que você pode fazer
-com essa versão: inspecionar, executar, modificar, compartilhar e hospedar por conta própria sob a
-licença. Não significa “sem custo” nem promete como todas as versões futuras serão licenciadas.
-
-[Veja o código, a licença e os dados de manutenção](/source)
-
-## O que você pode auto-hospedar
-
-O código público inclui o aplicativo Next.js, o esquema e as migrações do PostgreSQL, uma implantação
-de referência com Compose e documentação gerada do modelo de dados e da API HTTP. O guia também
-registra os limites atuais: uma réplica do aplicativo, avisos e limites de uso locais ao processo,
-taxas de câmbio estáticas sem um provedor configurado e nenhum TLS, backup ou monitoramento de
-produção incluído.
-
-Ao hospedar, você vira o operador. O domínio e TLS, banco de dados, backups, segredos, atualizações,
-logs, avisos de privacidade e cada integração opcional ficam sob sua responsabilidade.
-
-## Mantido pela Squirrel Labs
-
-A Squirrel Labs mantém o Peanut Split. Hoje ela é a única mantenedora e paga todos os custos do
-projeto, incluindo as horas de trabalho e a operação do peanutsplit.com. O acordo justo é que o
-serviço oficial pode mostrar as poucas referências discretas e contextuais descritas na
-[página de código e manutenção](/source). Elas nunca exigem clique, insistem, ficam
-pré-selecionadas nem bloqueiam um recurso. Fazem parte do serviço oficial,
-não são uma condição da licença AGPL. Forks e quem hospeda sua própria cópia não precisam manter
-essas referências nem promover nenhuma das duas empresas.
-
-</PublicSourceOnly>
-
-## Por que as pessoas procuram outra coisa
-
-O Splitwise vende um plano Pro. O que o Pro promete é a descrição mais clara do que a versão grátis faz com você:
-
-### O dia em que você lança muita despesa é o dia em que ele para
+O Splitwise inclui estes recursos no Pro:
 
 <Quote source="splitwise.com/pro">
 Add as many expenses as you like each day, with no interruptions.
 </Quote>
 
-Uma viagem é exatamente quando você lança uma dúzia numa tarde. O Split não tem limite nem contador.
-
-### Dividir entre moedas é função paga
-
 <Quote source="splitwise.com/pro">
 Splitwise can convert all your bills to any currency you’d like, using today’s foreign exchange rates.
 </Quote>
-
-Também no Pro. Se o grupo está em Lisboa pagando em euro e acertando em real, isso é o trabalho inteiro. No Split já vem junto e é de uso grátis.
-
-### O app grátis mostra anúncio para você
 
 <Quote source="splitwise.com/pro">
 A totally ad-free experience
 </Quote>
 
-Pro de novo. O Split não tem plano pago.
-
-## Se o contador já parou você hoje
+A central de ajuda descreve o limite diário gratuito:
 
 <Quote source="kb.splitwise.com/pro">
 Add as many expenses as you need without hitting a limit (free users can add up to 4 expenses each day).
 </Quote>
 
-Do centro de ajuda do Splitwise, kb.splitwise.com, lido em 2026-08-21.
+| Recurso             | Peanut Split                           | Splitwise                                          |
+| ------------------- | -------------------------------------- | -------------------------------------------------- |
+| Adicionar despesas  | Sem limite diário                      | Contas gratuitas têm limite diário; o Pro o remove |
+| Conversão de moedas | 156 moedas pela taxa indicativa do dia | Recurso do Pro                                     |
+| Preço               | Grátis, sem plano pago                 | Versão gratuita e assinatura Pro                   |
+| Acesso ao grupo     | Link e nome, sem cadastro              | O Splitwise usa contas para acessar o grupo        |
 
-É o Splitwise descrevendo o próprio plano grátis. O contador zera e você lança de novo amanhã, o que não ajuda hoje à noite.
+Citações consultadas na [página do Pro](https://www.splitwise.com/pro) e na [central de ajuda](https://kb.splitwise.com/pro/what-is-splitwise-pro-and-who-can-use-it) em 21 de agosto de 2026.
 
-Um grupo não precisa mover o histórico para continuar. Crie uma sala, cole o link no grupo do WhatsApp e ponha o resto do dia ali. Não tem conta para criar, então ninguém do grupo precisa se cadastrar antes da próxima despesa entrar. O que já está no Splitwise fica no Splitwise e continua certo.
+## Usar o Split
 
-Tocar dois registros para uma viagem só compensa nos dias em que o contador atrapalha, e não muito além disso. Um grupo no começo de uma semana fora sai melhor abrindo a sala no primeiro dia, e um grupo que prefere trazer os saldos abertos em vez de começar de hoje deve fazer isso de uma vez só.
+Guarde o link no grupo de conversa. Qualquer pessoa com ele pode acessar a sala. Se você perder o link, não há uma conta para recuperar o acesso.
 
-[O que o limite diário faz, e como mudar um grupo no meio da viagem](/pt-br/splitwise-daily-limit)
+As despesas que você adiciona sem sinal ficam no dispositivo e são enviadas quando a conexão volta. Editar despesas e registrar pagamentos exige conexão.
 
-## A alternativa ao Splitwise, sem rodeio
+O Split sugere os pagamentos para acertar as contas. Paguem em dinheiro, por transferência ou por outro meio combinado e registrem o pagamento. O Split não movimenta dinheiro nem verifica pagamentos com o banco.
 
-|                        | Split                              | Splitwise                                             |
-| ---------------------- | ---------------------------------- | ----------------------------------------------------- |
-| Para começar           | Abra o link e digite um nome.      | Todo mundo cria uma conta antes.                      |
-| Colocar o grupo dentro | Cole um link no grupo do WhatsApp. | Convide as pessoas uma a uma, e cada uma se cadastra. |
-| Lançar despesas        | Quantas você quiser, todo dia.     | Despesas sem limite são vendidas como função Pro.     |
-| Outras moedas          | Já vem junto e é de uso grátis.    | A conversão de moeda é vendida como função Pro.       |
-| Preço                  | De uso grátis; sem plano pago.     | Grátis com anúncio, ou Splitwise Pro.                 |
+## Quando vale continuar no Splitwise
 
-Citações e funções retiradas de splitwise.com/pro e kb.splitwise.com, conferidas contra as páginas do Splitwise em 2026-08-21.
+Se o grupo já usa o Splitwise e os limites não atrapalham, continuar nele evita uma migração. Confira os recursos que vocês usam antes de mudar, especialmente se dependem de um plano pago.
 
-<Callout title="Quando o Splitwise é a ferramenta melhor">
-O Splitwise lê recibo, importa cartão e desenha gráficos, e tem app nas duas lojas. O Split não faz nada disso, de propósito. O Split é para a viagem, o jantar, o fim de semana: um grupo, um link, resolvido e esquecido.
-</Callout>
+<PublicSourceOnly>
 
-<Checklist title="O que você tem aqui">
-<ChecklistItem title="Um link, sem contas">O link é a sala. Quem tem o link está dentro, então deixe ele no grupo do WhatsApp e não num lugar público.</ChecklistItem>
-<ChecklistItem title="156 moedas, convertidas">Escolha em que a sala conta. Lance uma despesa em qualquer uma das 156 moedas com conversão automática e o Split converte pela taxa indicativa do dia, que ele guarda: editar a linha depois não muda o preço dela.</ChecklistItem>
-<ChecklistItem title="Conta que fecha">Os saldos somam zero, até o centavo, e o acerto sugere um plano de pagamento curto que zera a sala. Abra qualquer saldo e ele mostra a conta.</ChecklistItem>
-<ChecklistItem title="Todo mundo vê na hora">Alguém lança o táxi no caminho de casa e aquilo já está na tela dos outros antes de eles saírem do carro.</ChecklistItem>
-<ChecklistItem title="Continua funcionando sem sinal">Despesas digitadas no subsolo ou no meio da serra esperam no seu celular e sobem quando o sinal volta. Registrar um acerto espera conexão de propósito: um pagamento anotado duas vezes é pior do que um pagamento anotado tarde.</ChecklistItem>
-<ChecklistItem title="Sete idiomas">A sala fala a língua do celular que abriu ela: inglês, espanhol, português, polonês, alemão, francês ou ucraniano. Ninguém precisa achar uma configuração.</ChecklistItem>
-<ChecklistItem title="Acerte do jeito que vocês quiserem">Dinheiro, transferência, o app que o grupo já usa. O Split registra de qualquer jeito.</ChecklistItem>
-</Checklist>
+## Código-fonte e hospedagem própria
+
+O código publicado do Split usa a licença AGPL-3.0-or-later. Você pode consultar, executar, modificar, compartilhar e hospedar o software conforme a licença.
+
+O repositório inclui instruções de implantação, o esquema do banco e as migrações. Se você hospedar, cuida do banco de dados, backups, domínio, TLS, atualizações e integrações.
+
+A Squirrel Labs mantém o Split e paga seus custos, incluindo as horas de trabalho.
+
+O serviço oficial continuará grátis. Se não for possível bancá-lo, ele será encerrado em vez de começar a cobrar.
+
+[Código-fonte, licença e hospedagem](/source)
+
+</PublicSourceOnly>
 
 <CTA
-  title="Teste no rateio de hoje"
-  body="Um link, dez segundos, e ninguém precisa instalar nada."
+  title="Crie uma sala para seu grupo"
+  body="Compartilhe o link para que todos possam adicionar despesas. Não é preciso criar uma conta nem baixar nada."
   text="Criar um split" />
 
-<FAQ title="Perguntas que as pessoas realmente fazem">
+<FAQ>
 <PublicSourceOnly>
-<FAQItem question="O Split é FOSS ou só é de uso grátis?">As duas coisas, mas são afirmações diferentes. O serviço oficial é de uso grátis e não tem plano pago. O software publicado usa AGPL-3.0-or-later, que permite inspecionar, executar, modificar, compartilhar e auto-hospedar essa versão.</FAQItem>
-<FAQItem question="Posso auto-hospedar o Split?">Sim. O repositório público inclui Compose, as migrações do PostgreSQL e a documentação do esquema e da API. Você opera o domínio e TLS, o banco de dados, os backups, os segredos, as atualizações, o monitoramento e qualquer integração opcional.</FAQItem>
-<FAQItem question="Quem mantém o Split e por que outro produto pode aparecer?">A Squirrel Labs é hoje a única mantenedora e paga todos os custos do projeto, incluindo as horas de trabalho e a operação do peanutsplit.com. O serviço oficial pode ter poucas referências discretas e contextuais de pagamento; elas nunca exigem clique, insistem nem bloqueiam recursos, e os forks não precisam mantê-las.</FAQItem>
+<FAQItem question="O Split é FOSS ou só é de uso grátis?">O Split é grátis, e seu código publicado usa a licença AGPL-3.0-or-later. A licença permite consultar, executar, modificar, compartilhar e hospedar o software conforme suas condições.</FAQItem>
+<FAQItem question="Posso auto-hospedar o Split?">Sim. O repositório público inclui instruções de implantação, migrações e documentação da API. Você cuida da hospedagem, dos backups, das atualizações e das integrações.</FAQItem>
+<FAQItem question="Quem mantém o Split?">A Squirrel Labs mantém o Split e paga seus custos, incluindo as horas de trabalho.</FAQItem>
 </PublicSourceOnly>
-<FAQItem question="Preciso de conta?">Não, e nem quem receber o link. Não tem e-mail, não tem senha e não tem cadastro em lugar nenhum do Split.</FAQItem>
-<FAQItem question="Tem limite de quantas despesas dá para lançar?">Não tem. Lance cinquenta numa tarde, se a viagem for desse tipo.</FAQItem>
+<FAQItem question="Preciso de conta?">Todos podem entrar em uma sala do Split pelo link e digitar o nome. Não é preciso e-mail, senha ou verificação de identidade.</FAQItem>
+<FAQItem question="Tem limite de quantas despesas dá para lançar?">Não há limite diário de despesas. Uma sala guarda 500 registros; ao importar um histórico maior, algumas entradas podem ser agrupadas em saldos iniciais.</FAQItem>
 </FAQ>
 
 <RelatedPages title="Continue lendo">
 <RelatedLink href="/pt-br/settle-up-alternative">Se o grupo está vindo do Settle Up</RelatedLink>
 <RelatedLink href="/pt-br/tricount-alternative">Como o Split se compara ao Tricount</RelatedLink>
-<RelatedLink href="/pt-br/blog/split-expenses-across-currencies">Quando você pagou numa moeda e deve em outra</RelatedLink>
+<RelatedLink href="/pt-br/blog/split-expenses-across-currencies">Dividir despesas em moedas diferentes</RelatedLink>
 </RelatedPages>

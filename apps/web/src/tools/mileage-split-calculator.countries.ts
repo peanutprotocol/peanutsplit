@@ -62,7 +62,7 @@ function countryPage(row: MileageRate, rate: number): MileageCountryPage {
                 // every country, and a format that holds for some rows and not others is a page
                 // family that looks broken in a result list. The description names it.
                 title: `${h1}, ${figure}/${row.unit === 'mile' ? 'mi' : 'km'}`,
-                description: `The official ${row.name} rate is ${rateWords}. Cost the drive at it, split it between the passengers, and type over it if you know the car better.`,
+                description: `Calculate each passenger’s share using the listed ${row.name} rate of ${rateWords}. Enter the distance and adjust the rate if needed.`,
             },
             copy: {
                 ...mileageSplitCalculator.copy,
@@ -71,17 +71,17 @@ function countryPage(row: MileageRate, rate: number): MileageCountryPage {
                 // neither is repeated here. The authority stays out too — half the source labels are
                 // bodies and half are statutes, and no one article fits both. The method note cites it.
                 intro: [
-                    `Say how far the car went and how many people were in it. The drive is costed at the official rate, ${rateWords}, and underneath is what each passenger owes whoever drove.`,
-                    'Type over it if you know the car better than the state does, or build your own from what it drinks. The picker keeps every other country a tap away, and Split can do the asking afterwards, so the driver never has to raise it in the group chat.',
+                    `Enter the distance driven and the number of passengers to calculate what each owes the driver. This page starts with the listed rate of ${rateWords}.`,
+                    'Check the rate’s conditions below and agree on what costs to share. You can edit the rate, calculate one from fuel use, or select another country.',
                 ],
                 // The row's own words, promoted out of the picker caption into prose. This is the
                 // only paragraph on the page the other eight do not also carry, so it replaces the
                 // shared method note rather than sitting beside it.
                 method: {
-                    title: `What the ${row.name} rate is, and what it leaves for the receipts`,
+                    title: `About the ${row.name} mileage rate`,
                     body: [
                         row.note,
-                        `That figure was read off ${row.sourceLabel} on ${formatDate(MILEAGE_RATES_RETRIEVED)}, and the page it came from is linked under the picker above. It prices distance and nothing else: tolls, ferries, parking and the coffee at the services have receipts of their own, and those go in the room with the rest of the trip.`,
+                        `Source: ${row.sourceLabel}, checked on ${formatDate(MILEAGE_RATES_RETRIEVED)} and linked beneath the country selector. The calculation multiplies distance by the rate. Add tolls, ferries, parking and other trip expenses separately in your Split room.`,
                     ],
                 },
             },
@@ -92,7 +92,7 @@ function countryPage(row: MileageRate, rate: number): MileageCountryPage {
             faqs: [
                 {
                     question: `What is the official ${row.name} mileage rate?`,
-                    answer: `${rateWords}, read off ${row.sourceLabel} on ${formatDate(MILEAGE_RATES_RETRIEVED)}. What it covers and what it leaves out is set out above, and the page it came from is linked under the picker.`,
+                    answer: `The listed rate is ${rateWords}, from ${row.sourceLabel}, checked on ${formatDate(MILEAGE_RATES_RETRIEVED)}. See the conditions above and the source linked beneath the country selector.`,
                 },
                 mileageSplitCalculator.faqs[0],
                 mileageSplitCalculator.faqs[3],
@@ -100,7 +100,7 @@ function countryPage(row: MileageRate, rate: number): MileageCountryPage {
             related: [
                 { href: `/${mileageSplitCalculator.slug}`, label: 'Mileage split calculator for any country' },
                 { href: '/tools', label: 'Every calculator' },
-                { href: '/blog/fronting-a-group-trip', label: 'Fronting a group trip without being the bank' },
+                { href: '/blog/fronting-a-group-trip', label: 'Paying upfront for a group trip' },
             ],
             // No translated twin and no hreflang — see the routing note in `tool-routes.ts`.
             locales: undefined,

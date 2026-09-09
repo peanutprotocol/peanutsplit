@@ -4,7 +4,7 @@
             "title": "MANDA AI",
             "controlTitleAccessible": "MANDA AÍ",
             "titleAccessible": "LINK. DIVIDE. PRONTO.",
-            "subtitle": "porque contas mais claras fazem amizades melhores",
+            "subtitle": "Divida despesas com amigos e veja quanto cada um deve.",
             "cta": "Criar o link",
             "linkExplainerTrigger": "Como o link funciona",
             "chat": {
@@ -108,7 +108,7 @@
             "button": "Começar uma divisão"
         },
         "honesty": {
-            "title": "A parte honesta",
+            "title": "Sobre o Split",
             "item1": {
                 "title": "Uso grátis"
             },
@@ -124,7 +124,7 @@
             "createSplit": "Criar uma sala",
             "toolsLink": "Calculadoras",
             "importLink": "Importar do Splitwise",
-            "sourceStewardship": "Código e manutenção",
+            "sourceStewardship": "Código-fonte",
             "colCompare": "Comparar",
             "colGuides": "Guias",
             "allGuides": "Todos os guias",
@@ -223,8 +223,8 @@
             "done": "Entendi"
         },
         "readMore": {
-            "toggle": "QUER SABER MAIS?",
-            "toggleHint": "Quem mantém o Split, por que o serviço oficial é gratuito e como os links das salas funcionam.",
+            "toggle": "MAIS SOBRE O SPLIT",
+            "toggleHint": "Recursos, financiamento e acesso à sua sala.",
             "join": {
                 "title": "O que seus amigos veem",
                 "roomName": "Viagem de esqui",
@@ -240,20 +240,20 @@
                     "body": "Conversão automática para 156 moedas; outras 6 funcionam sem conversão."
                 },
                 "splits": {
-                    "title": "Divisões desiguais",
+                    "title": "Escolha como dividir cada conta",
                     "body": "Por igual, por porcentagem, por partes, por valores exatos ou entre pessoas escolhidas."
                 },
                 "exact": {
-                    "title": "Fecha no centavo",
+                    "title": "Veja o cálculo",
                     "body": "Abra qualquer saldo para ver o cálculo."
                 },
                 "live": {
-                    "title": "Todo mundo vê na hora",
-                    "body": "As despesas novas aparecem na hora para todo mundo."
+                    "title": "Lista de despesas compartilhada",
+                    "body": "As despesas novas aparecem para quem está conectado."
                 },
                 "offline": {
-                    "title": "Funciona sem sinal",
-                    "body": "As despesas sincronizam quando o sinal volta."
+                    "title": "Adicione despesas sem conexão",
+                    "body": "As despesas novas ficam no aparelho e são enviadas quando a conexão volta. Para editar ou registrar pagamentos, é preciso estar conectado."
                 },
                 "home": {
                     "title": "Coloque na tela de início",
@@ -271,7 +271,7 @@
             },
             "team": {
                 "title": "Quem construiu",
-                "intro": "O Split ainda não tem usuários, então não há quem citar além de nós.",
+                "intro": "Konrad e Hugo criaram o Split. Aqui eles contam por quê.",
                 "konrad": {
                     "name": "Konrad",
                     "role": "fez o Split",
@@ -284,38 +284,38 @@
                 }
             },
             "who": {
-                "title": "Quem mantém o Split e por que o serviço oficial é gratuito",
+                "title": "Quem mantém e financia o Split",
                 "built": {
                     "title": "A Squirrel Labs mantém o Split",
                     "body": "Por enquanto, a Squirrel Labs é a única mantenedora e paga todos os custos, inclusive as horas de trabalho."
                 },
                 "free": {
-                    "title": "As referências ficam opcionais, nunca obrigatórias",
-                    "body": "Esse é o acordo justo: poucas referências discretas, sem clique obrigatório, insistência nem recurso bloqueado."
+                    "title": "Links opcionais",
+                    "body": "Os links promocionais são opcionais, sem clique obrigatório, avisos repetidos ou recursos bloqueados."
                 },
                 "data": {
-                    "title": "Não há muito aqui para vazar",
-                    "body": "Os links das salas ficam fora da nossa própria analítica, porque um link é uma chave."
+                    "title": "Links das salas e análise de uso",
+                    "body": "Excluímos os links das salas da nossa análise de uso. Quem tiver o link pode acessar a sala."
                 }
             },
             "faq": {
-                "title": "As perguntas que as pessoas realmente fazem",
+                "title": "Perguntas frequentes",
                 "retype": {
                     "q": "Preciso digitar de novo tudo o que está no grupo?",
-                    "a": "Para uma viagem que já aconteceu, sim: as despesas são digitadas uma vez. Pesa menos do que parece porque cada um na sala lança as suas em vez de sobrar tudo para você.",
-                    "import": "Se você vem do Splitwise, a página de importação traz um grupo inteiro, com histórico e saldos."
+                    "a": "Sim. Adicione cada despesa uma vez; cada pessoa na sala pode registrar o que pagou.",
+                    "import": "Você pode importar um grupo do Splitwise e conferir os saldos antes de confirmar. Despesas antigas podem ser agrupadas em saldos iniciais."
                 },
                 "access": {
                     "q": "Quem consegue ver a nossa sala?",
-                    "a": "Quem tiver o link. Ele fica fora dos buscadores e não dá para adivinhar, mas é uma chave — deixe no grupo, não em lugar público."
+                    "a": "Quem tiver o link pode acessar a sala. Compartilhe apenas com seu grupo. Pedimos aos buscadores que não indexem as salas."
                 },
                 "lost": {
                     "q": "Como a gente volta para a sala?",
                     "a": "Deixe o link no grupo para todo mundo encontrar por lá. O Split também salva neste aparelho as salas que você abre, e você pode colar o link na página inicial para adicionar a sala de novo."
                 },
                 "limits": {
-                    "q": "Tem limite de despesas?",
-                    "a": "Não. Lance cinquenta numa tarde, se a viagem for desse tipo."
+                    "q": "Há um limite diário de despesas?",
+                    "a": "Não há limite diário de despesas."
                 }
             },
             "compare": {

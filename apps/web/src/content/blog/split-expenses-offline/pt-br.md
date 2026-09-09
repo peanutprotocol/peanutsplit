@@ -1,86 +1,71 @@
 ---
-title: Dividir despesas offline, sem sinal
-description: Porões, teleféricos, campos de festival e chips sem sinal. O que uma sala de despesas registra sem conexão, o que ela recusa de propósito e por quê.
+title: 'Lançar despesas offline'
+description: 'Lance uma despesa sem internet e envie quando a conexão voltar. Veja o limite da fila e quais ações precisam de conexão.'
 date: 2026-07-28
 type: guide
 tags: [sem-conexão, viagens]
 claims:
+    - no-app
     - offline-creates-only
     - settle-is-a-record
     - link-is-the-key
     - offline-queue-30
 cast: []
 faqs:
-    - question: Dá para lançar uma despesa sem internet?
-      answer: Dá. A despesa é salva no seu celular com uma marca de "na fila" na linha e se envia sozinha assim que você volta a ficar online. Você não precisa lembrar dela, digitar de novo, nem manter a aba aberta.
-    - question: O que acontece com uma despesa na fila se eu fechar o app?
-      answer: Ela espera. A fila mora no seu aparelho e sobrevive a um recarregamento, ao fechar a aba e a reiniciar o app instalado. Ela envia na ordem em que você digitou as coisas, nunca em paralelo, então o histórico da sala fica na ordem certa.
-    - question: Dá para acertar as contas offline?
-      answer: Não, e isso é de propósito. Um pagamento posto na fila num celular dentro de um túnel, enquanto o mesmo pagamento é registrado na mesa por alguém com sinal, é um pagamento em dobro anotado como fato. Registrar um pagamento precisa de conexão ativa.
-    - question: Tem limite de quanto eu posso deixar na fila?
-      answer: Trinta despesas por aparelho, o que dá uma noite inteira de recibos. Passou disso, a mais antiga é descartada e você é avisado, porque uma fila sem teto é um erro de armazenamento lá na frente que falha calado e leva tudo junto.
-draft: true
+    - question: 'Consigo ver uma despesa pendente em outro celular?'
+      answer: 'Uma despesa pendente fica no aparelho onde foi lançada e só aparece em outros celulares depois de ser enviada para a sala.'
+    - question: 'Posso fechar o navegador antes do envio?'
+      answer: 'Sim. A fila fica salva no aparelho e sobrevive a uma recarga da página. Abra o Split novamente com conexão para enviar as despesas que ainda estiverem pendentes.'
+    - question: 'Posso registrar um pagamento offline?'
+      answer: 'Não. Editar, excluir e registrar pagamentos precisa de internet. Se uma ação falhar sem conexão, conecte-se e tente novamente.'
 ---
 
 <Hero
-  eyebrow="offline"
-  title="Lançar despesas onde não há sinal"
-  subtitle="Restaurante no porão, fila do teleférico, campo de festival, um chip que desistiu na fronteira. A hora em que você de fato precisa anotar o número costuma ser justo a hora em que não dá."
+  eyebrow="guia"
+  title="Lance despesas mesmo sem sinal"
+  subtitle="Novas despesas ficam no aparelho até você conseguir se conectar."
   cta="Criar um split"
-  ctaHint="Dez segundos. Sem e-mail, sem senha, sem download." />
+  ctaHint="Sem e-mail, sem senha, sem download." />
 
-Os lugares onde um grupo gasta dinheiro junto são, com uma constância impressionante, os lugares com o pior sinal que alguém encontra. Um bar no porão com um tracinho de nada. A fila do teleférico. Em algum ponto sobre o Atlântico. Um festival onde quarenta mil celulares brigam pela mesma antena.
+Você pode lançar uma nova despesa no Peanut Split sem internet se já tiver aberto a sala naquele aparelho. A despesa fica salva no dispositivo e é enviada quando a sala consegue se conectar novamente.
 
-E o jeito como isso falha é pior do que só irritante. Você lança o táxi de R$ 47, o salvamento não vai, a gaveta diz que não conseguiu chegar ao servidor, e agora a única cópia daquele número é você lembrando dele. E ninguém lembra.
+As outras pessoas ainda não conseguem ver esse lançamento. A marca de pendente indica que ele precisa chegar à sala compartilhada.
 
-## O que uma despesa na fila realmente faz
-
-A despesa é gravada no seu próprio celular, aparece na lista da sala com uma marca de "na fila" e se envia sozinha assim que houver conexão de novo. Você pode fechar a aba. Pode fechar o app instalado. Pode guardar o celular no bolso por quatro horas e entrar num avião.
-
-<Steps title="O que acontece, em ordem">
-<Step title="Você lança, sem sinal">A despesa é salva no aparelho e a linha aparece na hora, marcada como esperando. Nada se perde e nada precisa ser lembrado.</Step>
-<Step title="A conexão volta">A fila se esvazia sozinha, uma despesa de cada vez, na ordem em que você digitou — nunca em paralelo, então o histórico da sala fica do jeito que a noite realmente aconteceu.</Step>
-<Step title="Todo mundo vê as despesas chegando">As outras pessoas da sala recebem as despesas conforme elas caem, nessa ordem. Ninguém precisa ser avisado para atualizar.</Step>
+<Steps title="Antes e depois de perder o sinal">
+<Step title="Abra a sala com conexão">Carregue a sala no aparelho que vai usar. Guarde o link onde consiga encontrar depois.</Step>
+<Step title="Lance a despesa">Informe o valor, quem pagou e quem participa da divisão. Sem conexão, o lançamento fica marcado como pendente.</Step>
+<Step title="Confira quando a conexão voltar">Abra o Split quando tiver sinal. As despesas são enviadas uma de cada vez, na ordem em que foram lançadas. Confira se alguma precisa de revisão antes de sair.</Step>
 </Steps>
 
-<Callout title="Onde fica o limite">
-Trinta despesas esperando por aparelho. Passou disso, a mais antiga é descartada e você é avisado em alto e bom som. Uma fila sem teto vira um erro de cota de armazenamento lá na frente, e esse falha calado e leva a fila inteira junto: um limite que você enxerga é melhor do que um limite que você descobre depois.
-</Callout>
+## A fila fica no seu aparelho
 
-## O que de propósito não entra na fila
+As despesas pendentes continuam salvas se você recarregar a página ou reabrir o Split pela tela inicial. Como ainda não chegaram ao servidor, elas não aparecem ao abrir a sala em outro celular.
 
-Só despesas novas esperam. Editar uma despesa, apagar uma e registrar um pagamento continuam precisando de conexão ativa, e a linha entre os dois grupos é dinheiro, não esforço.
+A fila comporta até trinta despesas por aparelho, somando todas as salas. Se ficar cheia, a despesa mais antiga que não estiver bloqueada para revisão é removida e você recebe um aviso. Se todas as trinta precisarem de revisão, a fila não aceita uma nova despesa.
 
-<Checklist title="Por que a linha é essa">
-<ChecklistItem title="Uma despesa nova continua verdadeira quando chega atrasada">"A Ana pagou R$ 47 do táxi" não deixa de ser um fato porque a sala andou enquanto você estava no subsolo. Na pior das hipóteses, chega fora do momento.</ChecklistItem>
-<ChecklistItem title="Uma edição repetida por cima da edição de outra pessoa é uma sobrescrita silenciosa">Duas pessoas arrumando a mesma linha enquanto uma delas está offline termina com uma mudança sumindo caladinha e nenhum conflito aparecendo em lugar nenhum.</ChecklistItem>
-<ChecklistItem title="Um pagamento repetido é um pagamento em dobro">Você põe na fila "paguei R$ 40 pra Bea" num túnel. A Bea recebe o dinheiro na mesa e alguém registra ali. Os dois entram. A sala agora acredita que R$ 80 se moveram. O dinheiro discorda.</ChecklistItem>
-</Checklist>
+Se for passar muito tempo sem sinal, uma nota compartilhada ou uma lista em papel pode servir como registro adicional. Anote o valor, a moeda, quem pagou e quem divide a despesa para lançar depois.
 
-Esse último é a razão inteira de a coisa ter esse formato. Um app de divisão que enfileira tudo parece mais capaz numa lista de recursos e é pior na única tarefa que importa.
+## Edições e pagamentos precisam de conexão
 
-## Dá para usar offline não é o mesmo que funcionar offline
+A fila offline aceita apenas despesas novas. Para editar ou excluir uma despesa, ou registrar um pagamento, você precisa se conectar. Essas ações pedem uma nova tentativa quando não há internet.
 
-Dois limites honestos, porque essa diferença é vendida esticada em todo canto.
+Registrar o mesmo pagamento duas vezes altera os saldos. Por exemplo, dois registros de um pagamento de R$ 40 contam R$ 80. Quando a conexão voltar, confira se o pagamento já está na lista antes de registrá-lo.
 
-Você precisa de conexão para **abrir** uma sala pela primeira vez num aparelho — a sala mora num servidor, não no link. Depois de aberta, dá para instalar como app, e os números que você já carregou continuam na tela. E uma despesa na fila está em **um** aparelho: ela não está na sala, e mais ninguém consegue ver, até ela ser enviada.
-
-Então a história do offline é "continue lançando, nada se perde", não "o caderno do grupo funciona dentro de uma jaula de Faraday". A primeira é a que de fato acontece numa viagem, e se você realmente precisa da segunda, [o Settle Up funciona sem conexão e diz isso na própria página da loja](/guides/splitwise-vs-settle-up).
+O Split registra que alguém informou que pagou. Ele não movimenta dinheiro nem verifica o pagamento com o banco.
 
 <CTA
-  title="Abra a sala antes de perder o sinal"
-  body="Abra uma vez com conexão, compartilhe o link, e todo mundo pode continuar lançando de onde estiver."
+  title="Abra a sala antes de sair"
+  body="Carregue a lista compartilhada enquanto tiver conexão."
   text="Criar um split" />
 
-<FAQ>
-<FAQItem question="Dá para lançar uma despesa sem internet?">Dá. A despesa é salva no seu celular com uma marca de "na fila" na linha e se envia sozinha assim que você volta a ficar online. Você não precisa lembrar dela, digitar de novo, nem manter a aba aberta.</FAQItem>
-<FAQItem question="O que acontece com uma despesa na fila se eu fechar o app?">Ela espera. A fila mora no seu aparelho e sobrevive a um recarregamento, ao fechar a aba e a reiniciar o app instalado. Ela envia na ordem em que você digitou as coisas, nunca em paralelo.</FAQItem>
-<FAQItem question="Dá para acertar as contas offline?">Não, e isso é de propósito. Um pagamento posto na fila num celular dentro de um túnel, enquanto o mesmo pagamento é registrado na mesa por alguém com sinal, é um pagamento em dobro anotado como fato.</FAQItem>
-<FAQItem question="Tem limite de quanto eu posso deixar na fila?">Trinta despesas por aparelho, o que dá uma noite inteira de recibos. Passou disso, a mais antiga é descartada e você é avisado, porque uma fila sem teto é um erro de armazenamento lá na frente que falha calado.</FAQItem>
+<FAQ title="Perguntas">
+<FAQItem question="Consigo ver uma despesa pendente em outro celular?">Uma despesa pendente fica no aparelho onde foi lançada e só aparece em outros celulares depois de ser enviada para a sala.</FAQItem>
+<FAQItem question="Posso fechar o navegador antes do envio?">Sim. A fila fica salva no aparelho e sobrevive a uma recarga da página. Abra o Split novamente com conexão para enviar as despesas que ainda estiverem pendentes.</FAQItem>
+<FAQItem question="Posso registrar um pagamento offline?">Não. Editar, excluir e registrar pagamentos precisa de internet. Se uma ação falhar sem conexão, conecte-se e tente novamente.</FAQItem>
 </FAQ>
 
 <RelatedPages>
-<RelatedLink href="/pt-br/blog/split-a-group-trip-across-countries">Dividir uma viagem quando ninguém tem o mesmo banco</RelatedLink>
-<RelatedLink href="/pt-br/blog/split-expenses-in-real-time">Todo mundo vendo o mesmo total, ao vivo</RelatedLink>
-<RelatedLink href="/pt-br/blog/split-bills-without-an-app">Dividir a conta sem obrigar ninguém a se cadastrar</RelatedLink>
+<RelatedLink href="/pt-br/blog/split-a-group-trip-across-countries">Dividir despesas de viagem entre países</RelatedLink>
+<RelatedLink href="/pt-br/blog/split-expenses-in-real-time">Como as despesas compartilhadas se atualizam</RelatedLink>
+<RelatedLink href="/pt-br/blog/split-bills-without-an-app">Dividir despesas sem baixar um app</RelatedLink>
 </RelatedPages>

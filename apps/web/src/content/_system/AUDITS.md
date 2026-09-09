@@ -42,3 +42,24 @@ section last. Name the commit that closed the finding.
 - Residue: nine pages carried four to ten em-dashes. Each one past three became a comma, a
   full stop, a colon or a bracket pair; no sentence changed meaning. Two of those swaps had to
   avoid `: ` inside an unquoted YAML answer, which the loader reads as a mapping.
+
+## 2026-09-09 — Plain-language rewrite
+
+- Finding: the old stylebook required a narrator persona, interjections, punchlines and concessions.
+  Those rules produced repeated scenes and forced phrasing across unrelated pages.
+- Change: replaced the voice rules with direct answers, useful examples and ordinary sentences.
+  Removed minimum word counts and required jokes, scenes and concession headings.
+- Scope: native blog, comparison and capture sources; source page and marketing copy. Generated
+  guides use the corresponding updated mono briefs and messaging rules.
+- Claims: keep factual limits and attribution while removing unsupported reassurance and deductions.
+- Source ownership and validation are documented in README.md; stylebook §11 covers editorial review.
+
+### 2026-09-09 — Generated artifact provenance repair
+
+The previous installed manifest named mono `4b5fcea1`, but eight English CTA URLs
+had since been edited downstream without a new source receipt. Compared every
+installed output with that commit: removing `locale=en` was the sole difference.
+That fix already exists in current upstream sources. Kept the old artifact in a
+local backup and rebuilt the complete artifact with the deterministic mirror. A
+second mirror run changed zero files. The upstream friend-repayment guide is
+installed with its chapter mapping and remains outside the indexing release list.

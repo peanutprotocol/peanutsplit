@@ -20,8 +20,7 @@ import type { Tool, ToolInput, ToolOutcome, ToolWorking } from './types'
  * marking the biggest room as the flush one took money off them. There is no toggle behind any of
  * it, and nothing to cross: level sliders and multiplied sliders are the same arithmetic.
  *
- * Register is the house default (§3.10 relaxed on 30 Jul), but §8.1 still holds: money between
- * flatmates gets the fairness boundary in full, carried lightly rather than solemnly.
+ * The copy explains the calculation and its limits. The household chooses the weights.
  */
 
 const EQUAL = (count: number) => 1 / count
@@ -90,30 +89,30 @@ export const rentSplitCalculator: Tool = {
     meta: {
         title: 'Rent split calculator by room size',
         description:
-            'Split rent between flatmates in proportion to room size, with a slider for who is better off. The amounts reconcile to the cent.',
+            'Calculate each flatmate’s rent from their room size. Adjust the weights by agreement and see amounts that add up to the total rent.',
     },
     copy: {
         h1: 'Rent split calculator by room size',
         intro: [
-            'Put in the rent and the size of each private room. The rent follows that floor area, and the numbers move while you type.',
-            'The slider beside each name is the other half of the argument. Leave them all where they are and nothing happens; move one up and that person pays more while everybody else pays less. Split holds the same arithmetic in a page the whole flat can open.',
+            'Enter the monthly rent and each person’s private room size to calculate their share. The results update as you type.',
+            'Keep the sliders at the same level to split by room size alone. To adjust for what each person can afford, agree on different slider levels together. A higher level gives that room more weight.',
         ],
         resultTitle: 'What each room pays',
-        resultHint: 'Put in the rent and how many people are on it.',
+        resultHint: 'Enter the monthly rent and the number of flatmates.',
         roundingNote:
-            'Rent rarely divides evenly, so whatever is left at the end goes to the largest fractions first, one unit each. The column adds up to the rent exactly.',
+            'Each share is rounded down, then any remaining amount goes to the largest fractions, one smallest currency unit at a time. The shares add up to the total rent.',
         copyLabel: 'Copy the split',
         copyDone: 'Copied',
         method: {
-            title: 'Where the measuring stops',
+            title: 'What room size leaves out',
             body: [
-                'Somebody in the flat will ask where this ends — the kitchen next, then the hot water, then who is home enough to use either. The line here is drawn at what gets measured once. A bedroom is the same size in November as it was in March, so the rent it carries can be settled in one conversation; a kettle would need a new one every week.',
-                'The size of the gap decides whether to have that conversation at all. If the biggest room and the smallest come out within small change of each other, a flat gets more from leaving the rent alone than from reopening it every month.',
+                'This calculator assigns the whole rent by private room size. It excludes shared areas such as the kitchen and living room, which can make bedroom differences count for too much. It also leaves out features such as an en suite or better light.',
+                'If you want to account for shared space, agree on a portion of the rent to divide equally and divide the rest by bedroom size. You can record that calculation in a spreadsheet. An equal split may be enough when the rooms are similar.',
             ],
         },
         concession: {
-            title: 'When a spreadsheet is the better tool',
-            body: 'A household that agreed this a year ago and pays by standing order does not need a page for it. A spreadsheet holds an agreement fine once the argument is over. This is for the part before that, where the number is still being decided and somebody has to show the working.',
+            title: 'Agree on the split before paying',
+            body: 'Use the result as a starting point for the household’s agreement. The sliders are relative weights, not income calculations. Save the agreed amounts so everyone has the same record each month.',
         },
         goodToKnow: {
             title: 'Good to know',
@@ -121,12 +120,12 @@ export const rentSplitCalculator: Tool = {
                 'The official service is free to use and has no paid tier.',
                 'Automatic conversion for 156 currencies at the day’s indicative rate.',
                 'A room holds up to twenty people.',
-                'Split records a payment rather than making one. It does not check with a bank and cannot.',
+                'Split records payments. It does not send money or verify payments with a bank.',
             ],
         },
         cta: {
-            title: 'Put the numbers where the flat can see them',
-            body: 'Takes ten seconds. No email, no password, no download.',
+            title: 'Track shared household expenses',
+            body: 'Create a room and share the link with your flatmates. No account or download required.',
             label: 'Start a split',
         },
         faqTitle: 'Questions',
@@ -161,16 +160,16 @@ export const rentSplitCalculator: Tool = {
     },
     related: [
         { href: '/splitwise-alternative', label: 'How Split compares to Splitwise' },
-        { href: '/tools', label: 'The other calculator' },
+        { href: '/tools', label: 'All calculators' },
     ],
     phrases: {
-        noPeople: 'Say how many people are on the rent.',
-        negativeRent: 'Rent cannot be less than nothing.',
-        rentTooBig: 'That is a bigger rent than this page divides.',
+        noPeople: 'Enter the number of flatmates.',
+        negativeRent: 'Rent cannot be negative.',
+        rentTooBig: 'The rent exceeds this calculator’s limit.',
         rentLabel: 'Rent',
         floorAreaLabel: 'Floor area measured',
         areaValue: '{area} sqm',
-        slidersLabel: 'Where the sliders sit',
+        slidersLabel: 'Slider levels',
         detailTilted: 'room {room}, notch {notch}, so {share} of the rent',
         detailPlain: '{size} sqm, {share} of the rent',
     },
@@ -178,19 +177,19 @@ export const rentSplitCalculator: Tool = {
     faqs: [
         {
             question: 'How do you split rent by room size?',
-            answer: 'Measure the private rooms, add the floor area up, and give each person the same proportion of the rent as their room is of that total. Shared space stays out of the sum, because everybody has the same claim on it.',
+            answer: 'Divide each private room’s area by the total private room area, then multiply by the rent. Keep the sliders at the same level for this method. Shared areas are excluded, so consider whether you want to divide part of the rent equally to account for them.',
         },
         {
-            question: 'What does the slider beside each name actually do?',
-            answer: 'It is five notches, and the notch is the weight it puts on the room: notch one counts that room once, notch five counts it five times, and everybody’s counted room is put back over the whole to give the shares. While every slider reads the same the multiplier divides straight back out and the rent follows room size alone, so a flat that would rather not have this conversation can leave the sliders level and lose nothing. Move one up and that person pays more and the rest of the flat pays less.',
+            question: 'What does the slider beside each name do?',
+            answer: 'The slider multiplies the room’s area by a weight from one to five. Each weighted area is divided by the total to calculate that person’s rent share. If all sliders match, the weights cancel out and rent follows room size alone. If every room size is zero, the calculator starts with equal room shares.',
         },
         {
             question: 'How do you split rent when one flatmate earns more?',
-            answer: 'Move their slider up, or do not. Their room is then counted more times than everybody else’s, so their share goes up and the rest of the flat’s comes down — the number moves toward what each person can pay without ever losing sight of what each person gets. It is a method rather than a verdict, and a household that would rather split on room size alone should leave the sliders level.',
+            answer: 'If everyone agrees that the higher earner should contribute more, raise their slider to give their room more weight. The slider does not calculate an income ratio or decide what is fair. Keep all sliders at the same level if you want income to have no effect.',
         },
         {
             question: 'Why does one flatmate pay a fraction more than the others?',
-            answer: 'Rent rarely divides evenly. The page rounds every share down first, then hands whatever is left over to the largest fractions, one unit each, so the column adds up to the rent rather than to a hair under it.',
+            answer: 'Rounding can leave a small amount unallocated. The calculator rounds each share down, then distributes the remainder to the largest fractions, one smallest currency unit at a time. This keeps the total equal to the rent.',
         },
     ],
     compute: computeRentSplit,

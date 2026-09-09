@@ -87,25 +87,25 @@ describe('mileage split', () => {
 
     describe('what it refuses to divide', () => {
         it('asks for the missing number rather than dividing nothing', () => {
-            expect(drive(0, 3).problem).toBe('Put in how far the car went.')
-            expect(drive(300, 3, { rate: 0 }).problem).toBe('Put in a rate for each mile.')
-            expect(drive(300, 3, { rate: 0, country: 'FR' }).problem).toBe('Put in a rate for each kilometre.')
-            expect(drive(300, 0).problem).toBe('Say how many people are riding with the driver.')
+            expect(drive(0, 3).problem).toBe('Enter the distance driven.')
+            expect(drive(300, 3, { rate: 0 }).problem).toBe('Enter a rate for each mile.')
+            expect(drive(300, 3, { rate: 0, country: 'FR' }).problem).toBe('Enter a rate for each kilometre.')
+            expect(drive(300, 0).problem).toBe('Enter the number of passengers, excluding the driver.')
         })
 
         it('refuses a negative distance or rate', () => {
-            expect(drive(-1, 3).problem).toBe('A distance cannot be less than nothing.')
-            expect(drive(300, 3, { rate: -1 }).problem).toBe('A rate cannot be less than nothing.')
+            expect(drive(-1, 3).problem).toBe('Distance must be a non-negative number.')
+            expect(drive(300, 3, { rate: -1 }).problem).toBe('The rate must be a non-negative number.')
         })
 
         it('refuses a drive too long to count in whole cents', () => {
-            expect(drive(Number.MAX_SAFE_INTEGER, 3).problem).toBe('That is a longer drive than this page divides.')
+            expect(drive(Number.MAX_SAFE_INTEGER, 3).problem).toBe(
+                'The calculated cost exceeds this calculator’s limit.'
+            )
         })
 
         it('refuses a table where every share is nothing', () => {
-            expect(drive(300, 3, { shares: [0, 0, 0] }).problem).toBe(
-                'Every share is set to nothing, so there is nothing to divide.'
-            )
+            expect(drive(300, 3, { shares: [0, 0, 0] }).problem).toBe('Set at least one share above zero.')
         })
     })
 

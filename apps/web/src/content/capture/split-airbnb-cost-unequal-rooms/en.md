@@ -1,6 +1,6 @@
 ---
-title: Split an Airbnb cost when rooms differ
-description: Give each bedroom a weight, add the weights up, and everybody pays that share of the booking. The method, the working, and where it stops being worth running.
+title: 'How to split an Airbnb cost when rooms differ'
+description: 'Assign a weight to each room and use it to divide the accommodation cost. See a worked example and how to handle shared rooms and fees.'
 date: 2026-07-31
 type: capture
 headTerm: split airbnb cost
@@ -16,57 +16,57 @@ claims:
 cast:
     - jules
 faqs:
-    - question: How do you split an Airbnb cost when the rooms are not equal?
-      answer: Weight each bedroom, then give everybody their weight's share of the booking. There is no standard set of weights, because what a sloped ceiling is worth depends on how tall you are. Agree the numbers before the first night, not after the last.
-    - question: Is there a calculator for rooms of different sizes?
-      answer: There is one for rent, and it runs on floor area rather than on which bed you got. A holiday let is settled by the bed rather than by the tape measure, so the weights above are the closer method.
-    - question: How do we work out who owes who at the end?
-      answer: One card paid the booking, so the room opens with everybody owing one person. That stops being true once the taxis and the food shop are in. The room nets the lot down, so the group makes two or three transfers instead of twenty.
+    - question: 'How do you split an Airbnb cost when the rooms are not equal?'
+      answer: 'To divide an Airbnb booking by room, agree a weight for each bedroom. Divide each weight by the total of all weights and multiply by the accommodation cost. Split a shared room’s amount between its occupants.'
+    - question: 'Is there a calculator for rooms of different sizes?'
+      answer: 'The rent calculator uses room area and adjustable weights. For a holiday booking, you can also use the room-weight example on this page and enter the resulting amounts in Split.'
+    - question: 'How do we work out who owes who at the end?'
+      answer: 'Add the booking and other shared expenses under whoever paid them. Split combines those payments with each person’s share and suggests who should pay whom.'
 ---
 
-# How to split an Airbnb cost when the rooms are not equal
+# How to split an Airbnb cost when rooms differ
 
-Give each bedroom a weight, add the weights up, and everybody pays that share of the booking. The master with its own bathroom counts for more than the attic room you have to duck to get into, and the sofa bed counts for less than either.
+If one bedroom has a private bathroom and another is a sofa bed, you can charge different amounts. Agree a weight for each room, then divide the accommodation cost in proportion to those weights.
 
-The arithmetic is the easy half. The booking went on one card in February, and by the weekend the beds are claimed and the money has not been mentioned. It often stays that way: somebody does four nights on a sofa, pays what the couple with the balcony paid, never mentions it, and is busy the year after. Let Split do the asking.
-
-<Steps title="Doing it in the right order">
-<Step title="Agree the weights in the hallway">Do it while people are still deciding who sleeps where. Once the bags are in a room it is a complaint rather than a decision.</Step>
-<Step title="Put the booking in under whoever paid it">Type each person's share in rather than letting it divide evenly. The weights decided the shares; the room holds them.</Step>
-<Step title="Paste the link into the group chat">The invitation is the link and nothing else, and everything the weekend costs after the booking goes on top of it. <Cast name="jules" size="sm" caption="Jules took the attic and paid attic money for it." /></Step>
+<Steps title="Agree and record the split">
+<Step title="Choose room weights before booking">Use the room size, bed and amenities to agree the differences. These are your group's choices; there is no standard set of weights.</Step>
+<Step title="Calculate each room's share">Divide its weight by the sum of all weights, then multiply by the accommodation cost.</Step>
+<Step title="Add the booking to Split">Record who paid and enter each person's agreed amount. Share the room link so everyone can check it. <Cast name="jules" size="sm" /></Step>
 </Steps>
 
-## Weights people actually agree on
+## A worked example
 
-A weight is one number per bedroom, argued about once, before any money moves. Most groups land on 1.4 for the master, 1.0 for an ordinary double and 0.6 for a sofa bed or a bunk.
+Suppose four rooms have weights of 1.4, 1.0, 1.0 and 0.6. The weights total 4.0, so their shares are 35%, 25%, 25% and 15%. These percentages add up to 100%.
 
-Divide the booking by the total of the weights to get what one weight costs. Four people at 1.4, 1.0, 1.0 and 0.6 come to four weights exactly, so the master pays 1.4 of them and the sofa 0.6. Cleaning and service fees usually come off the top and split evenly, on the grounds that nobody's bedroom made them bigger.
+If two people share the room with a 35% share, they could pay 17.5% each. If you prefer to charge per person, assign each person a weight instead. Keep the two approaches separate when you calculate.
 
-So is the person in the master also paying extra for the good chair and the two extra minutes of hot water? No. A bedroom is one decision that holds all week; the rest is a running argument that costs more than it settles. Where the gap between the best bed and the worst comes out at about the price of a round, split it evenly and go to the beach.
+You can split cleaning and service fees equally per person as a separate expense. Agree whether fees belong in the weighted amount before doing the calculation.
 
-## When an equal split is the better tool
+## When an equal split is enough
 
-Four rooms much of a muchness do not need weights; weighting them invents a difference nobody had noticed. Weights are for the trip where one bed is obviously worse and nobody wants to be the person who brings it up.
+Similar rooms may not need different prices. If everyone is happy with their room and the same share, an equal split is easier.
 
 ## Good to know
 
-The official service is free to use and has no paid tier.
+Peanut Split is free to use and has no paid tier.
 
-Automatic conversion for 156 currencies at the day's indicative rate rather than your bank's. A room holds up to twenty people. Split records a payment rather than making one. It does not check with a bank and cannot.
+Split automatically converts 156 currencies at the day's indicative rate. Your bank may use a different rate.
+
+Pay each other by cash, bank transfer or another method you agree on, then record the payment in Split. Split does not move money or check with your bank.
 
 <CTA
-  title="Put the weights where everyone can see them"
-  body="Takes ten seconds. No email, no password, no download."
+  title="Record your accommodation split"
+  body="Share a room link so everyone can add expenses. No account or download required."
   text="Start a split" />
 
 <FAQ>
-<FAQItem question="How do you split an Airbnb cost when the rooms are not equal?">Weight each bedroom, then give everybody their weight's share of the booking. There is no standard set of weights, because what a sloped ceiling is worth depends on how tall you are. Agree the numbers before the first night, not after the last.</FAQItem>
-<FAQItem question="Is there a calculator for rooms of different sizes?">There is one for rent, and it runs on floor area rather than on which bed you got. A holiday let is settled by the bed rather than by the tape measure, so the weights above are the closer method.</FAQItem>
-<FAQItem question="How do we work out who owes who at the end?">One card paid the booking, so the room opens with everybody owing one person. That stops being true once the taxis and the food shop are in. The room nets the lot down, so the group makes two or three transfers instead of twenty.</FAQItem>
+<FAQItem question="How do you split an Airbnb cost when the rooms are not equal?">To divide an Airbnb booking by room, agree a weight for each bedroom. Divide each weight by the total of all weights and multiply by the accommodation cost. Split a shared room’s amount between its occupants.</FAQItem>
+<FAQItem question="Is there a calculator for rooms of different sizes?">The rent calculator uses room area and adjustable weights. For a holiday booking, you can also use the room-weight example on this page and enter the resulting amounts in Split.</FAQItem>
+<FAQItem question="How do we work out who owes who at the end?">Add the booking and other shared expenses under whoever paid them. Split combines those payments with each person’s share and suggests who should pay whom.</FAQItem>
 </FAQ>
 
 <RelatedPages>
-<RelatedLink href="/rent-split-calculator">Rent split by room size, with the working shown</RelatedLink>
+<RelatedLink href="/rent-split-calculator">Split rent by room size</RelatedLink>
 <RelatedLink href="/group-trip-expenses">Group trip expenses without a spreadsheet</RelatedLink>
-<RelatedLink href="/tools">The calculators</RelatedLink>
+<RelatedLink href="/tools">All calculators</RelatedLink>
 </RelatedPages>

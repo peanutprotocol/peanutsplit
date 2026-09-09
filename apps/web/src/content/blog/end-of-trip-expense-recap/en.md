@@ -1,83 +1,70 @@
 ---
-title: The end-of-trip expense recap
-description: What the week actually cost, how many days it ran and who fronted the most. One card to put in the group chat when the trip is over and everyone is square.
+title: 'Share an end-of-trip expense recap'
+description: 'See the trip’s total spend, people, expenses and recorded payments. Share a recap image once everyone’s balance is settled.'
 date: 2026-07-28
 type: guide
 tags: [trips, recap]
 claims:
+    - no-app
     - link-is-the-key
     - settle-is-a-record
     - recap-card
 cast: []
 faqs:
-    - question: What is on the recap?
-      answer: The room's total spend, how many days it ran, how many expenses and people were in it, how many payments got recorded, and who fronted the most money. It carries a settled stamp once everybody is square.
-    - question: Can I share the recap as a link?
-      answer: No, and that is on purpose. A room's address is also its key. Anyone who opens the recap URL can drop the last part of it and land in a ledger they can write to. So the recap is shared as an image instead.
-    - question: When can I share it?
-      answer: Once the room actually reaches zero. You can look at a recap of so far at any point during the trip, but the share button waits for settled, because a card stamped "settled" on a room that is 400 apart would be a lie.
-    - question: Does the card show anyone's balance?
-      answer: No. It shows what the group spent together and who fronted the most, not what any one person owes. What ends up in a group chat should be a souvenir, not somebody's debt.
+    - question: 'Can I view a recap before the trip is settled?'
+      answer: 'You can view a trip recap while there are still open balances. Sharing becomes available after the room is settled.'
+    - question: 'Why is there no share button on an empty room?'
+      answer: 'A room needs at least one expense as well as zero balances to count as settled. An empty room does not meet those conditions.'
+    - question: 'Can someone open my room from the shared image?'
+      answer: 'The image contains the product domain, not the room link. It does show the group totals and who paid the most, so check the card before choosing where to share it.'
 ---
 
 <Hero
-  eyebrow="trips"
-  title="What the trip actually cost, in one card"
-  subtitle="Nine days, fourteen expenses, six people, all square. The last thing a shared expense room owes you is a summary you would want to send to the group."
+  eyebrow="guide"
+  title="Share a summary of your trip expenses"
+  subtitle="The recap gathers the room’s totals into a card you can send to the group."
   cta="Start a split"
-  ctaHint="Takes ten seconds. No email, no password, no download." />
+  ctaHint="No email, no password, no download." />
 
-Splitting expenses ends badly even when it ends correctly. The last message in the group is usually somebody confirming a transfer, and then the whole thing evaporates — nobody ever finds out what the week cost, and the person who fronted the villa deposit in March never gets so much as an acknowledgement.
+Peanut Split creates a recap from the expenses in your trip room. You can view it during the trip and share it as an image once the room has expenses and every balance is zero.
 
-That is a strange place to stop, given the room has been counting the entire time.
+The totals cover what was entered in the room. If flights or personal purchases were tracked elsewhere, they will not be included.
 
-## What the recap is
+## What the card shows
 
-<Checklist title="Six things off the room, no typing">
-<ChecklistItem title="Total spent">Everything the group put through the room, in the room's own currency.</ChecklistItem>
-<ChecklistItem title="How long it ran">Calendar days from the first expense to the last, both ends included. Counted the same way wherever the person reading it is, so nobody's copy says nine days and somebody else's says ten.</ChecklistItem>
-<ChecklistItem title="Expenses and people">The shape of the trip in two numbers.</ChecklistItem>
-<ChecklistItem title="Payments recorded">How many settle-ups were logged getting from "we owe each other things" to zero.</ChecklistItem>
-<ChecklistItem title="Who fronted the most">The person who put the most on their own card. Not who spent the most on themselves: who carried the group.</ChecklistItem>
-<ChecklistItem title="A settled stamp">Only once everybody is genuinely square, and only when there was something to square in the first place. An empty room is not settled, it is empty.</ChecklistItem>
-</Checklist>
+The recap includes the total spent in the room's currency, the number of expenses and people, and the calendar days from the first expense to the last. It also shows the number of recorded payments and who paid the most towards the group's expenses.
 
-You can look at it mid-trip too, marked as "so far". The share button is the part that waits.
+That last figure describes money paid up front, which can differ from a person's own share of the trip. The card does not show individual balances or what anyone owes.
 
-## Why it is an image and not a link
+## Check the room before sharing
 
-This is the design decision worth explaining, because "share your recap" would be much easier to build as a URL and it would be the wrong thing.
-
-<Callout title="The room's address is the room's key">
-There is no login. A room link is the credential — whoever holds it can open the room, join it, and add expenses. The recap screen lives under the room's own address, so anyone who got the recap URL could delete the last part of it and be standing in the group's ledger with a pen. Posting that to a story or a public thread would be handing it to strangers.
-</Callout>
-
-So what gets shared is a picture. The card is generated as an image, handed to your phone's normal share sheet, and it prints the product's domain rather than the room's address. Nothing that could open your room leaves the group — and the file it saves is named for the product, not the room, so the slug does not end up in a downloads folder or a screenshot of a file picker either.
-
-The trade is honest: someone who sees the card cannot click into your trip. That is the point. If they want their own, the domain is on the card.
-
-## Getting to a recap worth sharing
-
-<Steps title="Three habits that make the card true">
-<Step title="One room per trip, not per person">Start it before the first booking, put the deposit in it, and let the flights and the villa land in the same place as the dinners. A room that starts on day two undercounts the trip.</Step>
-<Step title="Add things as they happen">Not from a bank statement afterwards. The day count comes off the expense dates, and the recap of a week reconstructed on the flight home says one day.</Step>
-<Step title="Record the payments">Settling is one tap on the person you paid. Miss it and the room never reaches zero, so the card never gets its stamp and nobody gets the moment.</Step>
+<Steps title="Finish the trip record">
+<Step title="Review the expenses">Ask everyone to check for missing bookings and duplicate entries. Use the expense dates when reviewing the period covered by the recap.</Step>
+<Step title="Record repayments">After paying each other, record the payments in the room. Split records what people say they paid; it does not check bank transfers.</Step>
+<Step title="Open the recap">You can view a summary while balances are still open. The settled stamp and share button become available once the room has at least one expense and every balance is zero.</Step>
 </Steps>
 
+## Share the image
+
+Use the recap's share button to send the card through your phone's share options. The image prints peanutsplit.com and does not include your room address.
+
+Keep the room link within the group. Anyone with it can open the room and add expenses. The recap page's address contains that same access link, so copying its address is not a suitable way to share a summary publicly.
+
+The card is useful for a quick overview. If you want to check an individual expense, return to the room's list.
+
 <CTA
-  title="Start the room before the trip does"
-  body="One link in the group chat, everyone adds what they paid, and there is something to look at when you get home."
+  title="Keep your trip expenses together"
+  body="Start a room and add the bookings you want included in the recap."
   text="Start a split" />
 
-<FAQ>
-<FAQItem question="What is on the recap?">The room's total spend, how many days it ran, how many expenses and people were in it, how many payments got recorded, and who fronted the most money. It carries a settled stamp once everybody is square.</FAQItem>
-<FAQItem question="Can I share the recap as a link?">No, and that is on purpose. A room's address is also its key. Anyone who opens the recap URL can drop the last part of it and land in a ledger they can write to. So the recap is shared as an image instead.</FAQItem>
-<FAQItem question="When can I share it?">Once the room actually reaches zero. You can look at a recap of so far at any point during the trip, but the share button waits for settled.</FAQItem>
-<FAQItem question="Does the card show anyone's balance?">No. It shows what the group spent together and who fronted the most, not what any one person owes.</FAQItem>
+<FAQ title="Questions">
+<FAQItem question="Can I view a recap before the trip is settled?">You can view a trip recap while there are still open balances. Sharing becomes available after the room is settled.</FAQItem>
+<FAQItem question="Why is there no share button on an empty room?">A room needs at least one expense as well as zero balances to count as settled. An empty room does not meet those conditions.</FAQItem>
+<FAQItem question="Can someone open my room from the shared image?">The image contains the product domain, not the room link. It does show the group totals and who paid the most, so check the card before choosing where to share it.</FAQItem>
 </FAQ>
 
 <RelatedPages>
-<RelatedLink href="/blog/split-a-group-trip-across-countries">Splitting a trip when nobody shares a bank</RelatedLink>
-<RelatedLink href="/blog/split-expenses-offline">Adding expenses where there is no signal</RelatedLink>
-<RelatedLink href="/blog/split-expenses-across-currencies">Splitting when you paid in one currency and owe in another</RelatedLink>
+<RelatedLink href="/blog/split-a-group-trip-across-countries">Split trip expenses across countries</RelatedLink>
+<RelatedLink href="/blog/split-expenses-offline">Add expenses offline</RelatedLink>
+<RelatedLink href="/blog/split-expenses-across-currencies">Split expenses in different currencies</RelatedLink>
 </RelatedPages>

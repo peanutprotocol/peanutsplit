@@ -1,87 +1,74 @@
 ---
-title: Escaneie a conta e divida por item
-description: Fotografe a conta, confira as linhas e toque em quem pediu o quê. Dividir por item é de uso grátis, sem plano premium nem conta para criar.
+title: 'Escanear recibo e dividir a conta'
+description: 'Fotografe o recibo, confira os valores e atribua os itens a quem dividiu cada um. Veja o limite de leituras e o que acontece com a foto.'
 date: 2026-07-28
 type: guide
 v2Only: true
 tags: [recibos, jantares]
 claims:
+    - no-app
     - hosted-price
     - link-is-the-key
     - receipt-scan-30-a-day
     - receipt-photo-handling
 cast: []
 faqs:
-    - question: Escanear a conta é de uso grátis?
-      answer: É. Escanear a conta é de uso grátis, sem plano premium nem upgrade. Uma sala escaneia até 30 contas por dia, que é um limite no custo de rodar isso, não um plano que você compra para escapar.
-    - question: Vocês guardam a foto da minha conta?
-      answer: O Split envia a foto para o Gemini ler, pelo OpenRouter ou direto. O servidor dele não guarda a imagem nem as linhas extraídas. Se você compartilha uma foto no app instalado do Android, o navegador guarda essa imagem por um tempo no seu aparelho para passá-la à sala; ela é usada uma única vez e recusada depois de dez minutos. O que o Split guarda é a despesa que você aprova no fim.
-    - question: E se ele ler uma linha errada?
-      answer: Você vê cada linha antes de salvar qualquer coisa. Corrija o texto, corrija o valor, apague o que não é seu, acrescente o que ele deixou passar. Se as linhas não batem com o total impresso, ele avisa e mostra a diferença.
-    - question: Preciso escanear para dividir por item?
-      answer: Não. Para uma conta curta, lance uma despesa comum e defina as cotas exatas na mão. A tela que atribui item por item faz parte do escaneamento da conta.
-draft: true
+    - question: 'Preciso de uma conta para escanear o recibo?'
+      answer: 'Você pode escanear um recibo no Split sem criar uma conta. Entre na sala pelo link e use o botão de escanear, se estiver disponível.'
+    - question: 'E se a leitura deixar uma linha de fora?'
+      answer: 'Acrescente o item na tela de revisão antes de atribuir as partes. Você também pode corrigir valores e excluir linhas incorretas.'
+    - question: 'Posso dividir um item entre várias pessoas?'
+      answer: 'Sim. Selecione quem compartilhou aquela linha e o valor será dividido igualmente entre essas pessoas.'
 ---
 
 <Hero
-  eyebrow="recibos"
-  title="Divida a conta por item, sem digitar tudo"
-  subtitle="Seis pessoas, uma conta, e três não beberam o vinho. Fotografe, confira as linhas, toque em quem pediu o quê."
+  eyebrow="guia"
+  title="Escaneie um recibo e divida a conta por item"
+  subtitle="Confira as linhas do recibo e escolha quem divide cada item."
   cta="Criar um split"
-  ctaHint="Dez segundos. Sem e-mail, sem senha, sem download." />
+  ctaHint="Sem e-mail, sem senha, sem download." />
 
-Dividir uma conta de restaurante por igual pede um número. Dividir com justiça pede vinte, e é dessa versão que todo mundo desiste: um pediu o menu degustação, outro só uma salada, dois racharam uma garrafa, e resolver isso na mesa com a calculadora do celular é como o "vamos rachar por igual" vence.
+Para dividir uma conta por item no Peanut Split, fotografe o recibo, confira a leitura e selecione quem consumiu cada item. A despesa é salva depois da sua aprovação.
 
-A matemática nunca foi a parte difícil. Digitar tudo, sim.
+A divisão por item ajuda quando cada pessoa pediu algo diferente ou só algumas dividiram as bebidas. Se todos vão pagar a mesma parte, lance o total como uma despesa dividida por igual.
 
-## O que acontece de verdade quando você escaneia
-
-<Steps title="Três telas, e a do meio é o que importa">
-<Step title="Fotografe a conta">De frente, a conta inteira no quadro, luz acesa. Ele volta com as linhas que conseguiu ler e o total que enxergou.</Step>
-<Step title="Confira os itens">Esta é a tela que importa. Corrija o que saiu errado, apague o que não é seu, acrescente o que faltou. Se as linhas não batem com o total impresso, ele avisa e mostra a diferença, então uma linha esquecida aparece aqui, e não três dias depois.</Step>
-<Step title="Toque em quem pediu o quê">Toque nas pessoas de cada item. Duas ou mais na mesma linha dividem aquela linha em partes iguais. O vinho vai para quatro pessoas, o menu degustação vai para uma.</Step>
+<Steps title="Escaneie e confira a conta">
+<Step title="Tire uma foto legível">Inclua o recibo inteiro e use boa iluminação. Alise as dobras e evite um ângulo que dificulte a leitura.</Step>
+<Step title="Revise as linhas">Corrija descrições e valores, exclua linhas incorretas e acrescente o que faltou. O Split compara a soma com o total impresso e mostra a diferença se não baterem.</Step>
+<Step title="Escolha quem divide cada item">Selecione as pessoas que consumiram aquela linha. Se houver mais de uma, o valor é dividido igualmente entre elas. Confira os valores por pessoa antes de salvar.</Step>
 </Steps>
 
-O que chega à sala no fim é uma despesa comum com valores exatos por pessoa — a mesma linha que você faria na mão, pelo mesmo caminho testado. Nada no dinheiro é tratado de forma diferente porque teve uma câmera no meio.
+## Quando vale lançar manualmente
 
-## O que o Split faz com a foto
+Para um recibo curto, digitar o total e definir valores exatos pode dar menos trabalho do que conferir uma leitura. Isso também serve quando a impressão está apagada demais.
 
-<Callout title="O que acontece com a imagem">
-O Split envia a foto para o Gemini ler, pelo OpenRouter ou direto. O servidor do Split não guarda a imagem, o nome do estabelecimento nem as linhas extraídas; a única coisa que ele guarda é a despesa que você aprova na última tela. Se você compartilha uma foto no app instalado do Android, o navegador guarda essa imagem por um tempo no Cache Storage local enquanto você escolhe ou entra numa sala. Ela é usada uma vez, recusada depois de dez minutos, e uma cópia vencida é removida na próxima vez que o Split abre. Quando o OpenRouter é usado, os pedidos ficam restritos a provedores que recusam a coleta de dados e usam retenção zero. O Gemini direto só é habilitado para um projeto de tier pago; os termos do Google permitem registro temporário do prompt e da resposta para monitorar abuso. A conta feita pelo modelo também não é confiada: os valores são conferidos de novo com o total impresso antes de você atribuir qualquer coisa.
-</Callout>
+Se a sua sala não tem o botão de escanear recibo, a função não está disponível naquela instalação. Você ainda pode lançar uma despesa comum e definir a parte exata de cada pessoa.
 
-É também por isso que escanear não é um recurso trancado atrás de login e vestido de premium. Não existe conta, então não há a que prender um histórico de escaneamentos, e não há histórico para vender de volta para você depois.
+## O que acontece com a foto
 
-## Quando vale a pena, e quando não
+O Split envia a foto ao Gemini para leitura, pelo OpenRouter ou diretamente. O servidor do Split não salva a imagem, o nome do estabelecimento nem as linhas extraídas. Ele salva a despesa que você aprova.
 
-<Checklist title="Escaneie quando">
-<ChecklistItem title="A conta tem mais de umas seis linhas">Abaixo disso, digitar é mais rápido que fotografar. Acima, a câmera ganha sempre.</ChecklistItem>
-<ChecklistItem title="Cada um pediu coisas de verdade diferentes">Uma conta que todo mundo racha por igual nem precisa ser detalhada — uma despesa, dividida por igual, pronto.</ChecklistItem>
-<ChecklistItem title="O recibo está impresso e liso">Total escrito à mão, papel térmico amassado e foto tirada de lado são as três coisas que custam uma correção.</ChecklistItem>
-</Checklist>
+As solicitações pelo OpenRouter exigem provedores que neguem coleta de dados e usem retenção zero. A conexão direta com o Gemini só é habilitada para um projeto pago. Os termos do Google permitem registros temporários de solicitações e respostas para monitoramento de abuso.
 
-Se o botão "Escanear recibo" não está na sua sala, escanear não está disponível nessa instalação. Você ainda pode lançar o total como uma despesa comum e definir a cota exata de cada um na mão.
+Se você compartilhar uma foto pelo Android depois de adicionar o site à tela inicial, o navegador mantém uma cópia temporária no aparelho enquanto você escolhe a sala. Ela pode ser usada uma vez e é recusada depois de dez minutos. Uma cópia vencida é removida na próxima vez que o Split abrir.
 
-## De uso grátis, e o que isso significa aqui
+## Limite de leituras
 
-O Splitwise coloca o escaneamento de recibo por item atrás do Pro, e o Settle Up vende [foto de recibo num tier pago próprio](/guides/splitwise-vs-settle-up). O Split não tem plano pago para recibos.
-
-Tem um número que vale saber: uma sala escaneia 30 contas por dia. É um teto no quanto uma sala custa para rodar, não um plano do qual dá para fazer upgrade, e nenhum jantar chegou perto disso.
+Escanear recibos é gratuito. Uma sala pode ler até 30 contas por dia. O limite se recompõe aos poucos e não é reiniciado à meia-noite. Não existe uma opção paga para aumentá-lo.
 
 <CTA
-  title="Teste na próxima conta grande"
-  body="Crie uma sala, adicione as pessoas e fotografe o que chegar no fim da refeição."
+  title="Teste com um recibo"
+  body="Abra uma sala e confira os itens antes de salvar a despesa."
   text="Criar um split" />
 
-<FAQ>
-<FAQItem question="Escanear a conta é de uso grátis?">É. Escanear a conta é de uso grátis, sem plano premium nem upgrade. Uma sala escaneia até 30 contas por dia, que é um limite no custo de rodar isso, não um plano que você compra para escapar.</FAQItem>
-<FAQItem question="Vocês guardam a foto da minha conta?">O Split envia a foto para o Gemini ler, pelo OpenRouter ou direto. O servidor dele não guarda a imagem nem as linhas extraídas. Se você compartilha uma foto no app instalado do Android, o navegador guarda essa imagem por um tempo no seu aparelho para passá-la à sala; ela é usada uma única vez e recusada depois de dez minutos. O que o Split guarda é a despesa que você aprova no fim.</FAQItem>
-<FAQItem question="E se ele ler uma linha errada?">Você vê cada linha antes de salvar qualquer coisa. Corrija o texto, corrija o valor, apague o que não é seu, acrescente o que ele deixou passar. Se as linhas não batem com o total impresso, ele avisa e mostra a diferença.</FAQItem>
-<FAQItem question="Preciso escanear para dividir por item?">Não. Para uma conta curta, lance uma despesa comum e defina as cotas exatas na mão. A tela que atribui item por item faz parte do escaneamento da conta.</FAQItem>
+<FAQ title="Perguntas">
+<FAQItem question="Preciso de uma conta para escanear o recibo?">Você pode escanear um recibo no Split sem criar uma conta. Entre na sala pelo link e use o botão de escanear, se estiver disponível.</FAQItem>
+<FAQItem question="E se a leitura deixar uma linha de fora?">Acrescente o item na tela de revisão antes de atribuir as partes. Você também pode corrigir valores e excluir linhas incorretas.</FAQItem>
+<FAQItem question="Posso dividir um item entre várias pessoas?">Sim. Selecione quem compartilhou aquela linha e o valor será dividido igualmente entre essas pessoas.</FAQItem>
 </FAQ>
 
 <RelatedPages>
-<RelatedLink href="/pt-br/blog/split-expenses-in-real-time">Todo mundo vendo o mesmo total, ao vivo</RelatedLink>
-<RelatedLink href="/pt-br/blog/split-bills-without-an-app">Dividir a conta sem obrigar ninguém a se cadastrar</RelatedLink>
+<RelatedLink href="/pt-br/blog/split-expenses-in-real-time">Como as despesas compartilhadas se atualizam</RelatedLink>
+<RelatedLink href="/pt-br/blog/split-bills-without-an-app">Dividir despesas sem baixar um app</RelatedLink>
 <RelatedLink href="/pt-br/splitwise-alternative">Como o Split se compara ao Splitwise</RelatedLink>
 </RelatedPages>

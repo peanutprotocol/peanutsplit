@@ -37,14 +37,14 @@ export const STATIC_PAGES: StaticPage[] = [
     {
         href: '/',
         title: 'Peanut Split',
-        description: 'Accountless, link-based expense splitting.',
+        description: 'Share expenses with friends through a room link. No account needed.',
         priority: 1,
         inHub: false,
     },
     {
         href: '/source',
-        title: 'Source & stewardship',
-        description: 'License, source, self-hosting documentation, and Squirrel Labs stewardship.',
+        title: 'Source code',
+        description: 'Read the code, run your own copy, and learn how Squirrel Labs funds Split.',
         priority: 0.4,
         inHub: false,
         inSitemap: publicFossReleased,
@@ -56,7 +56,7 @@ export const STATIC_PAGES: StaticPage[] = [
         // sitemap row and a reserved slug.
         href: '/tools',
         title: 'Calculators',
-        description: 'One sum each, with the working shown: a bill, a room, a shared car.',
+        description: 'Calculate how to share rent or driving costs, with the calculation shown.',
         priority: 0.7,
         inHub: true,
     },
@@ -65,7 +65,7 @@ export const STATIC_PAGES: StaticPage[] = [
         // this is what gets it a URL, a sitemap row and a reserved segment.
         href: TEMPLATES_PATH,
         title: 'Template rooms',
-        description: 'One link each: a room with the name, the currency and the drawing already chosen.',
+        description: 'Start a room for a trip, a shared home or a festival, with its name and settings filled in.',
         priority: 0.6,
         inHub: true,
     },
@@ -83,7 +83,7 @@ export const STATIC_PAGES: StaticPage[] = [
         // but omit it from the editorial sitemap.
         href: '/import',
         title: 'Import from Splitwise',
-        description: 'Turn a Splitwise group export into a Split room — expenses, payers and balances intact.',
+        description: 'Import a Splitwise group and check its expenses and balances before creating a room.',
         priority: 0.8,
         inHub: false,
         inSitemap: false,

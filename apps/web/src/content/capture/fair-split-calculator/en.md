@@ -1,9 +1,9 @@
 ---
-title: Fair split calculator for an uneven split
-description: Which sum you want depends on what is uneven — a room, a drive, or a bill. Each one goes somewhere different, and one of them is not a calculator at all.
+title: 'Fair split calculator for shared costs'
+description: 'Compare ways to split rent, driving costs and shared bills. Choose the basis for the split, calculate each share and record the agreed amounts.'
 date: 2026-07-31
 type: capture
-headTerm: fair split calculator
+headTerm: 'fair split calculator'
 intent: split bill by income calculator
 tags: [fairness, groups]
 claims:
@@ -15,57 +15,57 @@ claims:
     - automatic-currency-conversion
 cast: []
 faqs:
-    - question: Is there a calculator that splits a bill by income?
-      answer: Not for a one-off bill. Income weighting lives on the rent split calculator, as a slider rather than a box asking for your pay, because it belongs to an arrangement that repeats. For a dinner it is a conversation the group has once, and the room holds what it produced.
-    - question: How do you split a dinner bill when somebody did not drink?
-      answer: Take the wine off the top and split it between the people who drank it, then split what is left evenly. In a room that is two expenses rather than one, which is why it survives a question a week later.
-    - question: How do you split rent unequally?
-      answer: 'Two things carry almost all of it: floor area and who is better off. Measure the rooms first, because nobody has to disclose anything to agree that part. Decide the second out loud, once, then leave it alone.'
+    - question: 'Is there a calculator that splits a bill by income?'
+      answer: 'The rent calculator lets you adjust how the rent is shared. For a one-off bill, agree each person’s amount and enter those amounts in a Split room.'
+    - question: 'How do you split a dinner bill when somebody did not drink?'
+      answer: 'Enter the drinks as an expense shared by the people who drank them. Enter the food separately and split it between everyone who ate.'
+    - question: 'How do you split rent unequally?'
+      answer: 'Choose a basis such as private room area, then agree any adjustments for amenities or income. The rent calculator shows the resulting shares.'
 ---
 
-# A fair split calculator for an uneven split
+# Fair split calculator for shared costs
 
-Fairness is one word doing several jobs, and the sum you want depends on what is uneven. A bigger bedroom is one question, a longer drive is another, and a dinner where one person had the tasting menu and another had soup is a third.
+Choose what the split should reflect before doing the calculation: room size for rent, distance for driving, or each person's share of a bill. An equal split is also reasonable when everyone agrees the differences are small.
 
-Getting it wrong is rarely dramatic. It is the person who did the maths becoming the person who has to defend it, three weeks later, in a group chat, with the working on their phone and nowhere else. Split holds the number so nobody has to be that person.
+## Rent
 
-## Which sum you actually want
+The [rent split calculator](/rent-split-calculator) divides rent using private room area and lets you adjust the weighting. Floor area is one starting point; you may also want to account for a private bathroom or different budgets. Agree those adjustments together.
 
-If it is the rooms, the number follows floor area: measure the private rooms, leave the shared space out, and each person pays the proportion of the rent their room is of the total. That is the [rent split calculator](/rent-split-calculator), which puts a slider beside each name for the half floor area cannot settle.
+## Driving
 
-If it is the driving, the number follows distance at a rate that prices the car rather than the petrol. A fair per-kilometre figure stands in for tyres, servicing and the value the car sheds, which is why the official one sits above the pump. The [mileage split calculator](/mileage-split-calculator) costs a drive that way and splits it between everyone who was in it.
+The [mileage split calculator](/mileage-split-calculator) multiplies distance by a per-kilometre rate and splits the cost among passengers. A mileage rate can include fuel and wear on the car. Check what your chosen rate covers before adding fuel separately.
 
-If it is a bill between people, there is no calculator here and there will not be one. A figure in a form is a figure one person retypes into the group chat, which is the whole job. [Open a room](/new) instead: everybody adds what they paid, and it nets down to two or three transfers instead of twenty.
+## Dinner and other shared bills
 
-## Where this stops being worth it
+In a [Split room](/new), enter what each person paid and choose who shares each expense. You can enter unequal amounts when an even split would not fit.
 
-Somebody always points out that nobody is metering the kitchen, or the lights, or the trips to the loo, and they are right to. Most households draw the line in the same place: split what one person clearly consumes, leave the shared things shared.
+For example, split the wine between the people who drank it and the food between everyone who ate. Record these as two expenses. The room then calculates each person's balance from all their payments and shares.
 
-Knowing when to stop is the other half. A method that moves a few pounds a month costs more in bad feeling than it moves in money. Work the number out and look at the gap before deciding to run it.
+## When an equal split is enough
 
-## When an even split still wins
-
-It is right more often than the search results suggest: when the difference is small, when the group would rather not measure each other, and when the thing is a one-off nobody will remember.
+If the rooms or orders are similar, an even split saves calculation. Check with the people paying before choosing it; a small difference to one person may matter to another.
 
 ## Good to know
 
-The official service is free to use and has no paid tier.
+Peanut Split is free to use and has no paid tier.
 
-The calculators do the weighting and the room does the ledger. It automatically converts 156 currencies at the day's indicative rate and holds up to twenty people. Split records a payment rather than making one. It does not check with a bank and cannot.
+Split automatically converts 156 currencies at the day's indicative rate. Your bank may use a different rate.
+
+Pay each other by cash, bank transfer or another method you agree on, then record the payment in Split. Split does not move money or check with your bank.
 
 <CTA
-  title="The uneven part is a decision, the rest is a room"
-  body="Takes ten seconds. No email, no password, no download."
+  title="Record the amounts you agreed"
+  body="Share a room link so everyone can add expenses. No account or download required."
   text="Start a split" />
 
 <FAQ>
-<FAQItem question="Is there a calculator that splits a bill by income?">Not for a one-off bill. Income weighting lives on the rent split calculator, as a slider rather than a box asking for your pay, because it belongs to an arrangement that repeats. For a dinner it is a conversation the group has once, and the room holds what it produced.</FAQItem>
-<FAQItem question="How do you split a dinner bill when somebody did not drink?">Take the wine off the top and split it between the people who drank it, then split what is left evenly. In a room that is two expenses rather than one, which is why it survives a question a week later.</FAQItem>
-<FAQItem question="How do you split rent unequally?">Two things carry almost all of it: floor area and who is better off. Measure the rooms first, because nobody has to disclose anything to agree that part. Decide the second out loud, once, then leave it alone.</FAQItem>
+<FAQItem question="Is there a calculator that splits a bill by income?">The rent calculator lets you adjust how the rent is shared. For a one-off bill, agree each person’s amount and enter those amounts in a Split room.</FAQItem>
+<FAQItem question="How do you split a dinner bill when somebody did not drink?">Enter the drinks as an expense shared by the people who drank them. Enter the food separately and split it between everyone who ate.</FAQItem>
+<FAQItem question="How do you split rent unequally?">Choose a basis such as private room area, then agree any adjustments for amenities or income. The rent calculator shows the resulting shares.</FAQItem>
 </FAQ>
 
 <RelatedPages>
-<RelatedLink href="/rent-split-calculator">Rent split by room size, with a slider for who is better off</RelatedLink>
-<RelatedLink href="/mileage-split-calculator">A shared car, costed at the official rate</RelatedLink>
-<RelatedLink href="/tools">The calculators</RelatedLink>
+<RelatedLink href="/rent-split-calculator">Split rent by room size</RelatedLink>
+<RelatedLink href="/mileage-split-calculator">Split driving costs</RelatedLink>
+<RelatedLink href="/tools">All calculators</RelatedLink>
 </RelatedPages>

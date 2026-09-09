@@ -218,7 +218,7 @@ test('the landing composes a room in a browser while the installed app keeps its
 test('supporting marketing surfaces route every creation-labelled link to the composer', async ({ page }) => {
     for (const path of ['/blog', '/tools', '/splitwise-alternative', '/import', '/blog/split-bills-without-an-app']) {
         await page.goto(path)
-        const creationLinks = page.getByRole('link', { name: /Start (?:a split|a room)/i })
+        const creationLinks = page.getByRole('link', { name: /^Start (?:a split|a room)$/i })
         expect(await creationLinks.count(), `${path} should expose at least one creation link`).toBeGreaterThan(0)
         // The destination is the assertion; the query is not. An article's creation links carry
         // `?campaign=content-<slug>` (SEO loop A, blocks.tsx's `withCampaign`) so a content-sourced

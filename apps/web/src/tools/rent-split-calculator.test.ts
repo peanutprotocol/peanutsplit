@@ -84,7 +84,7 @@ describe('the how-rich slider', () => {
     it('names the room and the notch in the working', () => {
         const outcome = split(100_000, [{ size: 10, rich: 5 }, { size: 10, rich: 1 }]) // prettier-ignore
         expect(outcome.shares[0].detail).toBe('room 50%, notch 5, so 83.3% of the rent')
-        expect(outcome.workings).toContainEqual({ label: 'Where the sliders sit', value: '5, 1' })
+        expect(outcome.workings).toContainEqual({ label: 'Slider levels', value: '5, 1' })
     })
 
     /**
@@ -189,16 +189,16 @@ describe('rent split, the numbers that have to hold', () => {
     })
 
     it('has nothing to divide when nobody is on the rent', () => {
-        expect(split(120_000, []).problem).toBe('Say how many people are on the rent.')
+        expect(split(120_000, []).problem).toBe('Enter the number of flatmates.')
     })
 
     it('refuses a rent below nothing', () => {
-        expect(split(-1, [{ size: 10 }]).problem).toBe('Rent cannot be less than nothing.')
+        expect(split(-1, [{ size: 10 }]).problem).toBe('Rent cannot be negative.')
     })
 
     it('refuses a rent past what whole units can be counted in', () => {
         expect(split(Number.MAX_SAFE_INTEGER + 10, [{ size: 10 }]).problem).toBe(
-            'That is a bigger rent than this page divides.'
+            'The rent exceeds this calculator’s limit.'
         )
     })
 

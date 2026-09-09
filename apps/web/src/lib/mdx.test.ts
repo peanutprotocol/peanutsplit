@@ -42,7 +42,7 @@ describe('article compilation', () => {
             const doc = getAuthoredDoc('alternatives', 'splitwise-alternative')!
             const html = renderToStaticMarkup(await renderArticle(doc.body, doc.locale))
 
-            expect(html).toContain('A free Splitwise alternative with no signup')
+            expect(html).toContain('Splitwise alternative, free with no signup')
             expect(html).not.toMatch(/AGPL|open[- ]source|self[- ]host|Squirrel Labs|href="\/source"/i)
         } finally {
             if (prior === undefined) delete process.env.NEXT_PUBLIC_FOSS_RELEASED

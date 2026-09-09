@@ -4,7 +4,7 @@
             "title": "PODAJ DALEJ",
             "controlTitleAccessible": "PODAJ DALEJ",
             "titleAccessible": "KTO KOMU ILE? SPLIT TO POLICZY.",
-            "subtitle": "bo dobre rozliczenia sprzyjają przyjaźni",
+            "subtitle": "Dziel wydatki ze znajomymi i sprawdzaj, kto ile jest winien.",
             "cta": "Stwórz link",
             "linkExplainerTrigger": "Jak działa link",
             "chat": {
@@ -108,7 +108,7 @@
             "button": "Utwórz pokój"
         },
         "honesty": {
-            "title": "Warto wiedzieć",
+            "title": "O Split",
             "item1": {
                 "title": "Korzystanie za darmo"
             },
@@ -124,7 +124,7 @@
             "createSplit": "Zacznij rozliczenie",
             "toolsLink": "Kalkulatory",
             "importLink": "Import ze Splitwise",
-            "sourceStewardship": "Kod źródłowy i opieka",
+            "sourceStewardship": "Kod źródłowy",
             "colCompare": "Porównaj",
             "colGuides": "Poradniki",
             "allGuides": "Wszystkie poradniki",
@@ -223,8 +223,8 @@
             "done": "Rozumiem"
         },
         "readMore": {
-            "toggle": "CHCESZ WIEDZIEĆ WIĘCEJ?",
-            "toggleHint": "Kto utrzymuje Split, dlaczego oficjalna usługa jest darmowa i jak działają linki do pokoi.",
+            "toggle": "WIĘCEJ O SPLIT",
+            "toggleHint": "Funkcje, finansowanie i dostęp do pokoju.",
             "join": {
                 "title": "Co widzą znajomi",
                 "roomName": "Wyjazd na narty",
@@ -240,20 +240,20 @@
                     "body": "Automatyczne przeliczanie 156 walut; 6 kolejnych działa bez przeliczania."
                 },
                 "splits": {
-                    "title": "Nierówne podziały",
+                    "title": "Wybierz sposób podziału rachunku",
                     "body": "Po równo, procentowo, na udziały, dokładne kwoty lub wybrane osoby."
                 },
                 "exact": {
-                    "title": "Wszystko zgadza się co do grosza",
+                    "title": "Zobacz wyliczenie",
                     "body": "Otwórz dowolne saldo, aby zobaczyć wyliczenie."
                 },
                 "live": {
-                    "title": "Wszyscy widzą zmiany od razu",
-                    "body": "Nowe wydatki od razu pojawiają się u wszystkich."
+                    "title": "Wspólna lista wydatków",
+                    "body": "Nowe wydatki pojawiają się u wszystkich osób z połączeniem internetowym."
                 },
                 "offline": {
-                    "title": "Działa bez zasięgu",
-                    "body": "Wydatki synchronizują się po odzyskaniu zasięgu."
+                    "title": "Dodawaj wydatki bez internetu",
+                    "body": "Nowe wydatki czekają na urządzeniu i są wysyłane po odzyskaniu połączenia. Edycja i zapisywanie spłat wymagają internetu."
                 },
                 "home": {
                     "title": "Dodaj do ekranu początkowego",
@@ -271,7 +271,7 @@
             },
             "team": {
                 "title": "Kto to zbudował",
-                "intro": "Split nie ma jeszcze użytkowników, więc możemy zacytować tylko siebie.",
+                "intro": "Konrad i Hugo stworzyli Split. Oto dlaczego.",
                 "konrad": {
                     "name": "Konrad",
                     "role": "stworzył Split",
@@ -284,38 +284,38 @@
                 }
             },
             "who": {
-                "title": "Kto utrzymuje Split i dlaczego oficjalna usługa jest darmowa",
+                "title": "Kto utrzymuje i finansuje Split",
                 "built": {
                     "title": "Squirrel Labs utrzymuje Split",
                     "body": "Obecnie Squirrel Labs jest jedynym opiekunem projektu i pokrywa wszystkie koszty, w tym czas pracy."
                 },
                 "free": {
-                    "title": "Wzmianki pozostają opcjonalne, nigdy obowiązkowe",
-                    "body": "To uczciwy układ: kilka dyskretnych wzmianek, bez wymuszonych kliknięć, natrętnych przypomnień ani blokowania funkcji."
+                    "title": "Opcjonalne linki",
+                    "body": "Linki promocyjne są opcjonalne, bez wymuszonych kliknięć, powtarzających się monitów czy blokowania funkcji."
                 },
                 "data": {
-                    "title": "Nie ma tu zbyt wielu danych, które mogłyby wyciec",
-                    "body": "Linków do pokoi nie zapisujemy nawet we własnej analityce, bo link jest kluczem."
+                    "title": "Linki do pokoi a analityka",
+                    "body": "Nie zapisujemy linków do pokoi w naszej analityce. Każdy, kto ma link, może otworzyć pokój."
                 }
             },
             "faq": {
-                "title": "Pytania, które naprawdę padają",
+                "title": "Częste pytania",
                 "retype": {
                     "q": "Czy muszę przepisać wszystko z czatu grupowego?",
-                    "a": "Jeśli wyjazd już się odbył, tak: wydatki trzeba wpisać raz. To mniej pracy, niż się wydaje, bo każdy w pokoju może dodać własne wydatki, zamiast zostawiać wszystko tobie.",
-                    "import": "Jeśli przechodzisz ze Splitwise, strona importu przenosi całą grupę, razem z historią i saldami."
+                    "a": "Tak. Każdy wydatek trzeba wpisać raz. Każda osoba w pokoju może dodać to, za co zapłaciła.",
+                    "import": "Możesz zaimportować grupę ze Splitwise i wcześniej sprawdzić salda. Starsze wydatki mogą zostać połączone w salda początkowe."
                 },
                 "access": {
                     "q": "Kto może zobaczyć nasz pokój?",
-                    "a": "Każdy, kto ma link. Nie pokazujemy go w wyszukiwarkach i nie da się go odgadnąć, ale jest kluczem — zachowaj go na czacie grupowym, a nie publicznie."
+                    "a": "Każdy, kto ma link, może otworzyć pokój. Udostępniaj go tylko swojej grupie. Prosimy wyszukiwarki, by nie indeksowały pokoi."
                 },
                 "lost": {
                     "q": "Jak wrócić do pokoju?",
                     "a": "Zostaw link na czacie grupowym, żeby każdy mógł go tam znaleźć. Split zapisuje też pokoje otwarte na tym urządzeniu, a ty możesz wkleić link na stronie głównej, aby ponownie dodać pokój."
                 },
                 "limits": {
-                    "q": "Czy liczba wydatków jest ograniczona?",
-                    "a": "Nie. Jeśli tak wygląda twój wyjazd, możesz dodać nawet pięćdziesiąt wydatków w jedno popołudnie."
+                    "q": "Czy jest dzienny limit wydatków?",
+                    "a": "Nie ma dziennego limitu wydatków."
                 }
             },
             "compare": {

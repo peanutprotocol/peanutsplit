@@ -15,9 +15,9 @@ export function generateMetadata(): Metadata {
     // claim into a raw RSC 404 even while the page body was correctly withheld.
     if (!publicFossReleased()) notFound()
     return pageMetadata({
-        title: pageTitle('Source, self-hosting and stewardship'),
+        title: pageTitle('Source code and self-hosting'),
         description:
-            'Peanut Split source, AGPL license, schema and API documentation, self-hosting limits, and Squirrel Labs stewardship.',
+            'Read the Peanut Split source code, run your own copy, and learn how Squirrel Labs maintains and funds the project.',
         path: PATH,
         type: 'website',
     })
@@ -25,7 +25,7 @@ export function generateMetadata(): Metadata {
 
 const crumbs = [
     { name: 'Home', href: '/' },
-    { name: 'Source & stewardship', href: PATH },
+    { name: 'Source code', href: PATH },
 ]
 
 const externalLink = 'font-semibold text-n-1 underline decoration-2 underline-offset-2 hover:opacity-70'
@@ -46,13 +46,11 @@ export default function SourceAndStewardshipPage() {
 
             <header className="mt-4 border-y border-n-1 bg-primary-1">
                 <div className="mx-auto w-full max-w-xl px-5 py-9">
-                    <p className="text-h9 uppercase tracking-wide text-n-1">Source & stewardship</p>
-                    <h1 className="mt-3 text-h3 leading-tight text-n-1">
-                        The software, the service and who pays for it
-                    </h1>
+                    <p className="text-h9 uppercase tracking-wide text-n-1">Source code</p>
+                    <h1 className="mt-3 text-h3 leading-tight text-n-1">Peanut Split is open source</h1>
                     <p className="mt-4 max-w-2xl text-base font-medium leading-7 text-n-1">
-                        Peanut Split is free to use on the official service. Its released software is open source and
-                        self-hostable. Those are separate promises, with separate receipts.
+                        You can read the code, change it, and run your own copy. Squirrel Labs maintains the project and
+                        pays for peanutsplit.com.
                     </p>
                 </div>
             </header>
@@ -60,34 +58,30 @@ export default function SourceAndStewardshipPage() {
             <div className="mx-auto grid w-full max-w-xl gap-10 px-5 py-10 text-n-1">
                 <section aria-labelledby="freedoms">
                     <h2 id="freedoms" className="text-h5">
-                        Free to use is not the same as software freedom
+                        License and pricing
                     </h2>
                     <div className="mt-4 grid gap-4 text-base leading-7">
                         <p>
-                            The official service at peanutsplit.com is free to use and has no paid tier. That describes
-                            the service today; it is not a promise that one host will stay online or zero-price forever.
+                            Peanut Split is free to use and has no paid tier. If we can no longer afford to run
+                            peanutsplit.com, we will close the service rather than charge for it.
                         </p>
                         <p>
-                            Released source is licensed under AGPL-3.0-or-later. That is the FOSS promise: subject to
-                            the license, you may inspect, run, modify, share and self-host the released software. The
-                            rights on a version already released do not disappear if the official service or a later
-                            release changes.
+                            The released code uses the AGPL-3.0-or-later license. You may inspect, run, modify, share
+                            and self-host it under that license. Released versions keep those rights if the service
+                            closes or future releases change.
                         </p>
                     </div>
                 </section>
 
-                <section aria-labelledby="receipts">
-                    <h2 id="receipts" className="text-h5">
-                        Source and technical receipts
+                <section aria-labelledby="code">
+                    <h2 id="code" className="text-h5">
+                        Code and documentation
                     </h2>
-                    <p className="mt-4 text-base leading-7">
-                        The public repository is the source of truth. You can read, download or clone everything this
-                        service runs on, and nothing here is a promise you have to take on trust.
-                    </p>
+                    <p className="mt-4 text-base leading-7">The code and setup instructions are on GitHub.</p>
                     <p className="mt-3 text-base leading-7">
                         {commit
-                            ? 'This build names the commit it was made from, so the link below is that exact tree rather than whatever has since landed on the branch.'
-                            : 'This build does not name its own commit, so the link below is the branch it deploys from. That branch moves, and we would rather say so than pin a commit that quietly goes stale.'}
+                            ? 'The source link below points to the commit used for this build.'
+                            : 'This build does not report its commit. The source link points to main, which may include changes that are not live yet.'}
                     </p>
                     <ul className="mt-4 grid gap-2 text-base leading-6">
                         <li>
@@ -131,14 +125,16 @@ export default function SourceAndStewardshipPage() {
 
                 <section aria-labelledby="self-host">
                     <h2 id="self-host" className="text-h5">
-                        What self-hosting means here
+                        Run your own copy
                     </h2>
                     <p className="mt-4 text-base leading-7">
-                        The reference deployment is one Next.js application and PostgreSQL, with migrations in the
-                        source tree and a Compose path for evaluation. An operator owns the domain and TLS, database
-                        backups, secrets, upgrades, monitoring, privacy notices and any optional FX, push, model,
-                        analytics or error integrations. The current reference topology is one application replica;
-                        process-local wakeups and rate limits are documented limitations.
+                        You need a Next.js application and a PostgreSQL database. The self-hosting guide includes a
+                        Docker Compose setup to try locally. It currently supports a single application instance.
+                    </p>
+                    <p className="mt-3 text-base leading-7">
+                        You manage the domain, HTTPS, backups, credentials, updates and monitoring. You also handle
+                        privacy notices and any optional currency-rate, push, AI, analytics or error-reporting services.
+                        Read the guide before deploying; it documents the setup and its limits.
                     </p>
                 </section>
 
@@ -148,40 +144,35 @@ export default function SourceAndStewardshipPage() {
                     </h2>
                     <div className="mt-4 grid gap-4 text-base leading-7">
                         <p>
-                            Squirrel Labs is currently the sole maintainer of Peanut Split. It decides the upstream
-                            roadmap and releases, and pays every project cost: maintainer work hours, infrastructure,
-                            domains, third-party services and operation of peanutsplit.com.
+                            Squirrel Labs is the sole maintainer. It decides what to build and release, and pays every
+                            project cost, including maintainer work hours, hosting, domains and third-party services.
                         </p>
                         <p>
-                            The fair deal is that the official service may carry a few quiet, contextual references to{' '}
+                            On peanutsplit.com, you may see occasional links to{' '}
                             <a className={externalLink} href="https://peanut.me">
                                 Peanut
                             </a>
-                            , including an optional settlement method. They never require a click, nag the user, become
-                            preselected, or gate a feature. They are part of the official hosted service, not a
-                            condition of the AGPL license. Forks and self-hosters do not owe Peanut or Squirrel Labs
-                            promotion.
+                            , including an option to pay someone back. These links never require a click, send repeated
+                            prompts, come preselected or block a feature. The license does not require them: forks and
+                            self-hosted copies have no obligation to promote Peanut or Squirrel Labs.
                         </p>
                     </div>
                 </section>
 
                 <section aria-labelledby="upstream">
                     <h2 id="upstream" className="text-h5">
-                        Open source without contributor theatre
+                        Contributing
                     </h2>
                     <p className="mt-4 text-base leading-7">
-                        The repository is open so people can inspect it, keep a released version, and run their own
-                        copy. It is not organised as a contributor-acquisition programme. Squirrel Labs may accept a
-                        narrow fix, but unsolicited feature pull requests are not solicited and there is no review,
-                        merge, support or response-time promise.
+                        Squirrel Labs may accept small fixes, but is not seeking feature pull requests. Review, merging
+                        and support are not guaranteed, and there is no promised response time.
                     </p>
                 </section>
 
                 <section className="rounded-lg border-2 border-n-1 bg-primary-3 p-5">
-                    <h2 className="text-h6">Looking for the product comparison?</h2>
+                    <h2 className="text-h6">Compare with Splitwise</h2>
                     <p className="mt-2 text-base leading-6">
-                        The source receipts stay here. The accountless workflow and the honest Splitwise comparison stay
-                        on one canonical page.
+                        See how the two apps handle accounts, shared expenses and repayments.
                     </p>
                     <Link
                         href="/splitwise-alternative"

@@ -1,82 +1,69 @@
 ---
-title: Dividir despesas em várias moedas
-description: Você pagou em bahts, a sala conta em euros, seu cartão cobrou em libras. Qual câmbio importa, qual não importa, e onde o grupo perde dinheiro.
+title: 'Dividir despesas em moedas diferentes'
+description: 'Lance cada despesa na moeda original e escolha uma moeda para os totais. Entenda o câmbio indicativo, os custos do cartão e os pagamentos.'
 date: 2026-07-26
 type: guide
 tags: [moedas, viagens]
 claims:
+    - no-app
+    - link-is-the-key
     - automatic-currency-conversion
     - hosted-price
 cast: []
 faqs:
-    - question: Que câmbio o grupo deve usar?
-      answer: Combinem a moeda da sala uma vez e deixem o Split converter cada despesa no momento do lançamento. As taxas são de referência, não as do seu banco, então trate os totais como exatos e a conversão como perto o bastante para dividir.
-    - question: Lanço o que paguei ou o que me custou?
-      answer: Lance o que você pagou, na moeda em que pagou. É o número do recibo e o único que dá para provar.
-    - question: O Split cobra para converter moedas?
-      answer: Não. Salas em várias moedas são de uso grátis, e não existe plano pago para assinar.
+    - question: 'A despesa muda quando o câmbio muda?'
+      answer: 'O Split salva a cotação ao lançar uma despesa e mantém essa cotação quando você edita o lançamento.'
+    - question: 'Lanço os bahts ou as libras que aparecem na fatura?'
+      answer: 'Use o valor em bahts se o grupo combinou dividir os valores dos recibos. Se combinaram reembolsar o custo final do cartão, mantenha esse critério e não lance a compra duas vezes.'
+    - question: 'Todas as moedas do catálogo têm conversão?'
+      answer: 'O catálogo reconhece 162 códigos de moeda e oferece conversão automática para 156. Confira se a moeda da despesa tem conversão disponível antes de usá-la.'
 ---
 
 <Hero
-  eyebrow="salas em várias moedas"
-  title="Dividir entre moedas sem perder dinheiro no caminho"
-  subtitle="Três câmbios diferentes podem valer para o mesmo jantar. Só um deveria entrar na conta do grupo."
+  eyebrow="guia"
+  title="Divida despesas em moedas diferentes"
+  subtitle="Use o valor do recibo e uma moeda comum para os totais do grupo."
   cta="Criar um split"
-  ctaHint="Salas em várias moedas são de uso grátis. Sem plano pago." />
+  ctaHint="Sem e-mail, sem senha, sem download." />
 
-Um jantar em Bangkok, pago por uma pessoa, dividido entre quatro.
+Escolha uma moeda para os totais do grupo e lance cada despesa na moeda em que pagou. O Peanut Split converte pelo câmbio indicativo do dia e salva essa cotação junto com a despesa.
 
-A conta deu 3.200 bahts. Quem pagou tem um cartão que cobra em libras, então a fatura acaba dizendo £ 71,40. O grupo combinou que a viagem conta em euros. Três dos quatro devem por esse jantar.
+Por exemplo, um jantar de 3.200 bahts dividido entre quatro pessoas dá 800 bahts para cada uma. Se a sala usa euros, o Split converte a despesa para euros ao calcular os saldos. O recibo continua sendo a referência para conferir o valor original.
 
-Já existem pelo menos três números defensáveis para o mesmo jantar. A regra que impede a briga é: escolham a moeda da sala uma vez e deixem um único sistema fazer todas as conversões.
+## Mantenha o mesmo critério de conversão
 
-## Uma moeda de sala, convertida conforme entra
+A moeda usada na maior parte dos gastos costuma ser uma escolha prática para a sala. Combinem antes de começar, principalmente se o grupo tem contas bancárias em moedas diferentes.
 
-O câmbio específico importa menos do que a consistência.
+Use o mesmo critério durante toda a viagem. Misturar valores do recibo, cobranças da fatura e estimativas dificulta conferir quanto cada pessoa deve.
 
-Misturar câmbios é o que quebra tudo. Se o jantar de terça é convertido por uma pessoa no câmbio de terça, o táxi de quinta por um app de moedas e a casa pelo que o site de reservas cobrou, cada um está trabalhando com números diferentes e o grupo para de confiar no total.
+O Split tem conversão automática para 156 moedas. A cotação é indicativa e pode ser diferente da usada pelo seu banco. Depois que a despesa é salva, mudanças no câmbio não alteram sua conversão.
 
-<Callout title="O que o Split faz de verdade">
-Combinem a moeda da sala uma vez e deixem o Split converter cada despesa no lançamento, com uma taxa de referência diária. As taxas são indicativas — não são as do seu banco e não ficam travadas para a viagem inteira — então trate os saldos como exatos até o centavo e a conversão como perto o bastante para dividir.
-</Callout>
+## Combinem como dividir os custos do cartão
 
-## Lance o valor que você pagou de verdade
+A fatura pode mostrar outro valor por causa da cotação ou de uma tarifa. Decidam se vão dividir o valor do recibo ou reembolsar o custo final de quem pagou com o cartão.
 
-Coloque 3.200 bahts. Não € 84, não £ 71,40, não o palpite do seu celular na fila do táxi.
+O recibo costuma ser a referência mais fácil de conferir. Se combinarem dividir uma tarifa cobrada separadamente, lancem como outra despesa e guardem o comprovante. Evite lançar a compra original e a cobrança convertida como duas compras diferentes.
 
-O recibo diz 3.200, e é o único número da cadeia inteira que não é estimativa — se o grupo precisar conferir uma despesa, é contra ele que vai conferir. O número do seu cartão também não é assunto do grupo: o spread do seu banco é um custo do seu cartão, não do jantar. Empurre isso para o total compartilhado e você pediu, sem querer, que três amigos subsidiassem a sua escolha de banco.
+## Escolham a moeda do pagamento
 
-## O câmbio do seu cartão é outro problema
+Um saldo em euros indica quanto deve ser pago em euros. Se alguém for pagar em outra moeda, combinem o câmbio e as tarifas antes de enviar o dinheiro.
 
-Quando você paga 3.200 bahts num cartão que cobra em libras, seu banco escolhe uma taxa e normalmente acrescenta alguma coisa. Isso acontece entre você e o seu banco, dias depois, e nenhum divisor de despesas enxerga ou muda. Se a sua fatura diz £ 71,40 e a conta do grupo diz o equivalente a £ 69,80, esses £ 1,60 são o que o seu cartão cobrou de você, não um erro da divisão.
+A conversão do Split é gratuita, sem plano pago. Esse cálculo não define o câmbio oferecido pelo serviço usado para fazer a transferência.
 
-A única solução é outro cartão, ou ser a pessoa que paga em dinheiro.
-
-<Checklist title="Como manter limpa uma sala em várias moedas">
-<ChecklistItem title="Escolha a moeda da sala antes da primeira despesa">Use aquela em que o dinheiro está realmente saindo, não a do seu banco.</ChecklistItem>
-<ChecklistItem title="Lance sempre valores locais">A moeda do recibo é a moeda que você lança. Converter no lançamento joga fora o número que dá para provar.</ChecklistItem>
-<ChecklistItem title="Acertem na moeda da sala">Se a sala conta em euros, as transferências do fim são em euros. Converter de novo na saída traz de volta exatamente a diferença que vocês tinham evitado.</ChecklistItem>
-<ChecklistItem title="Espere que os saldos fechem no centavo">As partes são arredondadas para a sala sempre zerar. Se um número parecer errado, confira a despesa, não a aritmética.</ChecklistItem>
-</Checklist>
-
-## Por que aqui converter não é recurso pago
-
-Grupos que compartilham moeda têm opções mais fáceis. Os grupos que realmente precisam de um divisor são os espalhados por países, e cobrar deles justamente pela conversão é cobrar pela única parte que os trouxe até aqui.
-
-Então é de uso grátis, e não existe plano acima.
+Veja também [como funciona a conversão de moedas no Splitwise](/guides/splitwise-currency-conversion).
 
 <CTA
-  title="Escolha a moeda uma vez e esqueça"
-  body="Lance as despesas no que você gastou de verdade e deixe o Split converter. Sem plano pago."
+  title="Escolha a moeda da sala"
+  body="Lance cada despesa com seu valor e moeda originais."
   text="Criar um split" />
 
 <FAQ title="Perguntas">
-<FAQItem question="Que câmbio o grupo deve usar?">Combinem a moeda da sala uma vez e deixem o Split converter cada despesa no momento do lançamento. As taxas são de referência, não as do seu banco, então trate os totais como exatos e a conversão como perto o bastante para dividir.</FAQItem>
-<FAQItem question="Lanço o que paguei ou o que me custou?">Lance o que você pagou, na moeda em que pagou. É o número do recibo e o único que dá para provar.</FAQItem>
-<FAQItem question="O Split cobra para converter moedas?">Não. Salas em várias moedas são de uso grátis, e não existe plano pago para assinar.</FAQItem>
+<FAQItem question="A despesa muda quando o câmbio muda?">O Split salva a cotação ao lançar uma despesa e mantém essa cotação quando você edita o lançamento.</FAQItem>
+<FAQItem question="Lanço os bahts ou as libras que aparecem na fatura?">Use o valor em bahts se o grupo combinou dividir os valores dos recibos. Se combinaram reembolsar o custo final do cartão, mantenha esse critério e não lance a compra duas vezes.</FAQItem>
+<FAQItem question="Todas as moedas do catálogo têm conversão?">O catálogo reconhece 162 códigos de moeda e oferece conversão automática para 156. Confira se a moeda da despesa tem conversão disponível antes de usá-la.</FAQItem>
 </FAQ>
 
 <RelatedPages title="Continue lendo">
-<RelatedLink href="/pt-br/blog/split-a-group-trip-across-countries">Dividir uma viagem quando ninguém tem o mesmo banco</RelatedLink>
+<RelatedLink href="/pt-br/blog/split-a-group-trip-across-countries">Dividir despesas de viagem entre países</RelatedLink>
 <RelatedLink href="/pt-br/tricount-alternative">Como o Split se compara ao Tricount</RelatedLink>
 </RelatedPages>

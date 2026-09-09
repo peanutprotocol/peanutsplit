@@ -1,58 +1,56 @@
 import type { RoomTemplate } from './types'
 
-/**
- * The household that keeps going: same four people, same six bills, a new month every month.
- */
+/** Shared household bills, added as they are paid. */
 export const flatMonthly: RoomTemplate = {
     slug: 'flat-monthly',
-    updated: '2026-08-24',
+    updated: '2026-09-09',
     room: { name: 'Flat monthly', emblem: 'house' },
     meta: {
         title: 'Split bills with flatmates, month by month',
         description:
-            'A room for the household ledger: rent, the energy bill, the broadband, the shop nobody logged. One link the flat keeps, and nobody having to do the chasing.',
+            'Keep rent, utility bills, groceries and other shared household costs in one room. Each flatmate can add expenses and see their balance.',
     },
     headTerm: 'split bills with flatmates',
     copy: {
-        h1: 'Split bills with flatmates without doing the chasing',
+        h1: 'Split bills with flatmates, month by month',
         intro: [
-            'One person’s name is on the energy account, another’s is on the broadband, and a third does the big shop because they have the car. Every month each of them is owed something by everybody else, and every month one of them has to be the one who mentions it.',
-            'This link opens a room called Flat monthly. It stays open — the same room in March that it was in January — so the bills land in it as they arrive and the flat can see where it stands without anybody sending a message that starts with sorry.',
+            'Add each household bill with who paid and the flatmates sharing it. Split combines the expenses and recorded repayments to show each person’s balance.',
+            'This template starts a room called Flat monthly. Share the room link with your flatmates and keep adding bills as you pay them.',
         ],
         lines: {
-            title: 'What usually goes in a flat’s room',
-            intro: 'Put the recurring ones in as they are paid rather than at the end of the month, while the amount is still on the screen in front of you.',
+            title: 'Household bills to include',
+            intro: 'Add bills manually each time they are paid. Use a description such as “September electricity” to distinguish monthly expenses.',
             items: [
-                'Rent, if it goes through one person rather than to the landlord separately',
+                'Rent, if one flatmate pays the landlord for everyone',
                 'Energy, water and council tax',
-                'Broadband, under whoever the account belongs to',
-                'The weekly shop, one line each time',
-                'Cleaning things, bin bags, the light bulbs nobody wants to pay for',
-                'The washing machine repair, when it comes',
+                'Broadband',
+                'Shared groceries',
+                'Cleaning supplies and household essentials',
+                'Repairs the flatmates are responsible for',
             ],
         },
         concession: {
-            title: 'When a standing order is the better tool',
-            body: 'A flat that has agreed a flat rate and pays it into one account on the first of the month has already solved this, and should carry on. A room is for the half of the household budget that changes: the bill that doubled in January, the shop that was somebody’s turn, the repair split four ways.',
+            title: 'Fixed monthly payments',
+            body: 'A standing order may cover a fixed contribution to rent or bills. Split can track variable costs and payments made by different flatmates, but it does not schedule bills or make bank transfers.',
         },
-        ctaTitle: 'Open the flat’s room and let the bills land in it',
+        ctaTitle: 'Create your flat’s room',
     },
     faqs: [
         {
             question: 'How do you split bills with flatmates fairly?',
-            answer: 'Split what the household uses evenly and the private things by who has them. Rent can follow room size where the rooms are obviously different; energy, water and broadband are used by the kitchen and the hallway as much as by anybody’s bedroom, so an even split is usually the one nobody argues with.',
+            answer: 'Agree which costs are shared and which belong to individuals. Equal shares can suit broadband and household supplies. Rent may need a different split if bedrooms differ in size or amenities; account for shared rooms too. Enter the shares the flatmates agree on.',
         },
         {
             question: 'Does the room have to be started again each month?',
-            answer: 'No. It is one room that keeps running. Settling up marks what has been paid so far, and the next bill goes in underneath it, so the flat has a history without anybody maintaining a spreadsheet.',
+            answer: 'No. You can add new bills to the same room after recording repayments. Monthly bills still need to be added manually. A room holds up to 500 expenses.',
         },
         {
             question: 'What happens when somebody moves out?',
-            answer: 'Settle their balance on the day they leave, then keep the room. Their old lines stay in it as a record of what the flat has cost, and the person moving in adds their own name when they arrive.',
+            answer: 'Review their balance and agree how to handle bills that arrive after they leave. Once they repay what they owe, record the repayment. Add the new flatmate and select the correct people for future expenses, or start a new room for the new household.',
         },
     ],
     related: [
-        { href: '/rent-split-calculator', label: 'Rent by room size, with the working shown' },
-        { href: '/split-bill-no-signup', label: 'Splitting a bill with nobody making an account' },
+        { href: '/rent-split-calculator', label: 'Calculate rent shares by room size' },
+        { href: '/split-bill-no-signup', label: 'Split bills without an account' },
     ],
 }

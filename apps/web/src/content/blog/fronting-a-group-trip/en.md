@@ -1,6 +1,6 @@
 ---
-title: Fronting a group trip without being the bank
-description: You booked the Airbnb and your card took the deposit. How to run a trip's money so the group owes a number everyone has already seen, not a favour.
+title: 'Paying up front for a group trip'
+description: 'Agree repayment dates and cancellation costs before booking. Keep deposits and daily spending in one list so the group can check what it owes.'
 date: 2026-07-30
 type: guide
 tags: [trips, fronting, getting paid back]
@@ -14,117 +14,86 @@ claims:
     - hosted-price
     - no-app
     - recap-card
-cast:
-    - lisbon
-    - mo
+cast: []
 faqs:
-    - question: Should I put the whole trip on one card?
-      answer: It is the fastest way to organise a trip and the slowest way to be paid back. Spread the bookings so two or three people are fronting something. Whoever fronts the most is the person carrying the risk if somebody drops out.
-    - question: What if someone drops out after I have paid the deposit?
-      answer: Decide the rule before you book, not after. A non-refundable deposit is a cost the trip has already taken, and the only question is who absorbs it. Written into the room on the day it was paid, it is a fact everybody has seen. Raised for the first time after somebody pulls out, it sounds like an accusation.
-    - question: How do I ask for the money without it being awkward?
-      answer: Mostly by not having to ask. If the room has been open since the first booking, the total is not new information and the last step is a payment plan everyone can see. Send the room link rather than a number with an apology in front of it.
+    - question: 'Should one person pay for every booking?'
+      answer: 'Cover all the bookings only if you can afford to wait for everyone’s repayments. Collecting contributions first or sharing the bookings can reduce how much one person needs to advance.'
+    - question: 'What if someone cancels after the deposit is paid?'
+      answer: 'Check the booking terms and the agreement you made before paying. Work out what is refundable and whether someone else can take the place before deciding how to divide the remaining cost.'
+    - question: 'Does adding a deposit mean the others have paid me?'
+      answer: 'No. An expense records what you paid and each person’s share. Repayments are separate records, added after someone pays you back.'
 ---
 
 <Hero
-  eyebrow="group trips"
-  title="When every booking lands on your card"
-  subtitle="The deposit leaves your account in March. The group works out what it owes in August. Everything in between goes on the same card."
+  eyebrow="guide"
+  title="When you pay up front for a group trip"
+  subtitle="Agree how much you will cover and when people will pay you back before booking."
   cta="Start a split"
-  ctaHint="Takes ten seconds. No email, no password, no download." />
+  ctaHint="No email, no password, no download." />
 
-"I'll get the flights, sort it out later," someone says in March. Nobody sorts it out later. The Airbnb deposit goes on the same card that week, then the car hire, then the ferry, and by the time anybody is packing you are four months into fronting a holiday for four people. So much for later!
+Before paying for a group booking, agree each person's share, a repayment date and what happens if someone cancels. If you cannot comfortably cover the full amount, collect contributions first or ask another person to take a booking.
 
-Whether that money comes back matters more than the amount involved. When it does not, the person who fronted it usually says nothing about it, and stops being the one who organises anything, and the trips end without anybody deciding to end them.
+Peanut Split can keep the deposit and the rest of the trip's expenses in one shared room. Everyone can see the amounts recorded and check their balance. The room does not guarantee that you will be paid back.
 
-Let Split keep the ledger from the first booking instead. The room opens in about ten seconds, there is no account to make and nothing to download, and what anybody adds is on everybody's screen as they add it. By August the total is old news, and the last message in the group chat is a payment plan rather than a request.
-
-## The room goes in before the deposit does
-
-Every booking landing on one card is a decision nobody actually made. It happened because you were the one with the tab open in March, and by June it means one person is carrying a holiday and the other three are carrying nothing.
-
-<Steps title="Three things to settle before the first booking">
-<Step title="Start the room, then pay the deposit">Paste the link in the group chat while everyone is still arguing about dates, and pin it there. The link is the key, so a room nobody else can find is a room only you are keeping. A room that opens on the second day of the trip has already missed the flights and the deposit, which are the two biggest numbers in it.</Step>
-<Step title="Hand the bookings out">You do not have to be the only card. Give the car hire to one person and the ferry to another. Three people fronting a third each is a trip. One person fronting all of it is a loan.</Step>
-<Step title="Say what happens if somebody drops out">Deposits are rarely refundable, and this is the argument that actually ruins trips. Agree it in March, while it is hypothetical and has nobody's name on it: [the three ways of dividing what is left](/guides/someone-drops-out-of-a-group-trip) are all easier to propose before one of them costs a named person money.</Step>
+<Steps title="Before you book">
+<Step title="Check the booking terms">Confirm the amount due now, later payment dates and the cancellation terms. Share these with the people taking part.</Step>
+<Step title="Agree who pays up front">You can split responsibility for the accommodation, car hire and other bookings. Make sure each person agrees to the amount they will cover.</Step>
+<Step title="Put the agreement in writing">A message in the group chat is enough to make the plan clear. For example: ‘The deposit is €600, so €150 each for four people. Please send your share by Friday.’</Step>
 </Steps>
 
-<Cast name="lisbon" size="md" caption="The Lisbon room was open before the first booking, so the deposit is the first line in it rather than a number somebody had to defend in August." />
+Cancellation costs need a separate agreement. Check what can be refunded, whether a replacement guest is allowed and how any remaining cost will be shared. The [guide to someone dropping out](/guides/someone-drops-out-of-a-group-trip) covers the options.
 
-<Callout title="The deposit goes in the day you pay it">
-Put it in at the amount you paid, four months before anybody flies. It is dated, and it stops being yours alone the moment it is in there.
-</Callout>
+## Add the deposit when you pay it
 
-## The drip that nobody logs
+Create a room and pin the link in the group chat. Anyone with the link can open it and add expenses. Add the amount you paid and select the people who are sharing the booking.
 
-The big bookings are the easy part. You remember a deposit. What quietly empties the account is a week of "I'll get this one".
+During the trip, ask each person to add their own purchases while they have the receipt. New expenses can wait on the device if there is no signal and send when the connection returns.
 
-The morning coffees. The groceries on the first night because you reached the till first. The suncream nobody packed. The round you bought because somebody had to. Each one is small enough that stopping to write it down feels petty, and by Thursday the person who keeps saying it is a couple of hundred down without noticing.
-
-You offered to book the Airbnb. Nobody asked you to run an unsecured lending desk for four people out of a current account.
-
-So put them in at the table, while the receipt is still on it. It takes longer to describe than to do, and no signal is not a problem: an expense typed with no connection waits on the phone and goes when the connection comes back.
-
-Enter what you actually paid, in the currency you paid it in. Split automatically converts 156 currencies at the day's indicative rate and fixes that rate onto the expense when you add it, so the history does not move under you later. It is an indicative rate, not your bank's.
-
-<Cast name="mo" size="md" caption="Mo bought the first-night groceries and typed them in at the till, so the other three saw the number before breakfast." />
-
-## At the end there is a pile of small debts
-
-Four months of bookings and a week of small rounds comes out as debts pointing in every direction, and paying those off one at a time is how a finished trip stays open for another month. The room nets them against each other instead and hands you a short payment plan: two or three transfers instead of twenty, each one a single person paying a single person.
-
-There is a card at the end of it too — what the trip cost and who fronted the most money. If the deposit went on your card in March, [that last line](/blog/end-of-trip-expense-recap) is the only acknowledgement the trip is going to produce.
+Enter the original amount and currency. Split offers automatic conversion for 156 currencies at the day's indicative rate, fixed when each expense is added. This may differ from the rate on a card statement.
 
 <Calc
-  title="The damage, live"
-  presets="Weekend=920|Week=1846|Blowout=3210"
+  title="Example trip budget"
+  presets="Weekend=920|Week=1846|Longer trip=3210"
   preset="Week"
   currency="EUR"
   people="4"
-  eachLabel="a head"
+  eachLabel="per person"
   totalLabel="Trip total"
   peopleLabel="People"
-  shareLabel="Fair share"
-  amountLabel="Fair share"
-  footLabel="IOUs collapsed"
-  footValue="20 → 3"
-  note="Rounded to the cent. A room runs this continuously as expenses land." />
+  shareLabel="Equal share"
+  amountLabel="Equal share"
+  note="An equal split of the example total, rounded to the cent. Individual balances also depend on who paid." />
 
-<Checklist title="What being paid back looks like when the room was open all along">
-<ChecklistItem title="One ledger, March to August">The deposit and Thursday's round are the same kind of line, both dated, and neither needs explaining.</ChecklistItem>
-<ChecklistItem title="Nobody gets named">The room shows balances, not blame. There is never a reason to post a list of who has not paid yet, and doing it is how a finished trip becomes a grudge.</ChecklistItem>
-<ChecklistItem title="Recording it is one tap">Settle however the two of you settle, with cash at the airport, a bank transfer or another payment app, and one of you taps to say it happened. Split records the payment, it does not make it.</ChecklistItem>
-</Checklist>
+## Check the balances and record repayments
 
-## Good to know
+Before settling, ask the group to check for missing or duplicate expenses. Split offsets what each person paid against their share and suggests a short payment plan.
 
-Four facts about the room, worth having in March rather than in August.
+Pay using cash, a bank transfer or another agreed method, then record it in the room. Split does not move money or verify payments with a bank. Recording a repayment needs a connection.
 
-- **The official service is free to use and has no paid tier.**
-- **It does not move the money.** A settled row means somebody tapped to say they paid, not that a payment cleared. Split does not check with a bank and cannot, which is fine among friends and worth knowing about your own ledger.
-- **It will not chase anyone.** No reminder emails, no nudges into the group chat. If somebody goes quiet, that part is still yours, and all anyone can hand you is [what to write the first time and what to write when it needs repeating](/guides/ask-a-friend-to-pay-you-back).
-- **It holds up to twenty people.** A group, not a conference.
+If a payment is overdue, contact the person directly with the amount and agreed date. The [repayment message guide](/guides/ask-a-friend-to-pay-you-back) has examples you can adapt.
+
+The service is free to use, with no paid tier, for groups of up to twenty people. When the room is settled, you can share an [expense recap](/blog/end-of-trip-expense-recap) showing the trip total and who paid the most up front.
 
 <CTA
-  title="Open the room before you pay the deposit"
-  body="One link in the group chat, and every booking after it lands in the same place."
+  title="Create a room for the bookings"
+  body="Add what you have paid and share the list with the people joining the trip."
   text="Start a split" />
 
-<FAQ>
-<FAQItem question="Should I put the whole trip on one card?">It is the fastest way to organise a trip and the slowest way to be paid back. Spread the bookings so two or three people are fronting something. Whoever fronts the most is the person carrying the risk if somebody drops out.</FAQItem>
-<FAQItem question="What if someone drops out after I have paid the deposit?">Decide the rule before you book, not after. A non-refundable deposit is a cost the trip has already taken, and the only question is who absorbs it. Written into the room on the day it was paid, it is a fact everybody has seen. Raised for the first time after somebody pulls out, it sounds like an accusation.</FAQItem>
-<FAQItem question="How do I ask for the money without it being awkward?">Mostly by not having to ask. If the room has been open since the first booking, the total is not new information and the last step is a payment plan everyone can see. Send the room link rather than a number with an apology in front of it.</FAQItem>
+<FAQ title="Questions">
+<FAQItem question="Should one person pay for every booking?">Cover all the bookings only if you can afford to wait for everyone’s repayments. Collecting contributions first or sharing the bookings can reduce how much one person needs to advance.</FAQItem>
+<FAQItem question="What if someone cancels after the deposit is paid?">Check the booking terms and the agreement you made before paying. Work out what is refundable and whether someone else can take the place before deciding how to divide the remaining cost.</FAQItem>
+<FAQItem question="Does adding a deposit mean the others have paid me?">No. An expense records what you paid and each person’s share. Repayments are separate records, added after someone pays you back.</FAQItem>
 </FAQ>
 
 <Share
-  title="Send the split, not a lecture"
-  body="Whoever is about to put four months of bookings on one card is the person this is for. A link is easier to send in March than a number is to ask for in August."
-  buttonLabel="Send this to the group"
+  title="Share this trip planning guide"
+  body="Send it to the people arranging the bookings."
+  buttonLabel="Share this guide"
   doneLabel="Link copied" />
 
 <RelatedPages>
-<RelatedLink href="/blog/split-a-group-trip-across-countries">Splitting a trip when nobody shares a bank</RelatedLink>
-<RelatedLink href="/blog/end-of-trip-expense-recap">The card that says what the trip cost</RelatedLink>
-<RelatedLink href="/blog/split-expenses-across-currencies">Splitting when you paid in one currency and owe in another</RelatedLink>
-<RelatedLink href="/mileage-split-calculator">What the driving cost, split between the passengers</RelatedLink>
+<RelatedLink href="/blog/split-a-group-trip-across-countries">Split trip expenses across countries</RelatedLink>
+<RelatedLink href="/blog/end-of-trip-expense-recap">Share a trip expense recap</RelatedLink>
+<RelatedLink href="/blog/split-expenses-across-currencies">Split expenses in different currencies</RelatedLink>
+<RelatedLink href="/mileage-split-calculator">Split driving costs</RelatedLink>
 </RelatedPages>

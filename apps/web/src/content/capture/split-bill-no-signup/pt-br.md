@@ -1,10 +1,10 @@
 ---
-title: App para dividir despesas sem baixar nada
-description: Um site para dividir despesas em grupo. Você manda o link, cada um lança o que pagou e no fim o rateio mostra quem deve a quem. Ninguém faz cadastro.
+title: 'Dividir despesas sem cadastro nem download'
+description: 'Compartilhe o link de uma sala, digite seu nome e adicione despesas pelo navegador. O Split calcula quem deve a quem sem pedir cadastro.'
 date: 2026-07-30
 updated: 2026-09-01
 type: capture
-headTerm: app para dividir despesas
+headTerm: 'dividir despesas'
 intent: app para dividir despesas com amigos
 tags: [sem-conta, grupos]
 claims:
@@ -17,53 +17,47 @@ claims:
 cast:
     - ana
 faqs:
-    - question: Preciso de um app para dividir despesas?
-      answer: Não. O Split é um site, então abre em qualquer navegador. Adicionar à tela inicial é um recurso do celular, não uma instalação, e pular isso não muda nada.
-    - question: Dá para dividir despesas em grupo sem cadastro?
-      answer: Dá. Não existe campo de e-mail em nenhum lugar do Split, então não tem conta para criar nem nada para confirmar depois.
-    - question: Dá para mandar o link do split no WhatsApp?
-      answer: Dá. Cole no grupo onde todo mundo já conversa e deixe lá. O link é a chave, então uma sala que só existe no seu navegador está a um celular perdido de sumir.
+    - question: 'Preciso de um app para dividir despesas?'
+      answer: 'Você pode dividir despesas no Split sem cadastro. Crie uma sala e compartilhe o link. Cada pessoa digita o nome, sem precisar de e-mail ou senha.'
+    - question: 'Dá para dividir despesas em grupo sem cadastro?'
+      answer: 'Sim. O Split funciona no navegador. Você pode adicioná-lo à tela inicial, mas isso é opcional.'
+    - question: 'Dá para mandar o link do split no WhatsApp?'
+      answer: 'Sim. Envie o link pelo WhatsApp ou por outro grupo de conversa. Deixe-o fixado e lembre que qualquer pessoa com o link pode entrar.'
 ---
 
-# App para dividir despesas em grupo, sem cadastro
+# Dividir despesas sem cadastro nem download
 
-Um pagou a casa, outro o mercado, outro os ingressos do barco. No fim do fim de semana alguém tem que dizer quem deve a quem, e isso se resolve numa página só, que o grupo inteiro abre pelo celular.
+O Peanut Split permite dividir despesas por um link. Crie uma sala, envie o link e digite seu nome. Todos podem adicionar o que pagaram sem e-mail, senha ou download.
 
-Essa página é uma sala do Split, e a sala é um link. Você cola no grupo, cada um digita um nome e lança o que pagou, e os saldos mudam conforme as pessoas digitam. Ninguém faz cadastro e ninguém baixa nada: quem abre o link já está dentro.
-
-A conta nunca foi o problema. Dividir o sinal da casa e o táxi do aeroporto por cinco não vai render um doutorado a ninguém. O que sobra é a mensagem que começa com "desculpa te encher", escrita cinco vezes, uma para cada pessoa. Chega!
-
-A maioria empurra isso por uma semana. Tem gente que nunca manda, e fica com uma mágoa calada que acaba com a amizade. Quem faz essa conta é o Split. O link vai no grupo e os números ficam numa página que ninguém precisa contestar.
-
-## O que abre é o navegador, não uma loja de apps
-
-<Steps title="O que todo mundo precisa fazer">
-<Step title="Abrir o link">Abre no navegador que já está no celular. Não tem página de loja de apps no caminho.</Step>
-<Step title="Digitar um nome">É só isso para entrar. Nada para confirmar, nada para lembrar.</Step>
-<Step title="Lançar o que pagou">A compra do mercado, os ingressos do barco, a última rodada. Os saldos mudam conforme as pessoas digitam. <Cast name="ana" size="sm" caption="Ana digitou o nome do banco de trás do táxi e lançou a corrida antes de as malas saírem do porta-malas." /></Step>
+<Steps title="Entre e adicione uma despesa">
+<Step title="Abra o link da sala">Ele funciona no navegador do celular ou do computador.</Step>
+<Step title="Digite seu nome">É o nome que o grupo verá ao lado das suas despesas.</Step>
+<Step title="Adicione o que você pagou">Informe o valor e selecione quem participou da despesa. A sala atualiza os saldos. <Cast name="ana" size="sm" /></Step>
 </Steps>
 
-No fim, a sala junta as dívidas, então sobram dois ou três acertos em vez de vinte. Duas pessoas se acertam do jeito que preferirem, e uma delas toca para registrar. Você só manda o link. O resto quem digita é o grupo.
+## Guarde o link
+
+Qualquer pessoa com o link pode acessar a sala. Guarde-o no grupo de conversa e compartilhe apenas com os participantes. Se todos perderem o link, não há cadastro ou senha para recuperar o acesso.
 
 ## Bom saber
 
-O serviço oficial é de uso grátis e não tem plano pago.
+O Split é grátis e não tem plano pago.
 
-O Split calcula quem deve a quem e guarda o registro. Ele não movimenta dinheiro, não guarda dinheiro e não processa pagamento nenhum. Também não confere nada com banco, então uma linha acertada quer dizer que alguém tocou para dizer que pagou. Ele foi feito para um grupo, não para uma multidão: até vinte pessoas.
+Paguem em dinheiro, por transferência ou pelo meio que combinarem e registrem o pagamento no Split. O Split não movimenta dinheiro nem verifica o pagamento com o banco.
 
 <CTA
-  title="Abra a sala no primeiro dia"
-  body="Dez segundos. Sem e-mail, sem senha, sem download."
+  title="Crie uma sala para o grupo"
+  body="Compartilhe o link para que todos possam adicionar despesas. Não é preciso criar uma conta nem baixar nada."
   text="Criar um split" />
 
 <FAQ>
-<FAQItem question="Preciso de um app para dividir despesas?">Não. O Split é um site, então abre em qualquer navegador. Adicionar à tela inicial é um recurso do celular, não uma instalação, e pular isso não muda nada.</FAQItem>
-<FAQItem question="Dá para dividir despesas em grupo sem cadastro?">Dá. Não existe campo de e-mail em nenhum lugar do Split, então não tem conta para criar nem nada para confirmar depois.</FAQItem>
-<FAQItem question="Dá para mandar o link do split no WhatsApp?">Dá. Cole no grupo onde todo mundo já conversa e deixe lá. O link é a chave, então uma sala que só existe no seu navegador está a um celular perdido de sumir.</FAQItem>
+<FAQItem question="Preciso de um app para dividir despesas?">Você pode dividir despesas no Split sem cadastro. Crie uma sala e compartilhe o link. Cada pessoa digita o nome, sem precisar de e-mail ou senha.</FAQItem>
+<FAQItem question="Dá para dividir despesas em grupo sem cadastro?">Sim. O Split funciona no navegador. Você pode adicioná-lo à tela inicial, mas isso é opcional.</FAQItem>
+<FAQItem question="Dá para mandar o link do split no WhatsApp?">Sim. Envie o link pelo WhatsApp ou por outro grupo de conversa. Deixe-o fixado e lembre que qualquer pessoa com o link pode entrar.</FAQItem>
 </FAQ>
 
 <RelatedPages>
 <RelatedLink href="/pt-br/splitwise-alternative">Como o Split se compara ao Splitwise</RelatedLink>
 <RelatedLink href="/pt-br/tricount-alternative">Como o Split se compara ao Tricount</RelatedLink>
-<RelatedLink href="/pt-br/blog/split-expenses-across-currencies">Dividir despesas em várias moedas</RelatedLink>
+<RelatedLink href="/pt-br/blog/split-expenses-across-currencies">Dividir despesas em moedas diferentes</RelatedLink>
 </RelatedPages>

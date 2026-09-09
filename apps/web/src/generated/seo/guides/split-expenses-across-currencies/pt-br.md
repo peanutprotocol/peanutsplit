@@ -32,60 +32,42 @@ generated_from:
     - split-content/_system/guidelines/components.md
     - split-content/_system/guidelines/locales.md
     - split-content/_system/guidelines/intent-taxonomy.md
-generated_at: 2026-08-24
+generated_at: 2026-09-09
 ---
 
-Um grupo de brasileiros em Bangkok termina o jantar com o recibo em bahts, o rateio em reais e uma
-fatura que chegará com outro valor; se esses registros se misturarem, alguém absorve a diferença, e o
-ressentimento volta no próximo rateio. Deixe o Peanut Split cuidar dessa parte. O Split mantém a
-moeda do recibo e aplica uma regra comum à despesa compartilhada.
+Lance o valor e a moeda que aparecem no recibo. Use um único método de conversão para o rateio e
+guarde a fatura do cartão separadamente. Misturar esses valores dificulta conferir a cota de cada
+pessoa.
 
-Nessa hora, quem organiza pula entre a foto, a calculadora e as mensagens. Vamos fechar essas abas!
+## Como dividir despesas em várias moedas
 
-## Divida despesas em várias moedas com uma regra comum
-
-Misturar métodos faz o rateio perder o fio. Se a hospedagem entra no rateio pelo valor do aplicativo
-de reservas, o passeio pela captura do conversor e o jantar por uma conta de cabeça, o grupo compara
-registros feitos com regras diferentes.
+Escolham a moeda em que o grupo vai conferir os saldos. No Peanut Split, lance cada despesa na moeda
+original.
 
 <Callout type="info">
-**O que o Split converte.** O Split reconhece 162 códigos de moeda, e 156 permitem conversão
-automática. O Split usa a taxa indicativa do dia, que fica fixada quando a despesa é adicionada, por
-isso o valor calculado na moeda da sala permanece estável. Essa não é a taxa do banco nem uma promessa
-do valor final da fatura.
+**Como funciona a conversão.** O Split reconhece 162 códigos de moeda e converte 156 automaticamente
+para a moeda da sala. A taxa é indicativa e fica fixada quando a despesa é lançada. Ela não muda
+depois e pode diferir da taxa do banco.
 </Callout>
 
-## Lance o valor do recibo
+## Qual valor lançar
 
-O recibo mostra 3.200 bahts. Lance esse valor em vez de trocá-lo por reais ou por uma estimativa do
-celular. Aquele papel é a referência que todo mundo viu na mesa.
+Se o recibo mostra 3.200 bahts, lance 3.200 bahts. Não use uma estimativa em reais com a moeda
+marcada como bahts. Guarde o recibo para o grupo conferir o valor original.
 
-## Mantenha o valor da fatura separado
+## Por que a fatura pode ter outro valor
 
-A fatura chega depois e pertence a quem passou o cartão. Ela serve para quem pagou conferir a própria
-compra, não para reescrever a despesa que entrou no rateio. Misturar os dois registros no meio da
-viagem troca a regra para todo mundo.
+A taxa do banco e as tarifas do cartão podem resultar em outra cobrança. Guarde a fatura para
+conferir o que saiu do cartão. Se o grupo quiser dividir uma tarifa, combine como registrá-la;
+não troque o valor original sem avisar.
 
-### Mantenha a sala fácil de conferir
+Antes de acertar, confira a moeda, os participantes e as tarifas que o grupo concordou em dividir.
+Para um relatório de despesas que precisa ir à contabilidade, uma planilha pode ser mais adequada.
 
-- Lance a moeda como ela aparece impressa.
-- Guarde o recibo até o grupo conferir o rateio.
-- Pergunte a quem pagou antes de corrigir um item.
-- Não leve cálculos feitos por fora para o registro compartilhado.
+O Split é gratuito e não tem versão paga.
 
-## O preço do serviço oficial
-
-O serviço oficial do Split é de uso grátis e não tem plano pago. Isso descreve o serviço de
-hoje; não promete o preço nem a disponibilidade dele para sempre.
-
-## Quando uma planilha é a melhor ferramenta
-
-Se uma equipe precisa ligar cada recibo a um centro de custo e entregar tudo para a contabilidade,
-uma planilha é a melhor ferramenta. Uma sala do Split ajuda a dividir despesas entre pessoas quando
-elas chegam em vários dias e todo mundo precisa conferir o mesmo registro.
-
-<CTA text="Criar um split" subtitle="Leve o rateio para fora da calculadora e do WhatsApp." href="https://peanutsplit.com/new?locale=pt-br&utm_medium=content&utm_source=split-guide&utm_campaign=split-expenses-across-currencies&utm_content=final-cta" variant="card" />
+<CTA text="Criar um split" subtitle="Lance cada despesa na moeda original." href="https://peanutsplit.com/new?locale=pt-br&utm_medium=content&utm_source=split-guide&utm_campaign=split-expenses-across-currencies&utm_content=final-cta" variant="card" />
 
 <RelatedPages title="Guia relacionado">
-<RelatedLink href="/pt-br/guides/split-a-group-trip-across-countries">Como dividir despesas de viagem entre países</RelatedLink>
+<RelatedLink href="/pt-br/guides/ask-a-friend-to-pay-you-back">Frases para cobrar um amigo sem climão</RelatedLink>
 </RelatedPages>
