@@ -1,4 +1,5 @@
 ---
+draft: true
 title: 'Dividir despesas sem baixar um app'
 description: 'Compartilhe despesas por um link. Veja como criar uma sala, guardar o acesso e registrar pagamentos sem fazer cadastro.'
 date: 2026-07-24

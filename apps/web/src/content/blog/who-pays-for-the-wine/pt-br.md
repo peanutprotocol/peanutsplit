@@ -1,4 +1,5 @@
 ---
+draft: true
 title: 'Quem paga o vinho no jantar'
 description: 'Compare dividir por igual, separar bebidas e pagar por item. Veja um exemplo e uma frase para combinar a divisão antes de pedir.'
 date: 2026-07-30

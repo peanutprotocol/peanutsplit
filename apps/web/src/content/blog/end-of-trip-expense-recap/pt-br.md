@@ -1,4 +1,5 @@
 ---
+draft: true
 title: 'Compartilhar o resumo de gastos da viagem'
 description: 'Confira o total gasto, os participantes e os pagamentos registrados. Compartilhe uma imagem do resumo quando todos os saldos estiverem quitados.'
 date: 2026-07-28

@@ -1,4 +1,5 @@
 ---
+draft: true
 title: 'Lançar despesas offline'
 description: 'Lance uma despesa sem internet e envie quando a conexão voltar. Veja o limite da fila e quais ações precisam de conexão.'
 date: 2026-07-28

@@ -1,4 +1,5 @@
 ---
+draft: true
 title: 'Escanear recibo e dividir a conta'
 description: 'Fotografe o recibo, confira os valores e atribua os itens a quem dividiu cada um. Veja o limite de leituras e o que acontece com a foto.'
 date: 2026-07-28

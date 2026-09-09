@@ -155,6 +155,10 @@ Peanut payment service in ordinary SEO guides; the source page explains funding.
 4. Review translations as writing in their own language.
 5. Run the content and marketing-copy checks, then inspect the rendered page on mobile.
 
+A copy edit must preserve `draft`, `published`, `v2Only` and release-gate metadata.
+Compare these fields with the base commit and check sitemap URLs before deploying.
+Publishing a held translation is a separate editorial decision.
+
 The app's Markdown files in `src/content/{collection}/{slug}/{locale}.md` are authored
 sources. Change those files, not built HTML. Generated `/guides/` pages have separate
 sources in mono `split-content/_system/`; follow that pipeline and regenerate its outputs.

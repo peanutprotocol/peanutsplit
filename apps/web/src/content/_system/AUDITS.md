@@ -63,3 +63,10 @@ That fix already exists in current upstream sources. Kept the old artifact in a
 local backup and rebuilt the complete artifact with the deterministic mirror. A
 second mirror run changed zero files. The upstream friend-repayment guide is
 installed with its chapter mapping and remains outside the indexing release list.
+
+### 2026-09-09 — Preserve draft translations
+
+The live sitemap comparison found 14 blog translations whose `draft: true` fields
+had been lost in the rewrite. Restore those fields from the base commit. Check all
+60 native documents against that commit for publication and release metadata, and
+require a sitemap comparison in stylebook §11 before future copy deployments.

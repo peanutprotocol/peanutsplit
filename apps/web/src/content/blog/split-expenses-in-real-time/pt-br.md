@@ -1,4 +1,5 @@
 ---
+draft: true
 title: 'Como as despesas se atualizam'
 description: 'Despesas e saldos se atualizam nos celulares do grupo sem recarregar a página. Veja o que acontece quando alguém perde a conexão.'
 date: 2026-07-28

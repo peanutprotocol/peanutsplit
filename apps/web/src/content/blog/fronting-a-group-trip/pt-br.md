@@ -1,4 +1,5 @@
 ---
+draft: true
 title: 'Adiantar dinheiro para uma viagem em grupo'
 description: 'Combine prazos de pagamento e custos de cancelamento antes de reservar. Reúna reservas e gastos diários para todos conferirem quanto devem.'
 date: 2026-07-30
