@@ -204,10 +204,11 @@ export default function PrivacyPage() {
                             adverts are worth paying for.
                         </p>
                         <p>
-                            When you arrive from a Google advert, the link carries a click identifier. The tag reads it
-                            and stores it in a Google cookie on this site (<code className="text-sm">_gcl_aw</code>) so
-                            that a room created later in the same browser can be matched back to that click. If you did
-                            not arrive from an advert, there is no click identifier to store.
+                            When you arrive from a Google advert, the link carries a click identifier. Only then does
+                            the tag load. It reads the identifier and stores it in a Google cookie on this site (
+                            <code className="text-sm">_gcl_aw</code>) so that a room created later in the same browser
+                            can be matched back to that click. If you did not arrive from an advert, this site loads
+                            nothing from Google at all.
                         </p>
                         <p>
                             The tag reports no page views. When a room is created it reports one event, with no value
