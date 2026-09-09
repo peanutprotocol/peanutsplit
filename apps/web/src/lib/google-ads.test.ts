@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { GOOGLE_ADS_ID, ROOM_CREATED_LABEL, arrivedFromAd, reportableReferrer, reportableUrl } from './google-ads'
+import { GOOGLE_ADS_ID, ROOM_CREATED_LABEL, reportableReferrer, reportableUrl } from './google-ads'
 
 type FakeWindow = {
     location: { hostname: string; href: string; origin: string }
@@ -7,7 +7,7 @@ type FakeWindow = {
     gtag?: (...args: unknown[]) => void
 }
 
-function fakeBrowser(href: string, cookie = '') {
+function fakeBrowser(href: string) {
     const url = new URL(href)
     const head = { appendChild: vi.fn() }
     const window: FakeWindow = {
@@ -15,7 +15,6 @@ function fakeBrowser(href: string, cookie = '') {
     }
     const document = {
         referrer: '',
-        cookie,
         getElementById: vi.fn(() => null),
         createElement: vi.fn(() => ({}) as Record<string, unknown>),
         head,
@@ -65,34 +64,6 @@ describe('reportable page context', () => {
     })
 })
 
-describe('the tag is for ad visitors only', () => {
-    it('knows an ad click from its id in the URL or the cookie it left', () => {
-        expect(arrivedFromAd('https://peanutsplit.com/?gclid=abc123', '')).toBe(true)
-        expect(arrivedFromAd('https://peanutsplit.com/?wbraid=w1', '')).toBe(true)
-        expect(arrivedFromAd('https://peanutsplit.com/new', '_gcl_aw=GCL.1.abc; other=1')).toBe(true)
-        expect(arrivedFromAd('https://peanutsplit.com/new', 'other=1')).toBe(false)
-        expect(arrivedFromAd('https://peanutsplit.com/?utm_source=google', '')).toBe(false)
-        expect(arrivedFromAd('not-a-url', '')).toBe(false)
-    })
-
-    it('loads nothing from Google for an organic visitor', async () => {
-        const { window, head } = fakeBrowser('https://peanutsplit.com/splitwise-alternative')
-        const { initGoogleAds } = await import('./google-ads')
-        initGoogleAds()
-
-        expect(head.appendChild).not.toHaveBeenCalled()
-        expect(window.dataLayer).toBeUndefined()
-    })
-
-    it('loads on /new for a visitor whose ad click was recorded on landing', async () => {
-        const { head } = fakeBrowser('https://peanutsplit.com/new', '_gcl_aw=GCL.1.abc')
-        const { initGoogleAds } = await import('./google-ads')
-        initGoogleAds()
-
-        expect(head.appendChild).toHaveBeenCalledOnce()
-    })
-})
-
 describe('the tag is the product host only', () => {
     it('loads gtag and configures the account on peanutsplit.com', async () => {
         const { window, head } = fakeBrowser('https://peanutsplit.com/?gclid=abc123')
@@ -110,7 +81,7 @@ describe('the tag is the product host only', () => {
     })
 
     it('stays silent on a fork, a preview host and a dev box', async () => {
-        for (const href of ['http://localhost:3000/?gclid=abc123', 'https://split.example.test/?gclid=abc123']) {
+        for (const href of ['http://localhost:3000/', 'https://split.example.test/']) {
             vi.resetModules()
             const { window, head } = fakeBrowser(href)
             const { initGoogleAds, trackRoomCreatedConversion } = await import('./google-ads')
@@ -125,7 +96,7 @@ describe('the tag is the product host only', () => {
 
 describe('the room-created conversion', () => {
     it('sends the account and label, and nothing about the room', async () => {
-        const { window } = fakeBrowser('https://peanutsplit.com/new', '_gcl_aw=GCL.1.abc')
+        const { window } = fakeBrowser('https://peanutsplit.com/new')
         const { initGoogleAds, trackRoomCreatedConversion } = await import('./google-ads')
         initGoogleAds()
         window.dataLayer = []

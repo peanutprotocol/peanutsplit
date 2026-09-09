@@ -59,31 +59,6 @@ declare global {
 /** Only the deployment that serves peanutsplit.com reports to peanutsplit.com's ad account. */
 export const googleAdsEnabled = (hostname: string): boolean => isProductHost(hostname)
 
-/** The click identifiers Google Ads auto-tagging puts on a landing URL. */
-const CLICK_ID_KEYS = ['gclid', 'gbraid', 'wbraid'] as const
-
-/** The first-party cookies gtag writes once it has seen a click id. */
-const CLICK_COOKIE_NAMES = ['_gcl_aw', '_gcl_gb'] as const
-
-/**
- * Did this browser arrive from a Google advert, now or earlier in this visit?
- *
- * The tag has nothing to do for anyone else, so it is not loaded for them: a visitor who came
- * from a search result, a listicle or a shared link fetches nothing from Google. That is also
- * what directories with a no-third-party-trackers rule check for before they link to a site.
- * A click id in the URL is the landing hit; the cookie is the same visitor on `/new` later.
- */
-export function arrivedFromAd(href: string, cookie: string): boolean {
-    let url: URL
-    try {
-        url = new URL(href)
-    } catch {
-        return false
-    }
-    if (CLICK_ID_KEYS.some((key) => url.searchParams.has(key))) return true
-    return cookie.split(';').some((pair) => CLICK_COOKIE_NAMES.some((name) => pair.trim().startsWith(`${name}=`)))
-}
-
 /** A URL with everything gtag does not need removed: no fragment, no unlisted query, no slug. */
 export function reportableUrl(raw: string): string | null {
     let url: URL
@@ -118,8 +93,7 @@ export function reportableReferrer(referrer: string, origin: string): string {
 }
 
 /**
- * Load gtag.js and configure the account. Idempotent, and a no-op off the product host or for
- * a visitor who did not come from an advert.
+ * Load gtag.js and configure the account. Idempotent, and a no-op off the product host.
  *
  * `send_page_view: false` because an Ads tag has exactly one job here — the room-created
  * conversion below. The config call still runs: it is what reads a `gclid` out of the landing
@@ -128,7 +102,6 @@ export function reportableReferrer(referrer: string, origin: string): string {
 export function initGoogleAds(): void {
     if (typeof window === 'undefined' || typeof document === 'undefined') return
     if (!googleAdsEnabled(window.location.hostname)) return
-    if (!arrivedFromAd(window.location.href, document.cookie)) return
     if (document.getElementById(SCRIPT_ID)) return
 
     window.dataLayer = window.dataLayer ?? []
