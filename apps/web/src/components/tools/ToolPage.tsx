@@ -70,7 +70,7 @@ export async function ToolPage({
 
     const body = (
         <>
-            <header className="mx-auto w-full max-w-xl px-5 pb-2 pt-4">
+            <header className="mx-auto w-full max-w-5xl px-5 pb-2 pt-4">
                 {/* One drawing, the same one the calculator and the hub row carry. Cast art, never
                     a character with a line — see §5 of the stylebook. Top-aligned, not centred: a
                     title that wraps to two lines pushed a vertically-centred drawing down beside
@@ -80,7 +80,7 @@ export async function ToolPage({
                     <h1 className="split-page-title text-h4 leading-tight text-n-1">{tool.copy.h1}</h1>
                 </div>
                 {tool.copy.intro.map((paragraph) => (
-                    <p key={paragraph} className="mt-4 text-base leading-6 text-n-1">
+                    <p key={paragraph} className="mt-3 max-w-2xl text-base leading-6 text-n-1">
                         {paragraph}
                     </p>
                 ))}

@@ -56,12 +56,58 @@ import type { Tool, ToolChoiceField, ToolChoiceOption, ToolField, ToolInput } fr
  * is meaningless.
  */
 
-const COLUMN = 'mx-auto w-full max-w-xl px-5'
+const COLUMN = 'mx-auto w-full max-w-5xl px-5'
 /** Shell chrome rather than a tool's words: the same control sits on every calculator. */
 const CURRENCY_LABEL: Record<IndexedLocale, string> = { en: 'Currency', 'es-419': 'Moneda', 'pt-br': 'Moeda' }
 
 /** A field's starting text. Amounts are typed in major units, so the default is shown as typed. */
 const initialText = (field: ToolField): string => (field.kind === 'toggle' ? '' : String(field.defaultValue))
+const CHROME: Record<
+    IndexedLocale,
+    {
+        live: string
+        example: string
+        details: string
+        rateDetails: string
+        active: string
+        copyError: string
+        viewSplit: string
+        enterValue: string
+    }
+> = {
+    en: {
+        live: 'Updates as you type',
+        viewSplit: 'View split',
+        enterValue: 'Enter a valid value for',
+        example: 'Example values — change them to match your plans.',
+        details: 'How this is calculated',
+        rateDetails: 'About the default rate',
+        active: 'Custom weights applied',
+        copyError: 'Could not copy. Select the amounts to copy them.',
+    },
+    'es-419': {
+        live: 'Se actualiza al escribir',
+        viewSplit: 'Ver reparto',
+        enterValue: 'Ingresa un valor válido para',
+        example: 'Valores de ejemplo. Cámbialos según tus planes.',
+        details: 'Cómo se calcula',
+        rateDetails: 'Acerca de la tarifa inicial',
+        active: 'Pesos personalizados aplicados',
+        copyError: 'No se pudo copiar. Selecciona los importes para copiarlos.',
+    },
+    'pt-br': {
+        live: 'Atualiza enquanto você digita',
+        viewSplit: 'Ver divisão',
+        enterValue: 'Informe um valor válido para',
+        example: 'Valores de exemplo. Altere conforme seus planos.',
+        details: 'Como é calculado',
+        rateDetails: 'Sobre a tarifa inicial',
+        active: 'Pesos personalizados aplicados',
+        copyError: 'Não foi possível copiar. Selecione os valores para copiá-los.',
+    },
+}
+
+const inputModeFor = (field: ToolField) => (field.kind === 'count' ? 'numeric' : 'decimal')
 
 interface RowState {
     name: string
@@ -71,15 +117,6 @@ interface RowState {
 /** The option a picker starts on, which is also the option whose pre-fills the fields load with. */
 const initialOption = (choice: ToolChoiceField): ToolChoiceOption =>
     choice.options.find((option) => option.value === choice.defaultValue) ?? choice.options[0]
-
-/** The option a preset chip stands for. Its label is the chip's label — see `Tool.presets`. */
-const optionOf = (
-    choices: readonly ToolChoiceField[],
-    preset: { choiceName: string; optionValue: string }
-): ToolChoiceOption | undefined =>
-    choices
-        .find((choice) => choice.name === preset.choiceName)
-        ?.options.find((option) => option.value === preset.optionValue)
 
 /** A country page opens the picker on its own row: the same options, a different one selected. */
 const openedOn = (tool: Tool, start: Record<string, string>): Tool => ({
@@ -129,10 +166,15 @@ function Calculator({ tool, locale }: { tool: Tool; locale: IndexedLocale }) {
     const [builderOpen, setBuilderOpen] = useState(false)
     const [applied, setApplied] = useState(false)
     const [copied, setCopied] = useState(false)
+    const [copyError, setCopyError] = useState(false)
+    const [edited, setEdited] = useState(false)
+    const chrome = CHROME[locale]
 
     /** Anything the reader changes retires the two "we have done that" labels. */
     const touched = () => {
+        setEdited(true)
         setCopied(false)
+        setCopyError(false)
         setApplied(false)
     }
 
@@ -165,6 +207,16 @@ function Calculator({ tool, locale }: { tool: Tool; locale: IndexedLocale }) {
     const switches = tool.fields.filter((field) => field.kind === 'toggle')
     const [hero, ...restFields] = scalars
     const rowSpec = tool.rows
+    const optionFor = (choiceName: string): ToolChoiceOption | undefined =>
+        choiceFields
+            .find((choice) => choice.name === choiceName)
+            ?.options.find((option) => option.value === choices[choiceName])
+    const unitFor = (field: ToolField): string | undefined => {
+        const distanceUnit = field.unitChoice ? optionFor(field.unitChoice)?.unit : undefined
+        if (field.unitBasis && distanceUnit) return `${field.unit ?? ''} / ${field.unitBasis} ${distanceUnit}`
+        if (field.currency && distanceUnit) return `/ ${distanceUnit}`
+        return field.unit ?? distanceUnit
+    }
 
     /** How many people the table is asking about, clamped to what the count field allows. */
     const countField = rowSpec && tool.fields.find((field) => field.name === rowSpec.countField)
@@ -191,13 +243,21 @@ function Calculator({ tool, locale }: { tool: Tool; locale: IndexedLocale }) {
         touched()
     }
 
-    /** An amount or a count that cannot be read is an unfinished form, not a broken one. */
-    const incomplete =
-        rowCount < 1 ||
-        scalars.some(
-            (field) =>
-                (field.kind === 'amount' || field.kind === 'count') && !Number.isFinite(parse(field, text[field.name], decimals, locale)) // prettier-ignore
+    const incompleteRow = visibleRows
+        .flatMap((row, index) => (rowSpec?.columns ?? []).map((column) => ({ row, index, column })))
+        .find(({ row, column }) => {
+            const value = parse(column, row.values[column.name], decimals, locale)
+            return !Number.isFinite(value) || value < (column.min ?? 0)
+        })
+
+    const incompleteField = scalars.find((field) => {
+        const value = parse(field, text[field.name], decimals, locale)
+        return (
+            !Number.isFinite(value) ||
+            (field.kind === 'count' && (!Number.isInteger(value) || value < (field.min ?? 1)))
         )
+    })
+    const incomplete = rowCount < 1 || Boolean(incompleteField) || Boolean(incompleteRow)
 
     const outcome = useMemo(() => {
         if (incomplete) return null
@@ -205,10 +265,10 @@ function Calculator({ tool, locale }: { tool: Tool; locale: IndexedLocale }) {
             values: Object.fromEntries(scalars.map((field) => [field.name, zeroed(parse(field, text[field.name], decimals, locale))])), // prettier-ignore
             toggles,
             choices,
-            rows: visibleRows.map((row) => ({
+            rows: visibleRows.map((row, index) => ({
                 // The table's own noun, not a hardcoded word: a blanked name reads as "Passageiro"
                 // on a Portuguese page rather than as English nobody translated.
-                name: row.name.trim() || (rowSpec?.namePrefix ?? ''),
+                name: row.name.trim() || `${rowSpec?.namePrefix ?? ''} ${index + 1}`.trim(),
                 values: Object.fromEntries(
                     (rowSpec?.columns ?? []).map((column) => [
                         column.name,
@@ -232,255 +292,332 @@ function Calculator({ tool, locale }: { tool: Tool; locale: IndexedLocale }) {
         return builder.derive(values)
     }, [builder, text, decimals, locale])
 
+    const builderValid = builder?.fields.every((field) => {
+        const value = parse(field, text[field.name], decimals, locale)
+        return Number.isFinite(value) && value >= (field.min ?? 0)
+    })
+
     const money = (minor: number) => formatMoney(String(minor), currency, CURRENCY_CATALOG, locale)
     const pasteable = outcome?.shares.map((share) => `${share.label} ${money(share.amountMinor)}`).join(', ') ?? ''
 
-    return (
-        <section className={`${COLUMN} my-8 flex flex-col gap-3`}>
-            <motion.div
-                initial={motionAllowed ? { opacity: 0, y: 12 } : false}
-                animate={{ opacity: 1, y: 0 }}
-                transition={motionAllowed ? { type: 'spring', stiffness: 300, damping: 30 } : { duration: 0 }}
-                data-motion-surface
-                className={composerSurfaceClassName()}
-            >
-                {tool.presets && tool.presets.length > 0 && (
-                    <div className="flex flex-wrap gap-2 border-b border-dashed border-grey-2 px-3 pb-3 pt-3">
-                        {tool.presets.map((preset) => (
-                            <button
-                                key={preset.optionValue}
-                                type="button"
-                                data-testid={`tool-preset-${preset.optionValue}`}
-                                // A shortcut whose choice is live is a pressed toggle. Without
-                                // this the three presets look and read identically whether or not
-                                // their option is the one the fields below are filled from.
-                                aria-pressed={choices[preset.choiceName] === preset.optionValue}
-                                onClick={() => {
-                                    // Same pre-fill path the dropdown picker already uses (§ below) —
-                                    // a preset is a shortcut to an existing choice/option, not a
-                                    // second way to set fields.
-                                    const choice = choiceFields.find((field) => field.name === preset.choiceName)
-                                    if (choice) pick(choice, preset.optionValue)
-                                }}
-                                className="split-tool-preset rounded-full border border-n-1 bg-white px-3 py-1 text-xs font-bold text-n-1"
-                            >
-                                {optionOf(choiceFields, preset)?.label}
-                            </button>
-                        ))}
+    const hasScales = rowSpec?.columns.some((column) => column.kind === 'scale') ?? false
+    const customWeights = visibleRows.some((row) =>
+        rowSpec?.columns.some(
+            (column) => (column.kind === 'scale' || !hasScales) && row.values[column.name] !== initialText(column)
+        )
+    )
+    const changeCurrency = (code: string) => {
+        setCurrency(code)
+        touched()
+        feedback('tick')
+    }
+    const fieldRow = (field: ToolField) => (
+        <FieldRow
+            key={field.name}
+            field={field}
+            value={text[field.name] ?? ''}
+            unit={unitFor(field)}
+            currency={currency}
+            locale={locale}
+            onCurrencyChange={field.currency ? changeCurrency : undefined}
+            onChange={(next) => write(field, next)}
+        />
+    )
+    const peopleRows = (scalesOnly = false) => (
+        <ul>
+            {visibleRows.map((row, index) => (
+                <li key={index} className={composerRowClassName('px-4 py-3')}>
+                    <div className="flex min-w-0 items-center gap-3">
+                        <MemberAvatar name={row.name} avatar={PERSONA_KEYS[index % PERSONA_KEYS.length]} size={28} />
+                        {scalesOnly ? (
+                            <span className="min-w-0 flex-1 truncate text-sm font-bold">
+                                {row.name.trim() || `${rowSpec?.namePrefix} ${index + 1}`}
+                            </span>
+                        ) : (
+                            <label className="min-w-0 flex-1">
+                                <span className="sr-only">{`${rowSpec?.nameLabel} ${index + 1}`}</span>
+                                <input
+                                    value={row.name}
+                                    maxLength={40}
+                                    onChange={(event) =>
+                                        editRow(index, (current) => ({ ...current, name: event.target.value }))
+                                    }
+                                    aria-label={`${rowSpec?.nameLabel} ${index + 1}`}
+                                    data-testid={`tool-row-name-${index}`}
+                                    className={composerBareInputClassName('h-11 px-1 text-base font-bold')}
+                                />
+                            </label>
+                        )}
+                        {!scalesOnly &&
+                            rowSpec?.columns
+                                .filter((column) => column.kind !== 'scale')
+                                .map((column) => (
+                                    <div key={column.name} className="w-28 shrink-0">
+                                        <CompactInput
+                                            field={{ ...column, help: undefined }}
+                                            ariaLabel={`${column.label}: ${row.name.trim() || `${rowSpec?.namePrefix} ${index + 1}`}`}
+                                            value={row.values[column.name] ?? initialText(column)}
+                                            onChange={(next) =>
+                                                editRow(index, (current) => ({
+                                                    ...current,
+                                                    values: { ...current.values, [column.name]: next },
+                                                }))
+                                            }
+                                        />
+                                    </div>
+                                ))}
                     </div>
-                )}
-                {/* The headline number and the currency share the first line, exactly as they do on
-                    the add-expense and create-room composers. Everything else is a row under it. */}
-                <div className="flex min-w-0 items-center gap-2 px-3 py-2">
-                    <label className="min-w-0 flex-1">
-                        <span className="block px-1 text-xs text-grey-1">{hero.label}</span>
-                        <input
-                            value={text[hero.name] ?? ''}
-                            onChange={(event) => write(hero, event.target.value)}
-                            type={hero.kind === 'amount' ? 'text' : 'number'}
-                            inputMode={hero.kind === 'amount' ? 'decimal' : 'numeric'}
-                            min={hero.min}
-                            max={hero.max}
-                            step={hero.step}
-                            aria-label={hero.label}
-                            data-testid={`tool-field-${hero.name}`}
-                            className={composerBareInputClassName('split-tool-field h-12 px-1 text-h5 font-extrabold')}
+                    {scalesOnly &&
+                        rowSpec?.columns
+                            .filter((column) => column.kind === 'scale')
+                            .map((column) => (
+                                <div key={column.name} className="mt-2">
+                                    <ScaleInput
+                                        ariaLabel={`${column.label}: ${row.name.trim() || `${rowSpec?.namePrefix} ${index + 1}`}`}
+                                        field={column}
+                                        value={row.values[column.name] ?? initialText(column)}
+                                        onChange={(next) =>
+                                            editRow(index, (current) => ({
+                                                ...current,
+                                                values: { ...current.values, [column.name]: next },
+                                            }))
+                                        }
+                                    />
+                                </div>
+                            ))}
+                </li>
+            ))}
+        </ul>
+    )
+
+    return (
+        <section className={`${COLUMN} my-6 grid items-start gap-5 lg:grid-cols-[1.15fr_1fr]`}>
+            <div className="flex min-w-0 flex-col gap-5">
+                <motion.div
+                    initial={motionAllowed ? { opacity: 0, y: 12 } : false}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={motionAllowed ? { type: 'spring', stiffness: 300, damping: 30 } : { duration: 0 }}
+                    data-motion-surface
+                    className={composerSurfaceClassName()}
+                >
+                    <div className="px-4 pb-3 pt-4">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                            <h2 className="text-h6">{tool.copy.inputTitle}</h2>
+                            <a
+                                href="#tool-result"
+                                className="inline-flex min-h-9 items-center gap-1 rounded-sm text-sm font-bold underline lg:hidden"
+                            >
+                                {chrome.viewSplit}
+                                <Icon name="chevron-down" size={16} />
+                            </a>
+                        </div>
+                        <p className="mt-1 text-xs leading-4 text-grey-1">{edited ? chrome.live : chrome.example}</p>
+                    </div>
+                    {choiceFields.map((choice) => (
+                        <Picker
+                            key={choice.name}
+                            choice={choice}
+                            value={choices[choice.name]}
+                            onPick={pick}
+                            detailsLabel={chrome.rateDetails}
                         />
-                    </label>
-                    <div className={cn(COMPOSER_CURRENCY_SLOT, 'split-tool-currency')}>
-                        <CurrencySelect
-                            value={currency}
-                            onChange={(code) => {
-                                setCurrency(code)
+                    ))}
+                    <div className={composerRowClassName('px-4 py-3')}>
+                        <label className="block text-sm font-bold" htmlFor={`tool-${hero.name}`}>
+                            {hero.label}
+                        </label>
+                        <div className="mt-2 flex min-w-0 items-center gap-2">
+                            <input
+                                id={`tool-${hero.name}`}
+                                value={text[hero.name] ?? ''}
+                                onChange={(event) => write(hero, event.target.value)}
+                                type={hero.kind === 'amount' ? 'text' : 'number'}
+                                inputMode={inputModeFor(hero)}
+                                min={hero.min}
+                                max={hero.max}
+                                step={hero.step}
+                                aria-label={hero.label}
+                                data-testid={`tool-field-${hero.name}`}
+                                className={composerBoxedInputClassName(
+                                    'split-tool-field h-12 min-w-0 flex-1 text-left text-h5 font-extrabold'
+                                )}
+                            />
+                            {unitFor(hero) && (
+                                <span className="shrink-0 text-sm font-bold text-grey-1">{unitFor(hero)}</span>
+                            )}
+                            {(hero.kind === 'amount' || hero.currency) && (
+                                <CurrencyControl currency={currency} locale={locale} onChange={changeCurrency} />
+                            )}
+                        </div>
+                        {hero.help && <p className="mt-2 text-xs leading-4 text-grey-1">{hero.help}</p>}
+                    </div>
+                    {restFields.filter((field) => field.kind !== 'count').map(fieldRow)}
+                    {builder && built && (
+                        <>
+                            <button
+                                type="button"
+                                onClick={() => setBuilderOpen((open) => !open)}
+                                aria-expanded={builderOpen}
+                                aria-controls="tool-builder"
+                                data-testid="tool-builder-summary"
+                                data-focus-contained
+                                className={composerRowClassName(
+                                    'split-tool-builder-summary flex min-h-14 w-full items-center gap-3 rounded-sm px-4 text-left'
+                                )}
+                            >
+                                <Doodle name={tool.doodle} size={28} weight={1.8} />
+                                <span className="min-w-0 flex-1">
+                                    <span className="block text-h8">{builder.title}</span>
+                                    <span className="block text-xs text-grey-1">{builder.summary}</span>
+                                </span>
+                                <Icon
+                                    name="chevron-down"
+                                    size={22}
+                                    className={cn('transition-transform', builderOpen && 'rotate-180')}
+                                />
+                            </button>
+
+                            <AnimatePresence initial={false}>
+                                {builderOpen && (
+                                    <motion.div
+                                        id="tool-builder"
+                                        data-testid="tool-builder"
+                                        initial={motionAllowed ? { opacity: 0, height: 0 } : false}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={motionAllowed ? { opacity: 0, height: 0 } : undefined}
+                                        transition={
+                                            motionAllowed ? { duration: 0.18, ease: 'easeOut' } : { duration: 0 }
+                                        }
+                                        data-motion-surface
+                                        data-motion-collapse
+                                        className={composerRowClassName('overflow-hidden bg-grey-3')}
+                                    >
+                                        <p className="px-4 pb-1 pt-3 text-xs leading-4 text-n-1">{builder.intro}</p>
+                                        {builder.fields.map((field) => (
+                                            <FieldRow
+                                                key={field.name}
+                                                field={field}
+                                                value={text[field.name] ?? ''}
+                                                unit={unitFor(field)}
+                                                currency={currency}
+                                                locale={locale}
+                                                onCurrencyChange={
+                                                    field.currency
+                                                        ? (code) => {
+                                                              setCurrency(code)
+                                                              touched()
+                                                              feedback('tick')
+                                                          }
+                                                        : undefined
+                                                }
+                                                onChange={(next) => write(field, next)}
+                                                plain
+                                            />
+                                        ))}
+                                        <dl className="flex flex-col gap-1 px-4 pt-3 text-xs text-grey-1">
+                                            <div className="flex justify-between gap-3">
+                                                <dt>{builder.floorLabel}</dt>
+                                                <dd className="tabular-nums">
+                                                    {currency} {figure(built.floor)}{' '}
+                                                    {unitFor(
+                                                        tool.fields.find((field) => field.name === builder.target)!
+                                                    )}
+                                                </dd>
+                                            </div>
+                                            <div className="flex justify-between gap-3 text-n-1">
+                                                <dt className="font-bold">{builder.totalLabel}</dt>
+                                                <dd className="font-bold tabular-nums">
+                                                    {currency} {figure(built.total)}{' '}
+                                                    {unitFor(
+                                                        tool.fields.find((field) => field.name === builder.target)!
+                                                    )}
+                                                </dd>
+                                            </div>
+                                        </dl>
+                                        <div className="p-4">
+                                            <Button
+                                                variant="stroke"
+                                                className="justify-center"
+                                                data-testid="tool-builder-apply"
+                                                disabled={!builderValid}
+                                                onClick={() => {
+                                                    setText((current) => ({
+                                                        ...current,
+                                                        [builder.target]: figure(built.total),
+                                                    }))
+                                                    setCopied(false)
+                                                    setApplied(true)
+                                                    feedback('tick')
+                                                }}
+                                            >
+                                                {applied ? builder.appliedLabel : builder.applyLabel}
+                                            </Button>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </>
+                    )}
+                </motion.div>
+                <div className={composerSurfaceClassName()}>
+                    <div className="px-4 pb-3 pt-4">
+                        <h2 className="text-h6">{tool.copy.rowsTitle}</h2>
+                        <p className="mt-1 text-xs leading-4 text-grey-1">{tool.copy.rowsHelp}</p>
+                    </div>
+                    {restFields.filter((field) => field.kind === 'count').map(fieldRow)}
+                    {switches.map((field) => (
+                        <SwitchRow
+                            key={field.name}
+                            field={field}
+                            on={toggles[field.name] ?? false}
+                            onChange={(on) => {
+                                setToggles((current) => ({ ...current, [field.name]: on }))
                                 touched()
                                 feedback('tick')
                             }}
-                            currencies={CURRENCY_CATALOG}
-                            variant="sm"
-                            aria-label={CURRENCY_LABEL[locale]}
-                            data-testid="tool-currency"
                         />
+                    ))}
+                    {rowSpec && rowCount > 0 && (
+                        <>
+                            {hasScales && peopleRows()}
+                            <details className={composerRowClassName()} data-testid="tool-optional">
+                                <summary className="cursor-pointer rounded-sm px-4 py-3 text-sm font-bold">
+                                    {tool.copy.optionalTitle}
+                                    {customWeights && (
+                                        <span className="mt-1 block text-xs text-grey-1">{chrome.active}</span>
+                                    )}
+                                </summary>
+                                <p className="px-4 pb-3 text-xs leading-4 text-grey-1">{tool.copy.optionalHelp}</p>
+                                {peopleRows(hasScales)}
+                            </details>
+                        </>
+                    )}
+                </div>
+            </div>
+            <div
+                className={composerSurfaceClassName(
+                    'split-tool-result scroll-mt-5 bg-primary-3 lg:sticky lg:top-6 lg:self-start'
+                )}
+                id="tool-result"
+                data-testid="tool-result"
+            >
+                <div className="flex items-center gap-3 px-4 pt-4">
+                    <Doodle name={tool.doodle} size={26} weight={1.8} />
+                    <div>
+                        <h2 className="text-h6">{tool.copy.resultTitle}</h2>
+                        <p className="mt-1 text-xs text-grey-1">{chrome.live}</p>
                     </div>
                 </div>
 
-                {choiceFields.map((choice) => (
-                    <Picker key={choice.name} choice={choice} value={choices[choice.name]} onPick={pick} />
-                ))}
-
-                {restFields.map((field) => (
-                    <FieldRow
-                        key={field.name}
-                        field={field}
-                        value={text[field.name] ?? ''}
-                        onChange={(next) => write(field, next)}
-                    />
-                ))}
-
-                {switches.map((field) => (
-                    <SwitchRow
-                        key={field.name}
-                        field={field}
-                        on={toggles[field.name] ?? false}
-                        onChange={(on) => {
-                            setToggles((current) => ({ ...current, [field.name]: on }))
-                            touched()
-                            feedback('tick')
-                        }}
-                    />
-                ))}
-
-                {builder && built && (
-                    <>
-                        <button
-                            type="button"
-                            onClick={() => setBuilderOpen((open) => !open)}
-                            aria-expanded={builderOpen}
-                            aria-controls="tool-builder"
-                            data-testid="tool-builder-summary"
-                            data-focus-contained
-                            className={composerRowClassName(
-                                'split-tool-builder-summary flex min-h-14 w-full items-center gap-3 rounded-sm px-4 text-left'
-                            )}
-                        >
-                            <Doodle name={tool.doodle} size={28} weight={1.8} />
-                            <span className="min-w-0 flex-1">
-                                <span className="block text-h8">{builder.title}</span>
-                                <span className="block truncate text-xs text-grey-1">{builder.summary}</span>
-                            </span>
-                            <Icon
-                                name="chevron-down"
-                                size={22}
-                                className={cn('transition-transform', builderOpen && 'rotate-180')}
-                            />
-                        </button>
-
-                        <AnimatePresence initial={false}>
-                            {builderOpen && (
-                                <motion.div
-                                    id="tool-builder"
-                                    data-testid="tool-builder"
-                                    initial={motionAllowed ? { opacity: 0, height: 0 } : false}
-                                    animate={{ opacity: 1, height: 'auto' }}
-                                    exit={motionAllowed ? { opacity: 0, height: 0 } : undefined}
-                                    transition={motionAllowed ? { duration: 0.18, ease: 'easeOut' } : { duration: 0 }}
-                                    data-motion-surface
-                                    data-motion-collapse
-                                    className={composerRowClassName('overflow-hidden bg-grey-3')}
-                                >
-                                    <p className="px-4 pb-1 pt-3 text-xs leading-4 text-n-1">{builder.intro}</p>
-                                    {builder.fields.map((field) => (
-                                        <FieldRow
-                                            key={field.name}
-                                            field={field}
-                                            value={text[field.name] ?? ''}
-                                            onChange={(next) => write(field, next)}
-                                            plain
-                                        />
-                                    ))}
-                                    <dl className="flex flex-col gap-1 px-4 pt-3 text-xs text-grey-1">
-                                        <div className="flex justify-between gap-3">
-                                            <dt>{builder.floorLabel}</dt>
-                                            <dd className="tabular-nums">{figure(built.floor)}</dd>
-                                        </div>
-                                        <div className="flex justify-between gap-3 text-n-1">
-                                            <dt className="font-bold">{builder.totalLabel}</dt>
-                                            <dd className="font-bold tabular-nums">{figure(built.total)}</dd>
-                                        </div>
-                                    </dl>
-                                    <div className="p-4">
-                                        <Button
-                                            variant="stroke"
-                                            className="justify-center"
-                                            data-testid="tool-builder-apply"
-                                            onClick={() => {
-                                                setText((current) => ({
-                                                    ...current,
-                                                    [builder.target]: figure(built.total),
-                                                }))
-                                                setCopied(false)
-                                                setApplied(true)
-                                                feedback('tick')
-                                            }}
-                                        >
-                                            {applied ? builder.appliedLabel : builder.applyLabel}
-                                        </Button>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </>
+                {!outcome && (
+                    <p className="px-4 pb-4 pt-3 text-sm leading-5 text-n-1">
+                        {incompleteField
+                            ? `${chrome.enterValue} ${incompleteField.label.toLocaleLowerCase(locale)}.`
+                            : incompleteRow
+                              ? `${chrome.enterValue} ${incompleteRow.column.label.toLocaleLowerCase(locale)} (${incompleteRow.row.name.trim() || `${rowSpec?.namePrefix} ${incompleteRow.index + 1}`}).`
+                              : tool.copy.resultHint}
+                    </p>
                 )}
-            </motion.div>
-
-            {rowSpec && rowCount > 0 && (
-                <ul className={composerSurfaceClassName()}>
-                    {visibleRows.map((row, index) => (
-                        <li key={index} className={index === 0 ? undefined : composerRowClassName()}>
-                            <div className="flex min-w-0 items-center gap-2 px-3 py-2">
-                                {/* Drawn, the way a member is drawn everywhere else in the app. Art
-                                    only: a calculator has nobody to speak and no persona to name. */}
-                                <MemberAvatar
-                                    name={row.name}
-                                    avatar={PERSONA_KEYS[index % PERSONA_KEYS.length]}
-                                    size={34}
-                                />
-                                <label className="min-w-0 flex-1">
-                                    <span className="sr-only">{`${rowSpec.nameLabel} ${index + 1}`}</span>
-                                    <input
-                                        value={row.name}
-                                        onChange={(event) =>
-                                            editRow(index, (current) => ({ ...current, name: event.target.value }))
-                                        }
-                                        maxLength={40}
-                                        aria-label={`${rowSpec.nameLabel} ${index + 1}`}
-                                        data-testid={`tool-row-name-${index}`}
-                                        className={composerBareInputClassName(
-                                            'h-11 px-1 text-base font-bold md:text-sm'
-                                        )}
-                                    />
-                                </label>
-                            </div>
-                            <div className="flex flex-col gap-3 px-4 pb-3 sm:flex-row sm:items-end sm:gap-5">
-                                {rowSpec.columns.map((column) => (
-                                    <div key={column.name} className="min-w-0 flex-1">
-                                        {column.kind === 'scale' ? (
-                                            <ScaleInput
-                                                field={column}
-                                                value={row.values[column.name] ?? initialText(column)}
-                                                onChange={(next) =>
-                                                    editRow(index, (current) => ({
-                                                        ...current,
-                                                        values: { ...current.values, [column.name]: next },
-                                                    }))
-                                                }
-                                            />
-                                        ) : (
-                                            <CompactInput
-                                                field={column}
-                                                value={row.values[column.name] ?? initialText(column)}
-                                                onChange={(next) =>
-                                                    editRow(index, (current) => ({
-                                                        ...current,
-                                                        values: { ...current.values, [column.name]: next },
-                                                    }))
-                                                }
-                                            />
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            )}
-
-            <div className={composerSurfaceClassName('split-tool-result bg-primary-3')} data-testid="tool-result">
-                <div className="flex items-center gap-3 px-4 pt-4">
-                    <Doodle name={tool.doodle} size={26} weight={1.8} />
-                    <h2 className="text-h6">{tool.copy.resultTitle}</h2>
-                </div>
-
-                {!outcome && <p className="px-4 pb-4 pt-3 text-sm leading-5 text-n-1">{tool.copy.resultHint}</p>}
                 {outcome?.problem && (
                     <p role="alert" className="px-4 pb-4 pt-3 text-sm font-bold leading-5 text-n-1">
                         {outcome.problem}
@@ -513,46 +650,60 @@ function Calculator({ tool, locale }: { tool: Tool; locale: IndexedLocale }) {
                             ))}
                         </dl>
 
-                        {/* The same strip `<Working>` renders in an article, by class rather than
-                            by component — this list is inlined here, not built from that one. */}
-                        <ul
-                            className={composerRowClassName(
-                                'split-working flex flex-col gap-1 px-4 pt-3 text-xs text-grey-1'
-                            )}
-                        >
-                            {outcome.workings.map((working) => (
-                                <li key={working.label} className="flex justify-between gap-3">
-                                    <span>{working.label}</span>
-                                    <span className="tabular-nums">
-                                        {working.amountMinor === undefined ? (
-                                            working.value
-                                        ) : (
-                                            <Money
-                                                minor={String(working.amountMinor)}
-                                                currency={currency}
-                                                catalog={CURRENCY_CATALOG}
-                                            />
-                                        )}
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
+                        <details className="mx-4 mt-3">
+                            <summary className="cursor-pointer rounded-sm py-2 text-sm font-bold">
+                                {chrome.details}
+                            </summary>
+                            <ul
+                                className={composerRowClassName(
+                                    'split-working flex flex-col gap-1 px-4 pt-3 text-xs text-grey-1'
+                                )}
+                            >
+                                {outcome.workings.map((working) => (
+                                    <li key={working.label} className="flex justify-between gap-3">
+                                        <span>{working.label}</span>
+                                        <span className="tabular-nums">
+                                            {working.amountMinor === undefined ? (
+                                                working.value
+                                            ) : (
+                                                <Money
+                                                    minor={String(working.amountMinor)}
+                                                    currency={currency}
+                                                    catalog={CURRENCY_CATALOG}
+                                                />
+                                            )}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
 
-                        <p className="px-4 pt-3 text-xs leading-4 text-grey-1">{tool.copy.roundingNote}</p>
+                            <p className="px-4 pt-3 text-xs leading-4 text-grey-1">{tool.copy.roundingNote}</p>
+                        </details>
 
                         <div className="p-4">
                             <Button
                                 variant="stroke"
                                 className="split-tool-copy justify-center"
                                 data-testid="tool-copy"
-                                onClick={() => {
-                                    void navigator.clipboard?.writeText(pasteable)
-                                    setCopied(true)
-                                    feedback('tick')
+                                onClick={async () => {
+                                    try {
+                                        await navigator.clipboard.writeText(pasteable)
+                                        setCopied(true)
+                                        setCopyError(false)
+                                        feedback('tick')
+                                    } catch {
+                                        setCopied(false)
+                                        setCopyError(true)
+                                    }
                                 }}
                             >
                                 {copied ? tool.copy.copyDone : tool.copy.copyLabel}
                             </Button>
+                            {copyError && (
+                                <p role="status" className="mt-2 text-sm">
+                                    {chrome.copyError}
+                                </p>
+                            )}
                         </div>
                     </>
                 )}
@@ -568,11 +719,36 @@ function Calculator({ tool, locale }: { tool: Tool; locale: IndexedLocale }) {
  * about the number in the box above them: a rate is only worth pre-filling if the reader can see
  * what it covers and open the page it was read off.
  */
+function CurrencyControl({
+    currency,
+    locale,
+    onChange,
+}: {
+    currency: string
+    locale: IndexedLocale
+    onChange: (currency: string) => void
+}) {
+    return (
+        <div className={cn(COMPOSER_CURRENCY_SLOT, 'split-tool-currency')}>
+            <CurrencySelect
+                value={currency}
+                onChange={onChange}
+                currencies={CURRENCY_CATALOG}
+                variant="sm"
+                aria-label={CURRENCY_LABEL[locale]}
+                data-testid="tool-currency"
+            />
+        </div>
+    )
+}
+
 function Picker({
     choice,
     value,
     onPick,
+    detailsLabel,
 }: {
+    detailsLabel: string
     choice: ToolChoiceField
     value: string | undefined
     onPick: (choice: ToolChoiceField, value: string) => void
@@ -603,18 +779,23 @@ function Picker({
                 </span>
             </label>
             {choice.help && <p className="mt-2 text-xs leading-4 text-grey-1">{choice.help}</p>}
-            {chosen?.note && <p className="mt-2 text-xs leading-4 text-n-1">{chosen.note}</p>}
-            {chosen?.source && (
-                <p className="mt-1 text-xs leading-4 text-grey-1">
-                    <a
-                        href={chosen.source.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-n-1 underline"
-                    >
-                        {chosen.source.label}
-                    </a>
-                </p>
+            {(chosen?.note || chosen?.source) && (
+                <details className="mt-2">
+                    <summary className="cursor-pointer rounded-sm py-1 text-xs font-bold">{detailsLabel}</summary>
+                    {chosen?.note && <p className="mt-2 text-xs leading-4 text-n-1">{chosen.note}</p>}
+                    {chosen?.source && (
+                        <p className="mt-1 text-xs leading-4 text-grey-1">
+                            <a
+                                href={chosen.source.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-n-1 underline"
+                            >
+                                {chosen.source.label}
+                            </a>
+                        </p>
+                    )}{' '}
+                </details>
             )}
         </div>
     )
@@ -625,39 +806,60 @@ function FieldRow({
     field,
     value,
     onChange,
+    unit,
+    currency,
+    locale,
+    onCurrencyChange,
     plain = false,
 }: {
     field: ToolField
     value: string
     onChange: (next: string) => void
+    unit?: string
+    currency: string
+    locale: IndexedLocale
+    onCurrencyChange?: (currency: string) => void
     plain?: boolean
 }) {
     return (
-        <label
+        <div
             className={cn(
                 plain ? 'border-t border-dashed border-grey-2' : composerRowClassName(),
-                'flex min-h-14 items-center gap-3 px-4'
+                onCurrencyChange || (unit?.length ?? 0) > 8
+                    ? 'flex min-h-14 flex-wrap items-center gap-3 px-4 py-3'
+                    : 'flex min-h-14 items-center gap-3 px-4 py-2'
             )}
         >
             <span className="min-w-0 flex-1">
                 <span className="block text-h8">{field.label}</span>
                 {field.help && <span className="block text-xs leading-4 text-grey-1">{field.help}</span>}
             </span>
-            <span className="flex shrink-0 items-center gap-1.5">
+            <span
+                className={cn(
+                    'flex shrink-0 items-center gap-2',
+                    (onCurrencyChange || (unit?.length ?? 0) > 8) && 'w-full'
+                )}
+            >
+                {onCurrencyChange && (
+                    <CurrencyControl currency={currency} locale={locale} onChange={onCurrencyChange} />
+                )}
                 <input
                     value={value}
                     onChange={(event) => onChange(event.target.value)}
                     type={field.kind === 'amount' ? 'text' : 'number'}
-                    inputMode={field.kind === 'amount' ? 'decimal' : 'numeric'}
+                    inputMode={inputModeFor(field)}
                     min={field.min}
                     max={field.max}
                     step={field.step}
+                    aria-label={field.label}
                     data-testid={`tool-field-${field.name}`}
-                    className={composerBoxedInputClassName('split-tool-field w-24')}
+                    className={composerBoxedInputClassName(
+                        cn('split-tool-field w-24', onCurrencyChange && 'min-w-0 flex-1')
+                    )}
                 />
-                {field.unit && <span className="text-xs text-grey-1">{field.unit}</span>}
+                {unit && <span className="text-xs font-bold text-grey-1">{unit}</span>}
             </span>
-        </label>
+        </div>
     )
 }
 
@@ -681,7 +883,12 @@ function SwitchRow({ field, on, onChange }: { field: ToolField; on: boolean; onC
                 data-focus-proxy-target
                 className="relative h-7 w-12 shrink-0 rounded-full border-2 border-n-1 bg-white transition-colors peer-checked:bg-primary-1"
             >
-                <span className="absolute left-0.5 top-0.5 size-5 rounded-full border-2 border-n-1 bg-white transition-transform peer-checked:translate-x-5" />
+                <span
+                    className={cn(
+                        'absolute left-0.5 top-0.5 size-5 rounded-full border-2 border-n-1 bg-white transition-transform',
+                        on && 'translate-x-5'
+                    )}
+                />
             </span>
         </label>
     )
@@ -690,9 +897,11 @@ function SwitchRow({ field, on, onChange }: { field: ToolField; on: boolean; onC
 /** A per-person number, sized for a row that holds two or three of them. */
 function CompactInput({
     field,
+    ariaLabel,
     value,
     onChange,
 }: {
+    ariaLabel?: string
     field: ToolField
     value: string
     onChange: (next: string) => void
@@ -705,27 +914,33 @@ function CompactInput({
                     value={value}
                     onChange={(event) => onChange(event.target.value)}
                     type={field.kind === 'amount' ? 'text' : 'number'}
-                    inputMode={field.kind === 'amount' ? 'decimal' : 'numeric'}
+                    inputMode={inputModeFor(field)}
                     min={field.min}
                     max={field.max}
                     step={field.step}
+                    aria-label={ariaLabel ?? field.label}
                     data-testid={`tool-field-${field.name}`}
                     className={composerBoxedInputClassName('split-tool-field w-full')}
                 />
                 {field.unit && <span className="shrink-0 text-xs text-grey-1">{field.unit}</span>}
             </span>
+            {field.help && <span className="mt-1 block text-[0.6875rem] leading-4 text-grey-1">{field.help}</span>}
         </label>
     )
 }
 
-/**
- * A notch on a labelled slider, for the question nobody answers honestly in a box.
- *
- * The notch the reader is on is printed beside the label and both ends are printed under the
- * track, so what the control means is on screen without a legend. What the notch does to the
- * arithmetic is not hidden either — it is answered in the tool's own FAQ.
- */
-function ScaleInput({ field, value, onChange }: { field: ToolField; value: string; onChange: (next: string) => void }) {
+/** A bounded contribution weight, with the chosen multiplier printed beside the label. */
+function ScaleInput({
+    field,
+    value,
+    onChange,
+    ariaLabel,
+}: {
+    field: ToolField
+    value: string
+    onChange: (next: string) => void
+    ariaLabel?: string
+}) {
     const notches = field.notches ?? []
     const top = Math.max(1, notches.length)
     const notch = Math.min(top, Math.max(1, Math.round(Number(value)) || 1))
@@ -742,7 +957,7 @@ function ScaleInput({ field, value, onChange }: { field: ToolField; value: strin
                 step={1}
                 value={notch}
                 onChange={(event) => onChange(event.target.value)}
-                aria-label={field.label}
+                aria-label={ariaLabel ?? field.label}
                 aria-valuetext={notches[notch - 1]}
                 data-testid={`tool-field-${field.name}`}
                 className="mt-1.5 h-6 w-full cursor-pointer accent-primary-1"

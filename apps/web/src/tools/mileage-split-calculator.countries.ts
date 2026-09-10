@@ -71,8 +71,7 @@ function countryPage(row: MileageRate, rate: number): MileageCountryPage {
                 // neither is repeated here. The authority stays out too — half the source labels are
                 // bodies and half are statutes, and no one article fits both. The method note cites it.
                 intro: [
-                    `Enter the distance driven and the number of passengers to calculate what each owes the driver. This page starts with the listed rate of ${rateWords}.`,
-                    'Check the rate’s conditions below and agree on what costs to share. You can edit the rate, calculate one from fuel use, or select another country.',
+                    `Split the drive using the listed rate of ${rateWords}. Enter the total distance and passenger count, then choose whether the driver pays a share. You can edit the rate.`,
                 ],
                 // The row's own words, promoted out of the picker caption into prose. This is the
                 // only paragraph on the page the other eight do not also carry, so it replaces the

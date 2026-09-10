@@ -39,7 +39,7 @@ describe('rent split by room size', () => {
     })
 
     it('shows the room and its share on every row', () => {
-        expect(split(300_000, [{ size: 20 }, { size: 10 }]).shares[0].detail).toBe('20 sqm, 66.7% of the rent')
+        expect(split(300_000, [{ size: 20 }, { size: 10 }]).shares[0].detail).toBe('20 m² · 66.7% of rent')
     })
 
     it('reads a negative room as no room at all', () => {
@@ -47,7 +47,7 @@ describe('rent split by room size', () => {
     })
 })
 
-describe('the how-rich slider', () => {
+describe('the contribution weight slider', () => {
     /**
      * The rule the FAQ promises: a flat that has not moved a slider has said nothing, so the rent
      * follows floor area alone. Asserted at both ends of the scale, because "does nothing" has to
@@ -64,7 +64,7 @@ describe('the how-rich slider', () => {
     it('leaves the slider line out of the working while they are level', () => {
         expect(split(120_000, [{ size: 20 }, { size: 10 }]).workings.map((entry) => entry.label)).toEqual([
             'Rent',
-            'Floor area measured',
+            'Total private room area',
         ])
     })
 
@@ -83,8 +83,8 @@ describe('the how-rich slider', () => {
 
     it('names the room and the notch in the working', () => {
         const outcome = split(100_000, [{ size: 10, rich: 5 }, { size: 10, rich: 1 }]) // prettier-ignore
-        expect(outcome.shares[0].detail).toBe('room 50%, notch 5, so 83.3% of the rent')
-        expect(outcome.workings).toContainEqual({ label: 'Slider levels', value: '5, 1' })
+        expect(outcome.shares[0].detail).toBe('50% of room area · 5× weight · 83.3% of rent')
+        expect(outcome.workings).toContainEqual({ label: 'Contribution weights', value: '5, 1' })
     })
 
     /**

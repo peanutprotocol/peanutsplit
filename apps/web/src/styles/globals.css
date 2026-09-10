@@ -401,8 +401,7 @@
         .split-share-card,
         .split-related-list,
         [data-script-block],
-        .split-calc,
-        .split-tool-result
+        .split-calc
     ):nth-child(3n + 1) {
     transform: rotate(-0.7deg);
 }
@@ -416,8 +415,7 @@
         .split-share-card,
         .split-related-list,
         [data-script-block],
-        .split-calc,
-        .split-tool-result
+        .split-calc
     ):nth-child(3n + 2) {
     transform: rotate(0.5deg);
 }
@@ -431,8 +429,7 @@
         .split-share-card,
         .split-related-list,
         [data-script-block],
-        .split-calc,
-        .split-tool-result
+        .split-calc
     ):nth-child(3n) {
     transform: rotate(-0.4deg);
 }

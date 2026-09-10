@@ -20,15 +20,17 @@ export const rentSplitEs419: ToolWords = {
             'Calcula el alquiler de cada roomie según el tamaño de su cuarto. Ajusta los pesos de común acuerdo y obtén un reparto que suma el alquiler total.',
     },
     copy: {
-        h1: 'Calculadora para dividir el alquiler por metros cuadrados',
-        intro: [
-            'Ingresa el alquiler mensual y el tamaño del cuarto privado de cada persona para calcular su parte. Los resultados se actualizan mientras escribes.',
-            'Deja todos los controles al mismo nivel para dividir solo por tamaño de cuarto. Si quieren considerar cuánto puede pagar cada persona, acuerden niveles distintos. Un nivel más alto le da más peso a ese cuarto.',
-        ],
-        resultTitle: 'Lo que paga cada cuarto',
-        resultHint: 'Ingresa el alquiler mensual y la cantidad de roomies.',
-        roundingNote:
-            'Cada parte se redondea hacia abajo. El resto se distribuye entre las fracciones más grandes, de a una unidad mínima de la moneda, hasta completar el alquiler total.',
+        h1: 'Divide el alquiler por tamaño de cuarto',
+        intro: ['Ingresa el alquiler mensual y el tamaño de cada cuarto privado para ver cuánto paga cada persona.'],
+        inputTitle: '1. Alquiler mensual',
+        rowsTitle: '2. Tamaño de los cuartos',
+        rowsHelp: 'Ingresa la superficie de cada cuarto privado, sin áreas comunes. Los nombres son opcionales.',
+        optionalTitle: 'Ajustar los aportes (opcional)',
+        optionalHelp:
+            'Con pesos iguales, el alquiler se divide solo por tamaño de cuarto. Acuerden cualquier cambio: un peso mayor aumenta lo que paga esa persona.',
+        resultTitle: 'Alquiler mensual por persona',
+        resultHint: 'Ingresa el alquiler mensual y la cantidad de personas que lo comparten.',
+        roundingNote: 'El redondeo se ajusta para que las partes sumen el alquiler total.',
         copyLabel: 'Copiar el reparto',
         copyDone: 'Copiado',
         method: {
@@ -40,7 +42,7 @@ export const rentSplitEs419: ToolWords = {
         },
         concession: {
             title: 'Acuerden el reparto antes de pagar',
-            body: 'Usen el resultado como punto de partida para ponerse de acuerdo. Los controles son pesos relativos y no calculan proporciones de ingresos. Guarden los montos acordados para que todos tengan el mismo registro cada mes.',
+            body: 'Usen el resultado como punto de partida para ponerse de acuerdo. Los pesos opcionales multiplican la superficie de cada cuarto. Guarden los montos que acuerden para cada mes.',
         },
         goodToKnow: {
             title: 'Bueno saberlo',
@@ -59,16 +61,15 @@ export const rentSplitEs419: ToolWords = {
         faqTitle: 'Preguntas',
     },
     fields: {
-        rent: { label: 'Alquiler del mes' },
-        people: { label: 'Roomies', help: 'Hasta veinte.' },
+        rent: { label: 'Alquiler mensual total' },
+        people: { label: 'Personas que comparten el alquiler' },
         size: {
             label: 'Tamaño del cuarto',
             unit: 'm²',
-            help: 'Solo espacio privado. Los espacios comunes quedan fuera de la cuenta.',
         },
         rich: {
-            label: 'Cómo estás de dinero',
-            notches: ['Sin margen', 'Justo', 'Cómodo', 'Holgado', 'Muy holgado'],
+            label: 'Peso del aporte',
+            notches: ['1×', '2×', '3×', '4×', '5×'],
         },
     },
     rows: { nameLabel: 'Nombre', namePrefix: 'Roomie' },
@@ -79,15 +80,15 @@ export const rentSplitEs419: ToolWords = {
     faqs: [
         {
             question: '¿Cómo se divide el alquiler por metros cuadrados?',
-            answer: 'Divide la superficie de cada cuarto privado entre la superficie privada total y multiplica por el alquiler. Mantén los controles al mismo nivel. Las áreas comunes quedan fuera del cálculo; consideren si quieren asignarles una parte del alquiler para dividirla por igual.',
+            answer: 'Divide la superficie de cada cuarto privado entre la superficie privada total y multiplica por el alquiler. La calculadora usa este método de forma predeterminada. Las áreas comunes quedan fuera del cálculo; consideren si quieren asignarles una parte del alquiler para dividirla por igual.',
         },
         {
-            question: '¿Qué hace el control al lado de cada nombre?',
-            answer: 'El control multiplica la superficie del cuarto por un peso de uno a cinco. Cada superficie ponderada se divide entre el total para calcular la parte del alquiler. Si todos los niveles coinciden, el alquiler depende solo del tamaño del cuarto. Si todas las superficies son cero, el cálculo parte de cuartos iguales.',
+            question: '¿Cómo funcionan los pesos opcionales?',
+            answer: 'Abre “Ajustar los aportes” para elegir un peso de 1× a 5× para cada persona. La calculadora multiplica la superficie de cada cuarto por su peso y reparte el alquiler en esas proporciones. Con pesos iguales, el alquiler depende solo del tamaño del cuarto. Si todas las superficies son cero, el cálculo parte de cuartos iguales.',
         },
         {
             question: '¿Cómo se divide el alquiler cuando alguien gana más?',
-            answer: 'Si todos acuerdan que quien gana más aporte más, sube su control para darle más peso a su cuarto. El control no calcula una proporción de ingresos ni decide qué es justo. Déjalos al mismo nivel si quieren que el ingreso no influya.',
+            answer: 'Si todos acuerdan que quien gana más aporte más, abre “Ajustar los aportes” y aumenta su peso. La calculadora multiplica la superficie de su cuarto por ese peso. No usa cifras de ingresos. Deja todos los pesos iguales para dividir solo por tamaño de cuarto.',
         },
         {
             question: '¿Por qué una persona paga una fracción más que las demás?',
@@ -99,11 +100,11 @@ export const rentSplitEs419: ToolWords = {
         negativeRent: 'El alquiler no puede ser negativo.',
         rentTooBig: 'El alquiler supera el límite de esta calculadora.',
         rentLabel: 'Alquiler',
-        floorAreaLabel: 'Superficie medida',
+        floorAreaLabel: 'Superficie privada total',
         areaValue: '{area} m²',
-        slidersLabel: 'Niveles de los controles',
-        detailTilted: 'cuarto {room}, nivel {notch}, o sea {share} del alquiler',
-        detailPlain: '{size} m², {share} del alquiler',
+        slidersLabel: 'Pesos de los aportes',
+        detailTilted: '{room} de superficie · peso {notch}× · {share} del alquiler',
+        detailPlain: '{size} m² · {share} del alquiler',
     },
 }
 
@@ -114,15 +115,17 @@ export const rentSplitPtBr: ToolWords = {
             'Calcule a parte de cada pessoa no aluguel pelo tamanho do quarto. Ajuste os pesos de comum acordo e veja valores que somam o aluguel total.',
     },
     copy: {
-        h1: 'Calculadora para dividir o aluguel por metro quadrado',
-        intro: [
-            'Informe o aluguel mensal e o tamanho do quarto individual de cada pessoa para calcular sua parte. Os resultados mudam enquanto você digita.',
-            'Deixe todos os controles no mesmo nível para dividir apenas pela metragem. Se quiserem considerar quanto cada pessoa pode pagar, combinem níveis diferentes. Um nível mais alto dá mais peso àquele quarto.',
-        ],
-        resultTitle: 'O que cada quarto paga',
-        resultHint: 'Informe o aluguel mensal e o número de moradores.',
-        roundingNote:
-            'Cada cota é arredondada para baixo. O restante é distribuído entre as maiores frações, uma unidade mínima da moeda por vez, até completar o aluguel total.',
+        h1: 'Divida o aluguel pelo tamanho do quarto',
+        intro: ['Informe o aluguel mensal e o tamanho de cada quarto para ver quanto cada pessoa paga.'],
+        inputTitle: '1. Aluguel mensal',
+        rowsTitle: '2. Tamanho dos quartos',
+        rowsHelp: 'Informe a área de cada quarto individual, sem as áreas comuns. Os nomes são opcionais.',
+        optionalTitle: 'Ajustar as contribuições (opcional)',
+        optionalHelp:
+            'Com pesos iguais, o aluguel é dividido só pela metragem. Combinem qualquer mudança: um peso maior aumenta a parte daquela pessoa.',
+        resultTitle: 'Aluguel mensal por pessoa',
+        resultHint: 'Informe o aluguel mensal e o número de pessoas que o dividem.',
+        roundingNote: 'O arredondamento é ajustado para que as partes somem o aluguel total.',
         copyLabel: 'Copiar o rateio',
         copyDone: 'Copiado',
         method: {
@@ -134,7 +137,7 @@ export const rentSplitPtBr: ToolWords = {
         },
         concession: {
             title: 'Combinem a divisão antes de pagar',
-            body: 'Usem o resultado como ponto de partida para chegar a um acordo. Os controles são pesos relativos e não calculam proporções de renda. Guardem os valores combinados para todos terem o mesmo registro a cada mês.',
+            body: 'Usem o resultado como ponto de partida para chegar a um acordo. Os pesos opcionais multiplicam a área de cada quarto. Guardem os valores que combinarem para cada mês.',
         },
         goodToKnow: {
             title: 'Bom saber',
@@ -153,16 +156,15 @@ export const rentSplitPtBr: ToolWords = {
         faqTitle: 'Perguntas',
     },
     fields: {
-        rent: { label: 'Aluguel do mês' },
-        people: { label: 'Pessoas no aluguel', help: 'Até vinte.' },
+        rent: { label: 'Aluguel mensal total' },
+        people: { label: 'Pessoas dividindo o aluguel' },
         size: {
             label: 'Tamanho do quarto',
             unit: 'm²',
-            help: 'Só o espaço individual. Área comum fica fora da conta.',
         },
         rich: {
-            label: 'Como você está de dinheiro',
-            notches: ['No limite', 'Apertado', 'Tranquilo', 'Folgado', 'Muito folgado'],
+            label: 'Peso da contribuição',
+            notches: ['1×', '2×', '3×', '4×', '5×'],
         },
     },
     rows: { nameLabel: 'Nome', namePrefix: 'Pessoa' },
@@ -173,15 +175,15 @@ export const rentSplitPtBr: ToolWords = {
     faqs: [
         {
             question: 'Como dividir o aluguel por metro quadrado?',
-            answer: 'Divida a área de cada quarto individual pela área total dos quartos e multiplique pelo aluguel. Mantenha os controles no mesmo nível. As áreas comuns ficam fora da conta; avaliem se querem reservar uma parte do aluguel para dividi-la igualmente.',
+            answer: 'Divida a área de cada quarto individual pela área total dos quartos e multiplique pelo aluguel. A calculadora usa esse método por padrão. As áreas comuns ficam fora da conta; avaliem se querem reservar uma parte do aluguel para dividi-la igualmente.',
         },
         {
-            question: 'O que o controle ao lado de cada nome faz?',
-            answer: 'O controle multiplica a área do quarto por um peso de um a cinco. Cada área ponderada é dividida pelo total para calcular a cota do aluguel. Se todos os níveis forem iguais, o aluguel depende apenas da metragem. Se todas as áreas forem zero, o cálculo parte de quartos iguais.',
+            question: 'Como funcionam os pesos opcionais?',
+            answer: 'Abra “Ajustar as contribuições” para escolher um peso de 1× a 5× para cada pessoa. A calculadora multiplica a área de cada quarto pelo seu peso e divide o aluguel nessas proporções. Com pesos iguais, o aluguel depende só da metragem. Se todas as áreas forem zero, o cálculo parte de quartos iguais.',
         },
         {
             question: 'Como dividir o aluguel quando uma pessoa ganha mais?',
-            answer: 'Se todos concordarem que quem ganha mais deve contribuir mais, suba o controle dessa pessoa para dar mais peso ao quarto dela. O controle não calcula uma proporção de renda nem decide o que é justo. Deixe os níveis iguais se quiserem que a renda não influencie o resultado.',
+            answer: 'Se todos concordarem que quem ganha mais deve contribuir mais, abra “Ajustar as contribuições” e aumente o peso dessa pessoa. A calculadora multiplica a área do quarto por esse peso. Ela não usa valores de renda. Deixe todos os pesos iguais para dividir só pela metragem.',
         },
         {
             question: 'Por que uma pessoa paga uma fração a mais que as outras?',
@@ -193,10 +195,10 @@ export const rentSplitPtBr: ToolWords = {
         negativeRent: 'O aluguel não pode ser negativo.',
         rentTooBig: 'O aluguel ultrapassa o limite desta calculadora.',
         rentLabel: 'Aluguel',
-        floorAreaLabel: 'Metragem medida',
+        floorAreaLabel: 'Área total dos quartos',
         areaValue: '{area} m²',
-        slidersLabel: 'Níveis dos controles',
-        detailTilted: 'quarto {room}, nível {notch}, ou seja {share} do aluguel',
-        detailPlain: '{size} m², {share} do aluguel',
+        slidersLabel: 'Pesos das contribuições',
+        detailTilted: '{room} da área · peso {notch}× · {share} do aluguel',
+        detailPlain: '{size} m² · {share} do aluguel',
     },
 }

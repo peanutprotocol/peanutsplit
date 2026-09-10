@@ -45,7 +45,7 @@ describe('mileage split', () => {
 
     it('gives the driver a share of their own when the toggle is on', () => {
         const outcome = drive(300, 3, { driverShares: true })
-        expect(outcome.shares[0].label).toBe('The driver')
+        expect(outcome.shares[0].label).toBe('Driver')
         expect(paid(outcome)).toEqual([4125, 4125, 4125, 4125])
         expect(total(outcome)).toBe(outcome.totalMinor)
     })

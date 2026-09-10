@@ -21,7 +21,7 @@ import { ToolCalculator } from './ToolCalculator'
  * so every calculator surface the skin touches has to own a paint hook the skin can name.
  */
 const html = renderToStaticMarkup(<ToolCalculator slug="mileage-split-calculator" />)
-const presets = html.match(/<button[^>]*data-testid="tool-preset-[^"]*"[^>]*>/g) ?? []
+const rentHtml = renderToStaticMarkup(<ToolCalculator slug="rent-split-calculator" />)
 
 /** The tag whose class list contains `token`, or undefined — blocks.test.tsx's idiom. */
 const tagWith = (token: string) =>
@@ -29,26 +29,11 @@ const tagWith = (token: string) =>
 
 const classesOf = (tag: string) => (tag.match(/class="([^"]*)"/)?.[1] ?? '').split(/\s+/)
 
-const tagsWith = (token: string) =>
-    [...html.matchAll(/<[a-z0-9]+[^>]*>/gi)].map(([tag]) => tag).filter((tag) => classesOf(tag).includes(token))
+const tagsWith = (token: string, source = html) =>
+    [...source.matchAll(/<[a-z0-9]+[^>]*>/gi)].map(([tag]) => tag).filter((tag) => classesOf(tag).includes(token))
 
-describe('the preset chips', () => {
-    it('announce themselves as toggles — one per preset, pressed only where the choice is live', () => {
-        expect(presets.length).toBeGreaterThan(1)
-        for (const button of presets) expect(button, button).toMatch(/aria-pressed="(true|false)"/)
-        expect(presets.filter((button) => button.includes('aria-pressed="true"'))).toHaveLength(1)
-    })
-
-    it('presses the chip whose option the fields are actually filled from', () => {
-        const pressed = presets.find((button) => button.includes('aria-pressed="true"'))
-        expect(pressed).toContain('data-testid="tool-preset-GB"')
-    })
-
-    it('carries the paint hook on every chip, so the on-state is the aria state and nothing else', () => {
-        expect(tagsWith('split-tool-preset')).toHaveLength(presets.length)
-        for (const chip of tagsWith('split-tool-preset')) expect(chip, chip).toMatch(/^<button/)
-    })
-})
+const inputTag = (testId: string, source = html) =>
+    [...source.matchAll(/<input[^>]*>/gi)].map(([tag]) => tag).find((tag) => tag.includes(`data-testid="${testId}"`))
 
 describe('the input hooks', () => {
     it('marks the text and number fields', () => {
@@ -67,6 +52,22 @@ describe('the input hooks', () => {
 
     it('marks the currency slot rather than the picker inside it', () => {
         expect(tagWith('split-tool-currency')).toMatch(/^<div/)
+    })
+
+    it('puts mileage units beside distance and currency beside the rate', () => {
+        expect(html).toMatch(new RegExp('Total distance[\\s\\S]*data-testid="tool-field-distance"[\\s\\S]*>mi</span>'))
+        expect(html).toMatch(
+            new RegExp(
+                'Mileage rate[\\s\\S]*split-tool-currency[\\s\\S]*data-testid="tool-field-rate"[\\s\\S]*>/ mi</span>'
+            )
+        )
+    })
+
+    it('uses decimal keyboards for decimal fields and numeric keyboards for counts', () => {
+        expect(inputTag('tool-field-rate')).toContain('inputMode="decimal"')
+        expect(inputTag('tool-field-share')).toContain('inputMode="decimal"')
+        expect(inputTag('tool-field-passengers')).toContain('inputMode="numeric"')
+        expect(inputTag('tool-field-size', rentHtml)).toContain('inputMode="decimal"')
     })
 
     it('marks the builder fold’s summary row', () => {

@@ -26,14 +26,18 @@ export const mileageSplitEs419: ToolWords = {
     copy: {
         h1: 'Calculadora para dividir un viaje en auto',
         intro: [
-            'Ingresa la distancia recorrida y la cantidad de pasajeros para calcular cuánto le debe cada persona a quien manejó. Elige un país para usar un valor de reembolso de la lista o ingresa uno propio.',
-            'Un valor por distancia puede incluir otros costos además del combustible. Acuerden cuáles van a compartir antes de usar el resultado. La sección de abajo permite calcular el combustible y agregar un monto por desgaste y pérdida de valor.',
+            'Calcula cuánto le paga cada pasajero a quien maneja según la distancia y el costo por milla o kilómetro. Elige si quien maneja también aporta.',
         ],
-        resultTitle: 'Quién le debe qué a quien manejó',
+        inputTitle: '1. Datos del viaje',
+        rowsTitle: '2. Quiénes comparten el costo',
+        rowsHelp: 'Cuenta solo a los pasajeros. Abajo puedes incluir un aporte de quien maneja.',
+        optionalTitle: 'Agregar nombres o partes distintas',
+        optionalHelp:
+            'Usa 1 para el viaje completo o 0.5 para la mitad de la distancia. Partes iguales reparten el costo por igual.',
+        resultTitle: 'Reparto del costo del viaje',
         resultHint: 'Ingresa la cantidad de pasajeros, sin contar a quien maneja.',
-        roundingNote:
-            'Cada parte se redondea hacia abajo. El resto se distribuye entre las fracciones más grandes, de a una unidad mínima de la moneda, hasta completar el costo calculado del viaje.',
-        copyLabel: 'Copiar la lista',
+        roundingNote: 'Las partes se redondean a la unidad mínima de la moneda y suman el costo total del viaje.',
+        copyLabel: 'Copiar este reparto',
         copyDone: 'Copiado',
         method: {
             title: 'Gastos que se agregan por separado',
@@ -64,28 +68,31 @@ export const mileageSplitEs419: ToolWords = {
     },
     fields: {
         distance: {
-            label: 'Distancia recorrida',
-            help: 'Incluye el regreso si también lo comparten. Usa las millas o kilómetros indicados para el país elegido.',
+            label: 'Distancia total',
+            help: 'Incluye el regreso si también lo comparten.',
         },
         rate: {
-            label: 'Valor por milla o kilómetro',
-            help: 'Al elegir un país se cambia la moneda y se completa el valor cuando hay uno en la lista. Puedes editarlo.',
+            label: 'Valor por distancia',
+            help: 'Valor sugerido para combustible y otros costos del auto. Usa el monto que acuerden en el grupo.',
         },
-        passengers: { label: 'Pasajeros', help: 'Todos los del auto menos quien maneja.' },
+        passengers: {
+            label: 'Pasajeros (sin quien maneja)',
+            help: 'Incluye a quienes hicieron solo una parte del viaje.',
+        },
         driverShares: {
-            label: 'La persona que maneja también toma una parte',
-            help: 'Apagado, los pasajeros cubren el viaje entre ellos.',
+            label: 'Quien maneja paga una parte',
+            help: 'Sin activar: los pasajeros cubren todo el costo. Activado: quien maneja también paga una parte.',
         },
         share: {
-            label: 'Parte',
-            help: 'Usa 1 para una parte completa o 0.5 para quien recorrió la mitad de la distancia.',
+            label: 'Parte del viaje',
+            help: '1 = viaje completo. 0.5 = mitad de la distancia.',
         },
     },
     rows: { nameLabel: 'Nombre', namePrefix: 'Pasajero' },
     choices: {
         country: {
             label: 'País',
-            help: 'Fija el valor de abajo. Cada valor se leyó de la página oficial de ese gobierno en julio de 2026, con el enlace debajo del selector.',
+            help: 'Define la unidad de distancia, la moneda y el valor sugerido. Puedes editar el valor de abajo.',
             options: {
                 AU: {
                     label: 'Australia (kilómetros)',
@@ -143,26 +150,26 @@ export const mileageSplitEs419: ToolWords = {
         },
     },
     builder: {
-        summary: 'Calcula un valor según el consumo',
+        summary: 'Calcular un valor según el combustible',
         title: 'Calcula tu propio valor',
-        intro: 'Ingresa el consumo y el precio por litro para calcular el combustible por milla o kilómetro. Agrega un monto acordado por desgaste y pérdida de valor si también quieren compartir esos costos.',
+        intro: 'Calcula el costo de combustible por milla o kilómetro. Puedes sumar un monto acordado por desgaste y pérdida de valor.',
         fields: {
             fuelPer100: {
-                label: 'Lo que consume cada 100',
+                label: 'Consumo de combustible',
                 unit: 'litros',
-                help: 'Por cada 100 en la unidad que tenga el selector de arriba, millas o kilómetros.',
+                help: 'Litros usados en 100 millas o 100 kilómetros, según la unidad de distancia del viaje.',
             },
             fuelPrice: {
-                label: 'Lo que cuesta un litro',
+                label: 'Precio por litro',
                 help: 'Ingresa el precio pagado por litro en la moneda seleccionada.',
             },
             wear: {
-                label: 'Desgaste y pérdida de valor encima',
+                label: 'Otros costos del auto',
                 help: 'Monto adicional por milla o kilómetro para neumáticos, mantenimiento y pérdida de valor. Déjalo en cero para calcular solo combustible.',
             },
         },
-        floorLabel: 'Solo combustible',
-        totalLabel: 'Valor calculado',
+        floorLabel: 'Combustible por distancia',
+        totalLabel: 'Tu valor por distancia',
         applyLabel: 'Usar este valor',
         appliedLabel: 'Valor aplicado',
     },
@@ -201,10 +208,10 @@ export const mileageSplitEs419: ToolWords = {
         unitKilometre: 'kilómetro',
         distanceLabel: 'Distancia',
         rateLabel: 'Valor por cada {unit}',
-        costLabel: 'Lo que costó el viaje',
+        costLabel: 'Costo total del viaje',
         shareDetail: '{share} de {total} partes',
-        driverLabel: 'Al volante',
-        driverDetail: 'costo cubierto por quien maneja',
+        driverLabel: 'Quien maneja',
+        driverDetail: 'A cargo de quien maneja',
     },
 }
 
@@ -217,15 +224,19 @@ export const mileageSplitPtBr: ToolWords = {
     copy: {
         h1: 'Calculadora para dividir uma viagem de carro',
         intro: [
-            'Informe a distância percorrida e o número de passageiros para calcular quanto cada pessoa deve a quem dirigiu. Escolha um país para usar uma taxa de reembolso da lista ou informe a sua.',
-            'No Brasil não existe taxa federal por quilômetro. A regra federal prevê um limite diário, sem cálculo por distância. Ao selecionar Brasil, informe a taxa que o grupo combinou ou calcule uma abaixo a partir do consumo do carro.',
-            'Uma taxa por distância pode incluir custos além do combustível. Combinem quais vão dividir antes de usar o resultado. A seção abaixo permite calcular o combustível e acrescentar um valor por desgaste e perda de valor do carro.',
+            'Calcule quanto cada passageiro paga a quem dirige pela distância e pelo custo por milha ou quilômetro. Escolha se quem dirige também paga uma parte.',
+            'No Brasil, informe um valor por quilômetro combinado pelo grupo ou calcule um pelo consumo de combustível.',
         ],
-        resultTitle: 'Quem deve o quê para quem dirigiu',
+        inputTitle: '1. Dados da viagem',
+        rowsTitle: '2. Quem divide o custo',
+        rowsHelp: 'Conte apenas os passageiros. Abaixo, escolha se quem dirige também paga uma parte.',
+        optionalTitle: 'Adicionar nomes ou partes diferentes',
+        optionalHelp:
+            'Use 1 para a viagem completa ou 0.5 para metade da distância. Partes iguais dividem o custo igualmente.',
+        resultTitle: 'Divisão do custo da viagem',
         resultHint: 'Informe o número de passageiros, sem contar quem dirige.',
-        roundingNote:
-            'Cada cota é arredondada para baixo. O restante é distribuído entre as maiores frações, uma unidade mínima da moeda por vez, até completar o custo calculado da viagem.',
-        copyLabel: 'Copiar a lista',
+        roundingNote: 'As partes são arredondadas para a menor unidade da moeda e somam o custo total da viagem.',
+        copyLabel: 'Copiar esta divisão',
         copyDone: 'Copiado',
         method: {
             title: 'Despesas para adicionar separadamente',
@@ -256,25 +267,25 @@ export const mileageSplitPtBr: ToolWords = {
     },
     fields: {
         distance: {
-            label: 'Distância rodada',
-            help: 'Inclua a volta se ela também for compartilhada. Use as milhas ou quilômetros indicados para o país escolhido.',
+            label: 'Distância total',
+            help: 'Inclua a volta se ela também for compartilhada.',
         },
         rate: {
-            label: 'Taxa por milha ou quilômetro',
-            help: 'Escolher um país muda a moeda e preenche a taxa quando há uma na lista. Você pode editar o valor.',
+            label: 'Taxa por distância',
+            help: 'Valor sugerido para combustível e outros custos do carro. Use um valor combinado pelo grupo.',
         },
-        passengers: { label: 'Passageiros', help: 'Todo mundo no carro menos quem dirige.' },
+        passengers: { label: 'Passageiros (sem quem dirige)', help: 'Inclua quem fez apenas parte da viagem.' },
         driverShares: {
-            label: 'Quem dirige também entra com uma cota',
-            help: 'Desligado, os passageiros cobrem a viagem entre eles.',
+            label: 'Quem dirige paga uma parte',
+            help: 'Desligado: os passageiros cobrem todo o custo. Ligado: quem dirige também paga uma parte.',
         },
-        share: { label: 'Cota', help: 'Use 1 para uma cota inteira ou 0.5 para quem percorreu metade da distância.' },
+        share: { label: 'Parte da viagem', help: '1 = viagem completa. 0.5 = metade da distância.' },
     },
     rows: { nameLabel: 'Nome', namePrefix: 'Passageiro' },
     choices: {
         country: {
             label: 'País',
-            help: 'Define a taxa abaixo. Cada taxa foi lida na página do próprio governo em julho de 2026, com o link embaixo do seletor.',
+            help: 'Define a unidade de distância, a moeda e a taxa sugerida. Você pode editar o valor abaixo.',
             options: {
                 AU: {
                     label: 'Austrália (quilômetros)',
@@ -332,26 +343,26 @@ export const mileageSplitPtBr: ToolWords = {
         },
     },
     builder: {
-        summary: 'Calcule uma taxa pelo consumo',
+        summary: 'Calcular uma taxa pelo combustível',
         title: 'Calcule a sua própria taxa',
-        intro: 'Informe o consumo e o preço por litro para calcular o combustível por milha ou quilômetro. Acrescente um valor combinado para desgaste e perda de valor do carro se quiserem dividir esses custos também.',
+        intro: 'Calcule o combustível por milha ou quilômetro. Você pode somar um valor combinado para desgaste e perda de valor do carro.',
         fields: {
             fuelPer100: {
-                label: 'O que ele gasta a cada 100',
+                label: 'Consumo de combustível',
                 unit: 'litros',
-                help: 'A cada 100 na unidade que o seletor acima está usando, milhas ou quilômetros.',
+                help: 'Litros usados em 100 milhas ou 100 quilômetros, conforme a unidade de distância da viagem.',
             },
             fuelPrice: {
-                label: 'Quanto custa um litro',
+                label: 'Preço por litro',
                 help: 'Informe o preço pago por litro na moeda selecionada.',
             },
             wear: {
-                label: 'Desgaste e perda de valor em cima',
+                label: 'Outros custos do carro',
                 help: 'Valor adicional por milha ou quilômetro para pneus, manutenção e perda de valor do carro. Deixe em zero para calcular apenas combustível.',
             },
         },
-        floorLabel: 'Só o combustível',
-        totalLabel: 'Taxa calculada',
+        floorLabel: 'Combustível por distância',
+        totalLabel: 'Sua taxa por distância',
         applyLabel: 'Usar esta taxa',
         appliedLabel: 'Taxa aplicada',
     },
@@ -394,9 +405,9 @@ export const mileageSplitPtBr: ToolWords = {
         unitKilometre: 'quilômetro',
         distanceLabel: 'Distância',
         rateLabel: 'Taxa por {unit}',
-        costLabel: 'O que a viagem custou',
+        costLabel: 'Custo total da viagem',
         shareDetail: '{share} de {total} cotas',
         driverLabel: 'Quem dirigiu',
-        driverDetail: 'custo coberto por quem dirige',
+        driverDetail: 'Pago por quem dirige',
     },
 }

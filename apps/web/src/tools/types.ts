@@ -27,10 +27,7 @@ import type { IndexedLocale } from '@/i18n/locales'
  * `amount` is the only one that goes through the money parser: it is typed in major units in the
  * reader's own punctuation ("1.234,56" or "1,234.56") and reaches `compute` as minor units.
  *
- * `scale` is a number the reader answers by dragging rather than typing. It exists because one
- * question on this site is not a quantity anybody actually knows — "how much money are you on" —
- * and a box asking for a monthly figure gets a lie or a blank. A notch on a labelled slider is
- * the honest instrument for it, and what the notches mean is stated in the tool's own FAQ.
+ * `scale` chooses a contribution weight from a bounded set of labelled notches.
  */
 export type ToolFieldKind = 'amount' | 'count' | 'number' | 'toggle' | 'scale'
 
@@ -48,6 +45,12 @@ export interface ToolField {
     step?: number
     /** Printed after the input — "sqm", "%". Never a currency symbol; the currency is the shell's. */
     unit?: string
+    /** Prints the selected option's unit after the input. */
+    unitChoice?: string
+    /** Distance denominator for a compound unit, such as litres / 100 km. */
+    unitBasis?: number
+    /** Renders the calculator currency picker beside this field. */
+    currency?: boolean
     /**
      * `scale` only: one label per notch, lowest first. The field's value is the 1-based notch, so
      * `notches.length` is the top of the scale and the labels are what the reader is choosing
@@ -90,6 +93,8 @@ export interface ToolChoiceOption {
     sets?: Record<string, string>
     /** Currency the option's numbers are in. Switches the shell's currency with the choice. */
     currency?: string
+    /** Short unit this option makes fields use, for example "mi" or "km". */
+    unit?: string
     /** One flat line under the picker: what the number is, and what it deliberately leaves out. */
     note?: string
     /** The page the number was read off, named so the reader can go and check it. */
@@ -224,6 +229,11 @@ export interface ToolData<Row extends ToolDataRow = ToolDataRow> {
 }
 
 export interface ToolCopy {
+    inputTitle: string
+    rowsTitle: string
+    rowsHelp: string
+    optionalTitle: string
+    optionalHelp: string
     /** The query as a person types it. Also the `<h1>`. */
     h1: string
     /** Server-rendered intro. The answer arrives in the first two sentences. */
