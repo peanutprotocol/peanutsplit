@@ -1144,6 +1144,7 @@
         "LAST_ACTIVE_MEMBER": "The last active person cannot leave. Reactivate someone else first.",
         "MEMBER_FORMER": "That person is Former and cannot be added to new activity. Reactivate them first.",
         "EXPENSE_DELETED": "This expense was deleted. Undo the delete first, then edit it.",
+        "EXPENSE_EDIT_CONFLICT": "Someone just edited the expense. Refresh to edit",
         "NEW_PAYER_ON_EDIT": "Choose an existing person when editing. Add a new payer with a new expense.",
         "CATCH_UP_REVIEW_CONFLICT": "That expense changed after review — reopen it and try again.",
         "HISTORY_CURSOR_INVALID": "That point in the room history is no longer available — reopen the history.",

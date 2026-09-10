@@ -3,7 +3,7 @@
 <!-- GENERATED FILE. Run `pnpm docs:generate`; do not hand-edit. -->
 
 Source: `apps/web/src/app/**/route.ts`  
-Input SHA-256: `badd953666e1653cff7b24ae2aa35e87159a26027e6f329ef152997cad9351da`
+Input SHA-256: `2a05deaa955629a5d8afdfa03744eebef7a87623a4884f8dd2d9008c3f24434c`
 
 Exported operations: 43
 

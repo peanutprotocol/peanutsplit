@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/server/db'
 import { ApiError, notFound } from '@/server/http'
+import { expenseRevision } from '@/server/history'
 import { formatStoredFxRate } from '@/server/money'
 import { suggestedTransfers } from '@/server/settlement'
 import type { RoomState } from '@/lib/api-types'
@@ -140,6 +141,7 @@ export function toRoomState(room: RoomWithRelations): RoomState {
         })),
         expenses: room.expenses.map((e) => ({
             id: e.id,
+            revision: expenseRevision(e),
             description: e.description,
             amountMinor: e.amountMinor.toString(),
             currency: e.currency,

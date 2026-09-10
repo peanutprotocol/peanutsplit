@@ -77,7 +77,8 @@ describe('GET /api/rooms/[slug]/history/export', () => {
             body: expenseBody,
         })
         expect(addResponse.status).toBe(201)
-        const expenseId = (await json<RoomState>(addResponse)).expenses[0].id
+        const expense = (await json<RoomState>(addResponse)).expenses[0]
+        const expenseId = expense.id
 
         const editResponse = await call(patchExpense as Handler, {
             path: `${roomPath}/expenses/${expenseId}`,
@@ -85,7 +86,12 @@ describe('GET /api/rooms/[slug]/history/export', () => {
             params: { slug, id: expenseId },
             token: created.memberToken,
             device: 'raw-phone-install-id',
-            body: { ...expenseBody, description: 'Late dinner', expectedSplitMode: 'EQUAL' },
+            body: {
+                ...expenseBody,
+                description: 'Late dinner',
+                expectedSplitMode: 'EQUAL',
+                expectedRevision: expense.revision,
+            },
         })
         expect(editResponse.status).toBe(200)
 

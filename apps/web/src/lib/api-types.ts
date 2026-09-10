@@ -78,6 +78,8 @@ export interface ApiReaction {
 
 export interface ApiExpense {
     id: string
+    /** Server edit baseline; absent only in older caches and pending local rows. */
+    revision?: string
     /** Empty when the expense was saved without a name. Render it through
      *  `expenseLabel` (`lib/dates.ts`), never on its own. */
     description: string
@@ -238,9 +240,10 @@ export interface ExpenseInput {
     category?: string | null
 }
 
-/** PATCH /api/rooms/:slug/expenses/:id. The server uses expectedSplitMode as
- *  an optimistic compatibility guard before replacing the stored shares. */
+/** PATCH /api/rooms/:slug/expenses/:id. Send the revision captured when editing began. */
 export interface ExpenseUpdateInput extends ExpenseInput {
+    /** Missing or stale baselines receive an EXPENSE_EDIT_CONFLICT response. */
+    expectedRevision?: string
     expectedSplitMode?: SplitMode
 }
 

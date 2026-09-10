@@ -205,9 +205,9 @@ export const expenseUpdateSchema = z
     .object({
         ...expenseFields,
         description: expenseName.optional(),
-        /** Optimistic compatibility marker. The PATCH route compares this with
-         *  the stored mode before it replaces weighted shares. Optional here so
-         *  pre-feature clients can continue editing EQUAL and EXACT rows. */
+        /** Missing revisions reach the route's refresh conflict for old clients. */
+        expectedRevision: z.string().min(1).max(128).optional(),
+        /** The PATCH route also guards compatibility with weighted split editors. */
         expectedSplitMode: splitMode.optional(),
     })
     .superRefine(onePayer)

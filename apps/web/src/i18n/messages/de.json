@@ -1144,6 +1144,7 @@
         "LAST_ACTIVE_MEMBER": "Die letzte aktive Person kann nicht gehen. Reaktiviere zuerst jemand anderen.",
         "MEMBER_FORMER": "Diese Person nimmt nicht mehr teil und kann keiner neuen Aktivität hinzugefügt werden. Reaktiviere sie zuerst.",
         "EXPENSE_DELETED": "Diese Ausgabe wurde gelöscht. Mach die Löschung zuerst rückgängig und bearbeite sie dann.",
+        "EXPENSE_EDIT_CONFLICT": "Jemand hat die Ausgabe gerade bearbeitet. Lade die Seite neu, um sie zu bearbeiten",
         "NEW_PAYER_ON_EDIT": "Wähle beim Bearbeiten eine vorhandene Person. Eine neue zahlende Person kannst du mit einer neuen Ausgabe hinzufügen.",
         "CATCH_UP_REVIEW_CONFLICT": "Diese Ausgabe wurde nach der Prüfung geändert – öffne sie erneut und versuche es noch einmal.",
         "HISTORY_CURSOR_INVALID": "Diese Stelle im Gruppenverlauf ist nicht mehr verfügbar – öffne den Verlauf erneut.",

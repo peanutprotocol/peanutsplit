@@ -131,6 +131,13 @@ export function expenseAuditValues(expense: ExpenseAuditInput) {
     }
 }
 
+/** Reactions and other room activity must not invalidate an expense edit. */
+export function expenseRevision(expense: ExpenseAuditInput): string {
+    return createHash('sha256')
+        .update(`split-expense-revision\0${expense.id}\0${JSON.stringify(expenseAuditValues(expense))}`)
+        .digest('hex')
+}
+
 interface RestorableEqualShare {
     memberId: string
     amountMinor: bigint

@@ -143,6 +143,7 @@ export function ExpenseDrawer({
     const locale = useLocale()
     const errorMessage = useErrorMessage()
     const expenseRequestRef = useRef<ExpenseRequestState | null>(null)
+    const initialExpenseRef = useRef<Pick<ApiExpense, 'revision' | 'splitMode'> | null>(null)
     const addExpense = useAddExpense(slug, token, expenseRequestRef)
     const updateExpense = useUpdateExpense(slug, token)
     const deleteExpense = useDeleteExpense(slug, token)
@@ -320,6 +321,8 @@ export function ExpenseDrawer({
             advancedOptionsOpen: Boolean(expense && expense.splitMode !== 'EQUAL'),
         })
         expenseRequestRef.current = null
+        // Polling can replace the expense props while the form keeps its original values.
+        initialExpenseRef.current = expense ? { revision: expense.revision, splitMode: expense.splitMode } : null
         const recents = readExpenseCurrencies(slug, meId)
         setRecentCurrencies(recents)
         const expenseNeedsManualRate = Boolean(
@@ -877,7 +880,11 @@ export function ExpenseDrawer({
         }
         try {
             if (expense) {
-                const input: ExpenseUpdateInput = { ...body, expectedSplitMode: expense.splitMode }
+                const input: ExpenseUpdateInput = {
+                    ...body,
+                    expectedRevision: initialExpenseRef.current?.revision,
+                    expectedSplitMode: initialExpenseRef.current?.splitMode,
+                }
                 // Editing a solo row can be the action that first creates money
                 // between two people. Compare the authoritative response with
                 // the pre-submit room so a lost-response retry still observes

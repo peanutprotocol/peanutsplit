@@ -1144,6 +1144,7 @@
         "LAST_ACTIVE_MEMBER": "Ostatnia aktywna osoba nie może odejść. Najpierw ponownie aktywuj kogoś innego.",
         "MEMBER_FORMER": "Ta osoba jest nieaktywna i nie można jej dodać do nowego wydatku ani płatności. Najpierw aktywuj ją ponownie.",
         "EXPENSE_DELETED": "Ten wydatek został usunięty. Najpierw cofnij usunięcie, a potem go edytuj.",
+        "EXPENSE_EDIT_CONFLICT": "Ktoś właśnie edytował ten wydatek. Odśwież stronę, aby go edytować",
         "NEW_PAYER_ON_EDIT": "Podczas edycji wybierz istniejącą osobę. Nowego płatnika dodaj wraz z nowym wydatkiem.",
         "CATCH_UP_REVIEW_CONFLICT": "Ten wydatek zmienił się po przeglądzie — otwórz go ponownie i spróbuj jeszcze raz.",
         "HISTORY_CURSOR_INVALID": "Ten punkt w historii pokoju nie jest już dostępny — otwórz historię ponownie.",

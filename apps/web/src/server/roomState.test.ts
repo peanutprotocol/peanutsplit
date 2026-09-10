@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { Prisma } from '@prisma/client'
 import { balancesOf, suggestedTransfers, toRoomState, type RoomWithRelations } from '@/server/roomState'
 
 type ExpenseFixture = { paidById: string; baseAmountMinor: bigint; shares: [string, bigint][] }
@@ -182,7 +183,7 @@ describe('toRoomState weighted share serialization', () => {
                     amountMinor: 100n,
                     currency: 'EUR',
                     baseAmountMinor: 100n,
-                    fxRate: { toFixed: () => '1.000000000000' },
+                    fxRate: new Prisma.Decimal('1.000000000000'),
                     paidById: 'a',
                     createdById: 'a',
                     splitMode: 'PERCENTAGE',
@@ -217,7 +218,7 @@ describe('toRoomState weighted share serialization', () => {
                     amountMinor: 10n,
                     currency: 'EUR',
                     baseAmountMinor: 10n,
-                    fxRate: { toFixed: () => '1.000000000000' },
+                    fxRate: new Prisma.Decimal('1.000000000000'),
                     paidById: 'a',
                     createdById: null,
                     splitMode: 'EQUAL',

@@ -8,6 +8,8 @@ import { prisma, truncateAll } from '@/server/test/db'
 import { STATIC_USD_PER_UNIT } from '@/server/money'
 import { resetRateLimits } from '@/server/rateLimit'
 import { encodeRoomDrawing } from '@/lib/room-drawing'
+import { catchUpExpenseInput } from '@/lib/latecomer'
+import { POST as addReaction } from '@/app/api/expenses/[id]/reactions/route'
 import { GET as getCurrencies } from '@/app/api/currencies/route'
 import { GET as getRate } from '@/app/api/rate/route'
 import { POST as postRoom } from '@/app/api/rooms/route'
@@ -35,7 +37,7 @@ import type {
 const BASE = 'http://localhost'
 
 /**
- * The two serialization tests below deliberately fill the application's pool:
+ * The serialization tests below deliberately fill the application's pool:
  * one connection owns the room lock while two route transactions queue behind
  * it. CI gives Prisma a three-connection pool, so observing those waiters
  * through the application client would itself wait forever for connection four.
@@ -517,6 +519,7 @@ describe('rooms and members', () => {
             method: 'PATCH',
             params: { slug, id: expenseId },
             body: {
+                expectedRevision: original.body.expenses[0].revision,
                 description: 'Cabin corrected',
                 amountMinor: '1200',
                 currency: 'EUR',
@@ -667,6 +670,7 @@ describe('rooms and members', () => {
             method: 'PATCH',
             params: { slug: created.room.slug, id: participantRow.body.expenses[0].id },
             body: {
+                expectedRevision: participantRow.body.expenses[0].revision,
                 description: 'Role swap',
                 amountMinor: '1000',
                 currency: 'EUR',
@@ -683,6 +687,7 @@ describe('rooms and members', () => {
             method: 'PATCH',
             params: { slug: created.room.slug, id: payerRow.body.expenses[0].id },
             body: {
+                expectedRevision: payerRow.body.expenses[0].revision,
                 description: 'Other role swap',
                 amountMinor: '700',
                 currency: 'EUR',
@@ -862,6 +867,7 @@ describe('rooms and members', () => {
             method: 'PATCH',
             params: { slug: created.room.slug, id: expenseId },
             body: {
+                expectedRevision: original.expenses[0].revision,
                 description: 'Taxi, paid by Bea',
                 amountMinor: '1000',
                 currency: 'EUR',
@@ -1131,6 +1137,7 @@ describe('the full room lifecycle', () => {
             method: 'PATCH',
             params: { slug, id: exact.id },
             body: {
+                expectedRevision: exact.revision,
                 description: exact.description,
                 amountMinor: exact.amountMinor,
                 currency: exact.currency,
@@ -1209,6 +1216,7 @@ describe('the full room lifecycle', () => {
             method: 'PATCH',
             params: { slug, id: expenseId },
             body: {
+                expectedRevision: afterAdd.expenses[0].revision,
                 description: 'Taxi (both ways)',
                 amountMinor: '2001',
                 currency: 'EUR',
@@ -1250,11 +1258,11 @@ describe('the full room lifecycle', () => {
 
         // No `description` key: the client moved the amount, not the name. The
         // create schema's `.default('')` used to blank it here.
-        const { body: untouched } = await edit({ amountMinor: '1500' })
+        const { body: untouched } = await edit({ amountMinor: '1500', expectedRevision: afterAdd.expenses[0].revision })
         expect(untouched.expenses[0].description).toBe('Lift passes')
 
         // An explicit empty string still means "take the name off".
-        const { body: cleared } = await edit({ description: '' })
+        const { body: cleared } = await edit({ description: '', expectedRevision: untouched.expenses[0].revision })
         expect(cleared.expenses[0].description).toBe('')
     })
 
@@ -1347,13 +1355,14 @@ describe('the full room lifecycle', () => {
         })
         const saved = afterAdd.expenses[0]
 
-        // An older cached client knows nothing about expectedSplitMode. It must
-        // not flatten a newer weighted split into its default EQUAL payload.
+        // A client that cannot represent the saved weighted mode must not flatten
+        // the split, even when it has the current expense revision.
         const legacy = await call<ApiError>(patchExpense as Handler, {
             path: `/api/rooms/${slug}/expenses/${saved.id}`,
             method: 'PATCH',
             params: { slug, id: saved.id },
             body: {
+                expectedRevision: saved.revision,
                 description: 'Cabin from old tab',
                 amountMinor: '1000',
                 currency: 'EUR',
@@ -1376,6 +1385,7 @@ describe('the full room lifecycle', () => {
             method: 'PATCH',
             params: { slug, id: saved.id },
             body: {
+                expectedRevision: saved.revision,
                 description: 'Cabin by shares',
                 amountMinor: '1000',
                 currency: 'EUR',
@@ -1546,6 +1556,7 @@ describe('manual custom-currency conversion', () => {
             method: 'PATCH',
             params: { slug, id: added.body.expenses[0].id },
             body: customExpense(created.memberId, {
+                expectedRevision: added.body.expenses[0].revision,
                 description: 'Tiny frozen rate',
                 amountMinor: '1000000000000',
                 manualFxRate: undefined,
@@ -1580,7 +1591,11 @@ describe('manual custom-currency conversion', () => {
             path: `/api/rooms/${slug}/expenses/${expense.id}`,
             method: 'PATCH',
             params: { slug, id: expense.id },
-            body: customExpense(ana, { description: 'Friday round (final)', manualFxRate: undefined }),
+            body: customExpense(ana, {
+                description: 'Friday round (final)',
+                manualFxRate: undefined,
+                expectedRevision: expense.revision,
+            }),
         })
         expect(renamed.status).toBe(200)
         expect(renamed.body.expenses[0].fxRate).toBe(expense.fxRate)
@@ -1591,7 +1606,11 @@ describe('manual custom-currency conversion', () => {
             path: `/api/rooms/${slug}/expenses/${expense.id}`,
             method: 'PATCH',
             params: { slug, id: expense.id },
-            body: customExpense(ana, { description: 'Friday round (final)', manualFxRate: '6' }),
+            body: customExpense(ana, {
+                description: 'Friday round (final)',
+                manualFxRate: '6',
+                expectedRevision: renamed.body.expenses[0].revision,
+            }),
         })
         expect(repriced.status).toBe(200)
         expect(repriced.body.expenses[0].fxRate).toBe('6')
@@ -1684,7 +1703,7 @@ describe('fx is locked at creation', () => {
             path: `/api/rooms/${slug}/expenses/${added.id}`,
             method: 'PATCH',
             params: { slug, id: added.id },
-            body: expense({ description: 'Marina fees (final)' }),
+            body: expense({ description: 'Marina fees (final)', expectedRevision: added.revision }),
         })
         const renamed = afterRename.expenses[0]
         expect(renamed.description).toBe('Marina fees (final)')
@@ -1698,11 +1717,163 @@ describe('fx is locked at creation', () => {
             path: `/api/rooms/${slug}/expenses/${added.id}`,
             method: 'PATCH',
             params: { slug, id: added.id },
-            body: expense({ currency: 'GBP' }),
+            body: expense({ currency: 'GBP', expectedRevision: renamed.revision }),
         })
         const repriced = afterCurrency.expenses[0]
         expect(Number(repriced.fxRate)).toBeCloseTo(2.54 / 1.08, 12)
         expect(repriced.baseAmountMinor).not.toBe(added.baseAmountMinor)
+    })
+})
+
+describe('expense edit revisions', () => {
+    const setupExpense = async () => {
+        const { body: created } = await newRoom()
+        const slug = created.room.slug
+        const input = {
+            description: 'Dinner',
+            amountMinor: '3000',
+            currency: 'EUR',
+            paidById: created.memberId,
+            splitMode: 'EQUAL',
+            participantIds: [created.memberId],
+        }
+        const added = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses`,
+            method: 'POST',
+            params: { slug },
+            body: input,
+        })
+        expect(added.status).toBe(201)
+        const expense = added.body.expenses[0]
+        expect(expense.revision).toMatch(/^[a-f0-9]{64}$/)
+        const edit = (body: Record<string, unknown>) =>
+            call<RoomState | ApiError>(patchExpense as Handler, {
+                path: `/api/rooms/${slug}/expenses/${expense.id}`,
+                method: 'PATCH',
+                params: { slug, id: expense.id },
+                body,
+            })
+        return { created, slug, input, expense, edit }
+    }
+
+    const expectEditConflict = (result: { status: number; body: RoomState | ApiError }) => {
+        expect(result.status).toBe(409)
+        expect((result.body as ApiError).error).toEqual({
+            code: 'EXPENSE_EDIT_CONFLICT',
+            message: 'Someone just edited the expense. Refresh to edit',
+        })
+    }
+
+    it('accepts only the first of two queued edits with the same baseline and rejects a stale retry', async () => {
+        const { created, slug, input, expense, edit } = await setupExpense()
+        const blocker = await holdRoomWriteLock(created.room.id)
+        const amountEdit = { ...input, amountMinor: '4000', expectedRevision: expense.revision }
+        const renameEdit = { ...input, description: 'Dinner with friends', expectedRevision: expense.revision }
+        const first = edit(amountEdit)
+        let second: ReturnType<typeof edit>
+        try {
+            await waitForAdvisoryWaiters(1)
+            second = edit(renameEdit)
+            await waitForAdvisoryWaiters(2)
+        } finally {
+            await blocker.release()
+        }
+        const accepted = await first
+        expect(accepted.status).toBe(200)
+        expectEditConflict(await second!)
+        expectEditConflict(await edit(amountEdit))
+
+        const current = await call<RoomState>(getRoom as Handler, {
+            path: `/api/rooms/${slug}`,
+            params: { slug },
+        })
+        expect(current.body.expenses[0]).toMatchObject({ amountMinor: '4000', description: 'Dinner' })
+        expect(current.body.expenses[0].revision).not.toBe(expense.revision)
+        expect(current.body.expenses[0].revision).toBe((accepted.body as RoomState).expenses[0].revision)
+        expect(await prisma.roomAuditEvent.count({ where: { subjectId: expense.id, action: 'expense_edited' } })).toBe(
+            1
+        )
+    })
+
+    it('rejects an older client without a baseline before changing the expense', async () => {
+        const { input, expense, edit } = await setupExpense()
+        expectEditConflict(await edit({ ...input, amountMinor: '9999' }))
+        const stored = await prisma.expense.findUniqueOrThrow({ where: { id: expense.id } })
+        expect(stored.amountMinor).toBe(3000n)
+        expect(await prisma.roomAuditEvent.count({ where: { subjectId: expense.id, action: 'expense_edited' } })).toBe(
+            0
+        )
+    })
+
+    it('uses the refresh conflict when the split mode changed or an older weighted editor has no revision', async () => {
+        const { created, input, expense, edit } = await setupExpense()
+        const weightedInput = {
+            description: input.description,
+            amountMinor: input.amountMinor,
+            currency: input.currency,
+            paidById: input.paidById,
+            splitMode: 'SHARES',
+            weightedShares: [{ memberId: created.memberId, weight: '1' }],
+        }
+        const updated = await edit({ ...weightedInput, expectedRevision: expense.revision })
+        expect(updated.status).toBe(200)
+        expectEditConflict(await edit({ ...input, expectedSplitMode: 'EQUAL', expectedRevision: expense.revision }))
+        expectEditConflict(await edit({ ...weightedInput, expectedSplitMode: 'SHARES' }))
+    })
+
+    it('rejects an open editor after catch-up changes only the shares', async () => {
+        const { slug, input, expense, edit } = await setupExpense()
+        const latecomer = (await join(slug, 'Bea')).body
+        const caughtUp = await call<{ changed: boolean; state: RoomState }>(patchExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses/${expense.id}`,
+            method: 'PATCH',
+            params: { slug, id: expense.id },
+            body: { operation: 'CATCH_UP_EQUAL_PARTICIPANT', ...catchUpExpenseInput(expense, latecomer.memberId) },
+        })
+        expect(caughtUp.status).toBe(200)
+        expect(caughtUp.body.changed).toBe(true)
+        const updated = caughtUp.body.state.expenses[0]
+        expect(updated.amountMinor).toBe(expense.amountMinor)
+        expect(updated.description).toBe(expense.description)
+        expect(updated.shares).toHaveLength(2)
+        expect(updated.revision).not.toBe(expense.revision)
+        expectEditConflict(await edit({ ...input, description: 'Dinner renamed', expectedRevision: expense.revision }))
+        expect(await prisma.expenseShare.count({ where: { expenseId: expense.id } })).toBe(2)
+    })
+
+    it('keeps an open edit valid after a reaction and an unrelated expense addition', async () => {
+        const { created, slug, input, expense, edit } = await setupExpense()
+        const reacted = await call<RoomState>(addReaction as Handler, {
+            path: `/api/expenses/${expense.id}/reactions`,
+            method: 'POST',
+            params: { id: expense.id },
+            body: { emoji: '🔥', memberId: created.memberId, memberToken: created.memberToken },
+        })
+        expect(reacted.status).toBe(200)
+        expect(reacted.body.expenses[0].revision).toBe(expense.revision)
+        const added = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses`,
+            method: 'POST',
+            params: { slug },
+            body: { ...input, description: 'Taxi' },
+        })
+        expect(added.status).toBe(201)
+        expect(added.body.expenses.find((row) => row.id === expense.id)?.revision).toBe(expense.revision)
+        const edited = await edit({ ...input, description: 'Dinner renamed', expectedRevision: expense.revision })
+        expect(edited.status).toBe(200)
+        const updated = (edited.body as RoomState).expenses.find((row) => row.id === expense.id)!
+        expect(updated.description).toBe('Dinner renamed')
+        expect(updated.reactions).toEqual([{ emoji: '🔥', memberId: created.memberId }])
+    })
+
+    it('keeps the baseline valid after a no-op save', async () => {
+        const { input, expense, edit } = await setupExpense()
+        const unchanged = await edit({ ...input, expectedRevision: expense.revision })
+        expect(unchanged.status).toBe(200)
+        expect((unchanged.body as RoomState).expenses[0].revision).toBe(expense.revision)
+        expect(
+            (await edit({ ...input, description: 'Dinner renamed', expectedRevision: expense.revision })).status
+        ).toBe(200)
     })
 })
 

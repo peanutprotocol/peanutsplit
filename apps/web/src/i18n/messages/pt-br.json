@@ -1144,6 +1144,7 @@
         "LAST_ACTIVE_MEMBER": "A última pessoa ativa não pode sair. Reative outra primeiro.",
         "MEMBER_FORMER": "Essa pessoa é anterior e não pode entrar em novas atividades. Reative primeiro.",
         "EXPENSE_DELETED": "Este gasto foi excluído. Desfaça a exclusão antes de editar.",
+        "EXPENSE_EDIT_CONFLICT": "Alguém acabou de editar o gasto. Atualize a página para editar",
         "NEW_PAYER_ON_EDIT": "Ao editar, escolha alguém que já esteja na sala. Adicione um novo pagador com um gasto novo.",
         "CATCH_UP_REVIEW_CONFLICT": "Esse gasto mudou depois da revisão — abra de novo e tente novamente.",
         "HISTORY_CURSOR_INVALID": "Esse ponto do histórico da sala não está mais disponível — abra o histórico de novo.",
