@@ -81,6 +81,28 @@ export async function createRoom(
                         },
                     },
                 })
+                for (const name of body.memberNames ?? []) {
+                    const added = await addMemberInLockedTransaction(tx, created.id, name, memberToken(), true)
+                    const member = await tx.member.findUniqueOrThrow({ where: { id: added.memberId } })
+                    await appendRoomAuditEvent({
+                        tx,
+                        request,
+                        roomId: created.id,
+                        actor: actorForMember(creator),
+                        event: {
+                            kind: 'member_added',
+                            subjectType: 'member',
+                            subjectId: member.id,
+                            after: {
+                                id: member.id,
+                                name: member.name,
+                                avatar: member.avatar,
+                                avatarPalette: member.avatarPalette,
+                                provisional: member.provisional,
+                            },
+                        },
+                    })
+                }
                 return {
                     room: await loadRoom(created.slug, tx),
                     memberId: creator.id,

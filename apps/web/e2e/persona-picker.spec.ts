@@ -30,8 +30,7 @@ async function openOwnCharacterSheet(page: Page, room: string) {
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('go-to-room')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('go-to-room').click()
+    await expect(page.getByTestId('open-room-switcher')).toBeVisible({ timeout: 15_000 })
     await openOwnCharacterFromSettings(page)
     return page.getByTestId('avatar-picker')
 }
@@ -59,8 +58,7 @@ test('your Settings row opens your own character sheet and a pick persists', asy
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('go-to-room')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('go-to-room').click()
+    await expect(page.getByTestId('open-room-switcher')).toBeVisible({ timeout: 15_000 })
 
     // The header's whole middle target now belongs to room navigation. Character
     // editing remains attached to the person it edits, in Settings > People.
@@ -218,8 +216,7 @@ test('a person row in Settings opens that person’s character sheet', async ({ 
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('go-to-room')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('go-to-room').click()
+    await expect(page.getByTestId('open-room-switcher')).toBeVisible({ timeout: 15_000 })
 
     await openCurrentRoomSettings(page)
     await page.locator('[data-testid="person-row"][data-member="Ana"]').click()

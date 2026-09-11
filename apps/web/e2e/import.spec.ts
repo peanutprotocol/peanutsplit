@@ -103,11 +103,8 @@ test('import into an existing room appends in place and an exact retry is a no-o
     await page.getByTestId('room-name').fill('Existing import target')
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('room-person-name').first().fill('Bea')
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('roster-checkpoint')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('checkpoint-name').fill('Bea')
-    await page.getByTestId('checkpoint-add').click()
-    await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
     const roomUrl = await enterCreatedRoom(page)
     const roomPath = new URL(roomUrl).pathname
 

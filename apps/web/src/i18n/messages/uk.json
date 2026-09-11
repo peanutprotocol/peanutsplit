@@ -850,6 +850,19 @@
             "currencyHint": "Баланси ведуться в цій валюті; витрати можуть бути в інших.",
             "creatorName": "Твоє ім’я",
             "creatorNamePlaceholder": "Твоє ім’я…",
+            "people": {
+                "title": "Учасники",
+                "count": "{count, plural, one {# учасник} few {# учасники} many {# учасників} other {# учасника}}",
+                "you": "Ти",
+                "yourName": "Твоє ім’я",
+                "namePlaceholder": "Ім’я учасника",
+                "nameLabel": "Ім’я учасника {number}",
+                "add": "Додати ще людину",
+                "remove": "Видалити: {name}",
+                "removeEmpty": "Видалити учасника {number}",
+                "duplicate": "{name} є у списку двічі. Додай прізвище або нікнейм.",
+                "hint": "Ти можеш додати більше людей пізніше."
+            },
             "submit": "Створити кімнату",
             "failed": "не вдалося створити кімнату — спробуй ще раз",
             "rosterCheckpoint": {

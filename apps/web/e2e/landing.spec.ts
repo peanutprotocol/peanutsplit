@@ -77,6 +77,7 @@ type LandingMessages = {
         create: {
             emoji: string
             currencyLabel: string
+            submit: string
         }
         link: {
             shareFailed: string
@@ -487,13 +488,13 @@ test('the real hero form creates a real room and retains the creator identity', 
     // The tail is the room's credential: 16 random bytes, base64url, 22 characters and no
     // padding. Matched by shape rather than by value, and never by length alone — a stem
     // that swallowed the separator would still pass a bare `.{22}`.
-    await expect(page).toHaveURL(new RegExp(`/r/${expectedStem}-[A-Za-z0-9_-]{22}\\?roster=1$`), {
+    await expect(page).toHaveURL(new RegExp(`/r/${expectedStem}-[A-Za-z0-9_-]{22}$`), {
         timeout: 20_000,
     })
     // Composing in a browser tab cannot forge the install marker: only an initial document
     // navigation to a bare `/app` writes it.
     expect(await page.evaluate((key) => localStorage.getItem(key), CANONICAL_LAUNCH_MARKER_KEY)).toBeNull()
-    // Both creation doors hand off to the roster checkpoint, so the room is one exit away.
+    // Creation enters the room with the creator identity already available.
     await enterCreatedRoom(page)
     // The room has to have rendered before its absence means anything — a join gate is a
     // `fixed inset-0` overlay, so a blank shell would satisfy a bare count of zero.
@@ -504,7 +505,7 @@ test('the real hero form creates a real room and retains the creator identity', 
 test.describe('Pass-the-link default', () => {
     test.skip(controlBuild, 'pass-link-only contract; the control build is covered separately')
 
-    test('fits the promised fold and does not collide or overflow across target viewports', async ({ page }) => {
+    test('shows the people draft and keeps every control reachable without overlap or overflow', async ({ page }) => {
         for (const viewport of viewports) {
             await page.setViewportSize(viewport)
             await openLanding(page)
@@ -515,6 +516,8 @@ test.describe('Pass-the-link default', () => {
             const form = hero.locator('form')
             const roomName = page.getByTestId('hero-room-name')
             const creatorName = page.getByTestId('hero-creator-name')
+            const personName = page.getByTestId('room-person-name').first()
+            const addPerson = page.getByTestId('add-room-person')
             const cta = page.getByTestId('hero-create-room')
             const chatFrame = page.getByTestId('pass-link-chat-frame')
 
@@ -522,6 +525,11 @@ test.describe('Pass-the-link default', () => {
             await expect(headline).toBeVisible()
             await expect(stage).toBeVisible()
             await expect(form).toBeVisible()
+            await expect(page.getByTestId('room-person-name')).toHaveCount(1)
+            await expect(personName).toBeVisible()
+            await expect(personName).toHaveValue('')
+            await expect(addPerson).toBeVisible()
+            await expect(addPerson).toHaveAccessibleName('Add another person')
             await expect(chatFrame).toBeVisible()
             await expect(page.getByTestId('pass-link-chat-link')).toHaveAttribute('href', '/new')
             await expect(chatFrame.locator('.pass-link-avatar svg')).toHaveCount(8)
@@ -547,22 +555,20 @@ test.describe('Pass-the-link default', () => {
             ).toBe(true)
 
             if (viewport.width <= 899) {
-                const [heroBox, chatBox] = await Promise.all([hero.boundingBox(), chatFrame.boundingBox()])
-                expect(heroBox).not.toBeNull()
+                const chatBox = await chatFrame.boundingBox()
                 expect(chatBox).not.toBeNull()
                 expect(
                     chatBox!.height,
                     `mobile messenger must stay portrait at ${viewport.width}x${viewport.height}`
                 ).toBeGreaterThan(chatBox!.width)
-                expect(
-                    heroBox!.height,
-                    `mobile hero must reveal the next section at ${viewport.width}x${viewport.height}`
-                ).toBeLessThan(viewport.height)
             }
 
             await expectNoOverlap(headline, stage)
             await expectNoOverlap(stage, form)
             await expectNoOverlap(headline, form)
+            await expectNoOverlap(creatorName, personName)
+            await expectNoOverlap(personName, addPerson)
+            await expectNoOverlap(addPerson, cta)
 
             if (
                 (viewport.width === 390 && [720, 844].includes(viewport.height)) ||
@@ -572,7 +578,8 @@ test.describe('Pass-the-link default', () => {
                     ['headline', headline],
                     ['room name', roomName],
                     ['creator name', creatorName],
-                    ['primary CTA', cta],
+                    ['person name', personName],
+                    ['add another person', addPerson],
                 ] as const) {
                     const box = await locator.boundingBox()
                     expect(
@@ -588,6 +595,13 @@ test.describe('Pass-the-link default', () => {
                         `${label} falls below the first fold at ${viewport.width}x${viewport.height}`
                     ).toBeLessThanOrEqual(viewport.height)
                 }
+            }
+
+            // The full people setup can extend below the fold. Its fields and final action
+            // must remain reachable by ordinary page scrolling at every supported viewport.
+            for (const control of [personName, addPerson, cta]) {
+                await control.scrollIntoViewIfNeeded()
+                await expect(control).toBeInViewport({ ratio: 1 })
             }
         }
     })
@@ -682,12 +696,16 @@ test.describe('Pass-the-link default', () => {
         await expect(currencyTrigger).toBeFocused()
 
         await page.keyboard.press('Tab')
+        await expect(page.getByTestId('room-person-name').first()).toBeFocused()
+        await page.keyboard.press('Tab')
+        await expect(page.getByTestId('add-room-person')).toBeFocused()
+        await page.keyboard.press('Tab')
         await expect(page.getByTestId('hero-link-explainer')).toBeFocused()
         await page.keyboard.press('Tab')
         const cta = page.getByTestId('hero-create-room')
         await expect(cta).toBeFocused()
 
-        for (const locator of [drawingPicker, currencyTrigger, cta]) {
+        for (const locator of [drawingPicker, currencyTrigger, page.getByTestId('add-room-person'), cta]) {
             const box = await locator.boundingBox()
             expect(box).not.toBeNull()
             expect(box!.height).toBeGreaterThanOrEqual(44)
@@ -696,7 +714,7 @@ test.describe('Pass-the-link default', () => {
 
         // Reaching the button is half of it: the keyboard has to be able to fire it too.
         await page.keyboard.press('Enter')
-        await expect(page).toHaveURL(new RegExp(`/r/${expectedStem}-[A-Za-z0-9_-]{22}\\?roster=1$`), {
+        await expect(page).toHaveURL(new RegExp(`/r/${expectedStem}-[A-Za-z0-9_-]{22}$`), {
             timeout: 20_000,
         })
     })
@@ -986,7 +1004,7 @@ test.describe('Pass-the-link default', () => {
 
             await expect(page.getByRole('heading', { level: 1 })).toHaveText(messages.hero.titleAccessible)
             await expect(page.getByTestId('pass-link-stage-summary')).toHaveText(messages.hero.stageSummary)
-            await expect(page.getByTestId('hero-create-room')).toContainText(messages.hero.cta)
+            await expect(page.getByTestId('hero-create-room')).toContainText(catalogs[locale].room.create.submit)
 
             await page.getByTestId('hero-create-room').click()
             await expect(page.locator('#hero-room-required')).toHaveRole('alert')

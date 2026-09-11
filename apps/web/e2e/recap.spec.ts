@@ -1,6 +1,6 @@
 import { expect, type APIRequestContext, type Page } from '@playwright/test'
 import { test } from './fixtures'
-import { enterCreatedRoom } from './helpers'
+import { draftRoomPeople, enterCreatedRoom } from './helpers'
 import { recapImagePath } from '../src/lib/recap'
 
 /**
@@ -25,13 +25,8 @@ async function roomWithPeople(page: Page) {
     await page.goto('/new')
     await page.getByTestId('room-name').fill('Recap artefacts')
     await page.getByTestId('creator-name').fill('Ana')
+    await draftRoomPeople(page, ['Bea', 'Cass'])
     await page.getByTestId('create-room').click()
-
-    for (const name of ['Bea', 'Cass']) {
-        await page.getByTestId('checkpoint-name').fill(name)
-        await page.getByTestId('checkpoint-add').click()
-        await expect(page.locator(`[data-testid="checkpoint-member"][data-member="${name}"]`)).toBeVisible()
-    }
 
     await enterCreatedRoom(page)
 

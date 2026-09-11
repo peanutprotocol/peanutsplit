@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { roomProps, track } from '@/lib/analytics'
 import { useErrorMessage } from '@/lib/error-messages'
 import { trackRoomCreatedConversion } from '@/lib/google-ads'
@@ -8,6 +8,7 @@ import { writeIdentity } from '@/lib/identity'
 import { markRoomCreatedHere } from '@/lib/install-funnel'
 import { useCreateRoom } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
+import { normalizePersonName } from '@/lib/person-name'
 import { useFeedback } from '@/lib/use-settings'
 
 export interface CreateRoomFields {
@@ -15,6 +16,7 @@ export interface CreateRoomFields {
     emoji: string
     currency: string
     creatorName: string
+    memberNames?: string[]
     /** The template link this came from, if any. A fact about the page, never about the room. */
     template?: string
 }
@@ -32,8 +34,11 @@ export function useCreateRoomFlow(fallbackMessage: string) {
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
     const [error, setError] = useState<string | null>(null)
+    const submittingRef = useRef(false)
 
     const submit = async (fields: CreateRoomFields) => {
+        if (submittingRef.current) return null
+        submittingRef.current = true
         setError(null)
         try {
             const state = await createRoom.mutateAsync({
@@ -41,6 +46,7 @@ export function useCreateRoomFlow(fallbackMessage: string) {
                 emoji: fields.emoji,
                 currency: fields.currency,
                 creatorName: fields.creatorName.trim(),
+                memberNames: fields.memberNames?.map(normalizePersonName).filter(Boolean),
             })
             // The token is returned exactly once — store it before anything else
             // can throw, or this device permanently loses its attribution.
@@ -71,6 +77,8 @@ export function useCreateRoomFlow(fallbackMessage: string) {
         } catch (err) {
             setError(errorMessage(err, fallbackMessage))
             return null
+        } finally {
+            submittingRef.current = false
         }
     }
 

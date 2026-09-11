@@ -1,158 +1,29 @@
 import { expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
-import { enterCreatedRoom } from './helpers'
+import { draftRoomPeople, enterCreatedRoom } from './helpers'
 import { slideToConfirm } from './slide-to-confirm'
 
 test.setTimeout(60_000)
 
-/**
- * Both creation doors run the same funnel, so this helper takes the door.
- *
- * The checkpoint belongs to the ROOM now: whichever door you came through, it stands on
- * `/r/<slug>?roster=1` and the single exit only takes the param off again. Tests therefore
- * assert the room URL here, at the checkpoint, rather than waiting for it after the exit.
- */
-async function createAtRosterCheckpoint(page: Page, roomName: string, door: 'new' | 'hero' = 'new') {
-    if (door === 'hero') {
-        await page.goto('/')
-        await page.getByTestId('hero-currency').selectOption('EUR')
-        await page.getByTestId('hero-room-name').fill(roomName)
-        await page.getByTestId('hero-creator-name').fill('Ana')
-        await page.getByTestId('hero-room-name').fill(roomName)
-        await expect(page.getByTestId('hero-create-room')).toBeEnabled()
-        await page.getByTestId('hero-create-room').click()
-    } else {
-        await page.goto('/new')
-        await page.getByTestId('room-currency').selectOption('EUR')
-        await page.getByTestId('room-name').fill(roomName)
-        await page.getByTestId('creator-name').fill('Ana')
-        // Cold WebKit hydration can discard the first write to the autofocus
-        // field. Refill it after the companion field proves React owns the form.
-        await page.getByTestId('room-name').fill(roomName)
-        await expect(page.getByTestId('create-room')).toBeEnabled()
-        await page.getByTestId('create-room').click()
-    }
-    await expect(page.getByTestId('roster-checkpoint')).toBeVisible({ timeout: 15_000 })
-    await expect(page).toHaveURL(/\/r\/[^/?]+\?roster=1$/)
+/** Both creation surfaces draft the same people before creating the room. */
+async function createRoom(page: Page, roomName: string, names: string[] = [], door: 'new' | 'hero' = 'new') {
+    const prefix = door === 'hero' ? 'hero-' : ''
+    await page.goto(door === 'hero' ? '/' : '/new')
+    await page.getByTestId(door === 'hero' ? 'hero-currency' : 'room-currency').selectOption('EUR')
+    await page.getByTestId(`${prefix}room-name`).fill(roomName)
+    await page.getByTestId(`${prefix}creator-name`).fill('Ana')
+    // Refill after the companion field to tolerate cold WebKit hydration.
+    await page.getByTestId(`${prefix}room-name`).fill(roomName)
+    await draftRoomPeople(page, names)
+    await page.getByTestId(`${prefix}create-room`).click()
+    return enterCreatedRoom(page)
 }
 
-const isMemberWrite = (request: { method(): string; url(): string }) =>
-    request.method() === 'POST' && /\/api\/rooms\/[^/]+\/members$/.test(new URL(request.url()).pathname)
-
-const roomMemberNames = async (page: Page) => {
-    const slug = new URL(page.url()).pathname.split('/').filter(Boolean).at(-1)!
-    return page.evaluate(async (roomSlug) => {
-        const response = await fetch(`/api/rooms/${encodeURIComponent(roomSlug)}`)
-        if (!response.ok) throw new Error(`room state failed: ${response.status}`)
-        const state = (await response.json()) as { members: Array<{ name: string }> }
-        return state.members.map((member) => member.name)
-    }, slug)
-}
-
-test('the checkpoint bottom action commits a pending name before it leaves the room setup', async ({ page }) => {
-    await createAtRosterCheckpoint(page, `Pending checkpoint ${Date.now()}`)
-
-    let releaseMemberWrite!: () => void
-    const heldMemberWrite = new Promise<void>((resolve) => {
-        releaseMemberWrite = resolve
-    })
-    let observeMemberWrite!: () => void
-    const memberWriteStarted = new Promise<void>((resolve) => {
-        observeMemberWrite = resolve
-    })
-    let writes = 0
-    let submittedBody: unknown = null
-
-    await page.route(/\/api\/rooms\/[^/]+\/members$/, async (route) => {
-        if (!isMemberWrite(route.request())) {
-            await route.continue()
-            return
-        }
-        writes += 1
-        submittedBody = route.request().postDataJSON()
-        observeMemberWrite()
-        await heldMemberWrite
-        await route.continue()
-    })
-
-    const input = page.getByTestId('checkpoint-name')
-    const exit = page.getByTestId('go-to-room')
-    await input.fill('  Bea  ')
-    await exit.click()
-    await memberWriteStarted
-
-    try {
-        // Leaving before this response would unmount the only UI capable of
-        // reporting failure and recreate the original "I added them twice" path.
-        await expect(page).toHaveURL(/\?roster=1$/)
-        await expect(page.getByTestId('roster-checkpoint')).toBeVisible()
-        await expect(exit).toBeDisabled()
-        await expect(input).toHaveValue('  Bea  ')
-        expect(writes).toBe(1)
-        expect(submittedBody).toEqual({ name: 'Bea', intent: 'add' })
-    } finally {
-        releaseMemberWrite()
-    }
-
-    await expect(page).toHaveURL(/\/r\/pending-checkpoint-[^?]*$/)
-    await expect(page.getByTestId('open-room-switcher')).toBeVisible({ timeout: 15_000 })
-    await expect.poll(async () => (await roomMemberNames(page)).filter((name) => name === 'Bea').length).toBe(1)
-    expect(writes).toBe(1)
-})
-
-test('a failed pending-name commit keeps the checkpoint and its recoverable draft', async ({ page }) => {
-    await createAtRosterCheckpoint(page, `Failed checkpoint ${Date.now()}`)
-
-    let writes = 0
-    await page.route(/\/api\/rooms\/[^/]+\/members$/, async (route) => {
-        if (!isMemberWrite(route.request())) {
-            await route.continue()
-            return
-        }
-        writes += 1
-        await route.fulfill({
-            status: 500,
-            contentType: 'application/json',
-            body: JSON.stringify({ error: { code: 'INTERNAL_ERROR', message: 'forced checkpoint failure' } }),
-        })
-    })
-
-    const input = page.getByTestId('checkpoint-name')
-    const exit = page.getByTestId('go-to-room')
-    await input.fill('Bea')
-    await exit.click()
-
-    await expect(page.getByTestId('roster-checkpoint').getByRole('alert')).toBeVisible()
-    await expect(page).toHaveURL(/\?roster=1$/)
-    await expect(page.getByTestId('roster-checkpoint')).toBeVisible()
-    await expect(input).toHaveValue('Bea')
-    await expect(input).toBeFocused()
-    await expect(exit).toBeEnabled()
-    expect(writes).toBe(1)
-})
-
-test('checkpoint → empty room → first shared balance is one adaptive funnel', async ({ page }) => {
+test('creating a group leads from its empty room to the first shared balance', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 568 })
-    await createAtRosterCheckpoint(page, 'Adaptive trip')
+    await createRoom(page, 'Adaptive trip', ['Bea'])
 
-    // Moment 1: creation asks only for the roster. The single exit adapts from
-    // Skip to Done as soon as the creator adds somebody.
-    const checkpoint = page.getByTestId('roster-checkpoint')
-    await expect(checkpoint.getByRole('heading', { name: 'Who’s in?' })).toBeVisible()
-    await expect(checkpoint.getByText('This can be changed later.')).toBeVisible()
-    await expect(checkpoint.locator('[data-testid="checkpoint-member"][data-member="Ana"]')).toBeVisible()
-    await expect(checkpoint.getByRole('button', { name: 'Skip', exact: true })).toHaveCount(1)
-    await expect(checkpoint.getByRole('button', { name: 'Done', exact: true })).toHaveCount(0)
-
-    await checkpoint.getByRole('textbox', { name: 'Name' }).fill('Bea')
-    await checkpoint.getByRole('button', { name: 'Add', exact: true }).click()
-    await expect(checkpoint.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
-    await expect(checkpoint.getByRole('button', { name: 'Skip', exact: true })).toHaveCount(0)
-    await expect(checkpoint.getByRole('button', { name: 'Done', exact: true })).toHaveCount(1)
-    await checkpoint.getByRole('button', { name: 'Done', exact: true }).click()
-    await expect(page).toHaveURL(/\/r\/adaptive-trip-[^?]*$/)
-
-    // Moment 2: the empty room owns its two useful actions. There is no settle
+    // The empty room owns its two useful actions. There is no settle
     // action and no second fixed-bar copy of Add expense.
     const emptyShare = page.getByTestId('empty-share')
     const emptyAdd = page.getByTestId('open-add-expense')
@@ -166,7 +37,7 @@ test('checkpoint → empty room → first shared balance is one adaptive funnel'
     expect(emptyAddBox).not.toBeNull()
     expect(emptyAddBox!.y + emptyAddBox!.height).toBeLessThanOrEqual(568)
 
-    // Moment 3: the first expense that creates a real two-person balance hands
+    // The first expense that creates a real two-person balance hands
     // directly to Share, with the new balance visible and one explicit exit.
     await emptyAdd.click()
     await page.getByTestId('expense-amount').fill('60')
@@ -214,8 +85,7 @@ test('checkpoint → empty room → first shared balance is one adaptive funnel'
 })
 
 test('a solo first expense returns to the room without opening Share', async ({ page }) => {
-    await createAtRosterCheckpoint(page, 'Solo notes')
-    await page.getByRole('button', { name: 'Skip', exact: true }).click()
+    await createRoom(page, 'Solo notes')
     await expect(page).toHaveURL(/\/r\/solo-notes-[^?]*$/)
 
     await page.getByTestId('open-add-expense').click()
@@ -232,10 +102,7 @@ test('a solo first expense returns to the room without opening Share', async ({ 
 })
 
 test('deleting the activating expense does not re-arm the post-aha prompt', async ({ page }) => {
-    await createAtRosterCheckpoint(page, 'Durable aha')
-    await page.getByRole('textbox', { name: 'Name' }).fill('Bea')
-    await page.getByRole('button', { name: 'Add', exact: true }).click()
-    await page.getByRole('button', { name: 'Done', exact: true }).click()
+    await createRoom(page, 'Durable aha', ['Bea'])
     await expect(page).toHaveURL(/\/r\/durable-aha-[^?]*$/)
 
     await page.getByTestId('open-add-expense').click()
@@ -262,18 +129,7 @@ test('deleting the activating expense does not re-arm the post-aha prompt', asyn
 })
 
 test('a room created from the landing hero runs the same funnel through to the first split', async ({ page }) => {
-    // The regression this file exists for: the hero used to enter the room directly, so a
-    // hero room had no roster, its first expense was solo, and moment 3 could never fire.
-    await createAtRosterCheckpoint(page, 'Hero trip', 'hero')
-
-    const checkpoint = page.getByTestId('roster-checkpoint')
-    await expect(checkpoint.getByRole('heading', { name: 'Who’s in?' })).toBeVisible()
-    await expect(checkpoint.locator('[data-testid="checkpoint-member"][data-member="Ana"]')).toBeVisible()
-    await checkpoint.getByRole('textbox', { name: 'Name' }).fill('Bea')
-    await checkpoint.getByRole('button', { name: 'Add', exact: true }).click()
-    await expect(checkpoint.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
-    await checkpoint.getByRole('button', { name: 'Done', exact: true }).click()
-    await expect(page).toHaveURL(/\/r\/hero-trip-[^?]*$/)
+    await createRoom(page, 'Hero trip', ['Bea'], 'hero')
 
     await page.getByTestId('open-add-expense').click()
     await page.getByTestId('expense-amount').fill('60')
@@ -286,17 +142,21 @@ test('a room created from the landing hero runs the same funnel through to the f
     await expect(postAha.getByTestId('first-balance-context')).toContainText('€30.00')
 })
 
-test('?roster=1 on a room this device did not create is just the room', async ({ page, newDevice }) => {
-    await createAtRosterCheckpoint(page, 'Not your checkpoint')
-    const url = await enterCreatedRoom(page)
+test('legacy ?roster=1 links open the ordinary room for creators and new devices', async ({ page, newDevice }) => {
+    const url = await createRoom(page, 'Legacy room link')
+
+    await page.goto(`${url}?roster=1`)
+    await expect(page.getByTestId('open-room-switcher')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('join-gate')).toHaveCount(0)
+    await expect(page.getByTestId('roster-checkpoint')).toHaveCount(0)
+    await expect(page.getByTestId('open-add-expense')).toBeVisible()
 
     const bea = await newDevice()
     await bea.goto(`${url}?roster=1`)
     await expect(bea.getByTestId('join-gate')).toBeVisible({ timeout: 15_000 })
     await expect(bea.getByTestId('roster-checkpoint')).toHaveCount(0)
 
-    // Joining hands this device a real member token for this room, and it still gets the
-    // room: the created-here marker is the half of the proof no link can carry.
+    // The obsolete parameter does not change the normal join and identity flow.
     await bea.getByTestId('im-new').click()
     await bea.getByTestId('join-name').fill('Bea')
     await bea.getByTestId('join-room').click()
@@ -305,16 +165,10 @@ test('?roster=1 on a room this device did not create is just the room', async ({
     await expect(bea.getByTestId('roster-checkpoint')).toHaveCount(0)
 })
 
-test('answering the checkpoint costs no history entry', async ({ page }) => {
-    await createAtRosterCheckpoint(page, 'One way trip')
-    await page.getByTestId('checkpoint-name').fill('Bea')
-    await page.getByTestId('checkpoint-add').click()
-    await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
-    await page.getByTestId('go-to-room').click()
+test('Back after creation returns directly to the setup form', async ({ page }) => {
+    await createRoom(page, 'One way trip', ['Bea'])
     await expect(page).toHaveURL(/\/r\/one-way-trip-[^?]*$/)
 
-    // Back leaves the room through the door it came in by. If the exit had pushed instead of
-    // replaced, this would land on the answered checkpoint again.
     await page.goBack()
     await expect(page).toHaveURL(/\/new$/)
     await expect(page.getByTestId('room-composer')).toBeVisible()

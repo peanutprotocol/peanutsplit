@@ -25,10 +25,8 @@ async function createTwoPersonRoom(page: Page) {
     await page.goto('/new')
     await page.getByTestId('room-name').fill(`Keyboard foundations ${Date.now()}`)
     await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('room-person-name').first().fill('Bea')
     await page.getByTestId('create-room').click()
-    await page.getByTestId('checkpoint-name').fill('Bea')
-    await page.getByTestId('checkpoint-add').click()
-    await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
     await enterCreatedRoom(page)
 }
 

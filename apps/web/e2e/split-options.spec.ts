@@ -143,10 +143,8 @@ test('typed amount lets the drawer grow when payer and sharing settings open', a
     await installVisualViewportMock(page)
     await page.goto('/new')
     await fillRoomCreation(page, `Drawer resize ${Date.now()}`)
+    await page.getByTestId('room-person-name').first().fill('Bea')
     await page.getByTestId('create-room').click()
-    await page.getByTestId('checkpoint-name').fill('Bea')
-    await page.getByTestId('checkpoint-add').click()
-    await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
     await enterCreatedRoom(page)
 
     await page.getByTestId('open-add-expense').click()
@@ -191,10 +189,8 @@ test('edit disclosures reveal their controls inside the short mobile scrollport'
     await page.setViewportSize({ width: 402, height: 670 })
     await page.goto('/new')
     await fillRoomCreation(page, `Short edit drawer ${Date.now()}`)
+    await page.getByTestId('room-person-name').first().fill('Bea')
     await page.getByTestId('create-room').click()
-    await page.getByTestId('checkpoint-name').fill('Bea')
-    await page.getByTestId('checkpoint-add').click()
-    await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
     await enterCreatedRoom(page)
 
     await page.getByTestId('open-add-expense').click()
@@ -261,10 +257,8 @@ test('unfinished inline people block expense writes until both inline commits fi
 
     await page.goto('/new')
     await fillRoomCreation(page, `Inline draft guards ${Date.now()}`)
+    await page.getByTestId('room-person-name').first().fill('Bea')
     await page.getByTestId('create-room').click()
-    await page.getByTestId('checkpoint-name').fill('Bea')
-    await page.getByTestId('checkpoint-add').click()
-    await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
     await enterCreatedRoom(page)
 
     let memberWrites = 0
@@ -332,10 +326,8 @@ test('More options reveals percentage and shares splits, which survive create an
 
     await page.goto('/new')
     await fillRoomCreation(page, `Weighted split ${Date.now()}`)
+    await page.getByTestId('room-person-name').first().fill('Bea')
     await page.getByTestId('create-room').click()
-    await page.getByTestId('checkpoint-name').fill('Bea')
-    await page.getByTestId('checkpoint-add').click()
-    await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
     await enterCreatedRoom(page)
 
     // Equal is the only split type shown until the deliberate disclosure.

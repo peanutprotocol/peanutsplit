@@ -7,6 +7,7 @@ import { motion } from 'motion/react'
 import { CurrencySelect } from '@/components/room/CurrencySelect'
 import { DoodlePicker } from '@/components/room/DoodlePicker'
 import { RoomEmblem } from '@/components/room/RoomEmblem'
+import { RoomPeopleFields } from '@/components/room/RoomPeopleFields'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { Doodle } from '@/components/ui/Doodle'
@@ -18,6 +19,7 @@ import { roomDoodleFor } from '@/lib/room-doodle'
 import { SLUG_TAIL_HINT, slugStem } from '@/lib/slugify'
 import { readCurrencyChoice, rememberCurrencyChoice, useCurrencyHints } from '@/lib/use-currency-hint'
 import { useCreateRoomFlow } from '@/lib/use-create-room'
+import { useRoomPeopleDraft } from '@/lib/use-room-people-draft'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
 import { LinkExplainer } from './LinkExplainer'
@@ -56,11 +58,8 @@ export interface HeroCreateFormProps {
  * The landing hero's action is this real form. Pressing the button creates the room and opens
  * it; the live URL stem is the product demonstration, not a decorative mockup beside it.
  *
- * NO LABELS ABOVE FIELDS. "What are you splitting?" over an empty box is a caption on a thing
- * that could say it itself — two lines where one does, and on a 390px screen those stacked
- * captions are the difference between the button being above the fold and below it. The
- * question moved into the placeholder (`Ski trip…`), and stayed on the input as `aria-label`,
- * so nothing was lost for a screen reader.
+ * Labels stay inside the fields to keep the form compact. The creator's label remains visible
+ * while typing so their name stays distinct from the other people in the group.
  *
  * The URL preview is the point of the whole layout — proof that this works arrives inside the
  * keystrokes you were already making, rather than as a claim you have to take on faith. It is
@@ -94,6 +93,7 @@ export function HeroCreateForm({
 
     const [localName, setLocalName] = useState('')
     const [creatorName, setCreatorName] = useState('')
+    const people = useRoomPeopleDraft(creatorName)
     const [validationField, setValidationField] = useState<'room' | 'creator' | null>(null)
     // null means "follow the name". The emblem used to be rolled at random after mount, which
     // needed an effect purely to dodge a hydration mismatch — a random value renders differently
@@ -190,10 +190,11 @@ export function HeroCreateForm({
             return creatorRef.current?.focus()
         }
         setValidationField(null)
-        const state = await submit({ name, emoji: shownEmblem, currency, creatorName })
+        if (!people.validatePeople()) return
+        const state = await submit({ name, emoji: shownEmblem, currency, creatorName, memberNames: people.memberNames })
         if (state) {
             trackLanding('landing_room_created', analyticsVariant)
-            router.push(`/r/${state.room.slug}?roster=1`)
+            router.push(`/r/${state.room.slug}`)
         }
     }
 
@@ -208,171 +209,198 @@ export function HeroCreateForm({
                 variant === 'compact' ? 'mt-6' : 'pass-link-form'
             )}
         >
-            <div className="flex items-stretch gap-2" style={heroBeat(110)} data-motion-surface>
-                <BaseInput
-                    ref={nameRef}
-                    value={name}
-                    onChange={(event) => changeName(event.target.value)}
-                    placeholder={tCreate('namePlaceholder')}
-                    aria-label={tCreate('name')}
-                    aria-invalid={validationField === 'room' || undefined}
-                    aria-describedby={validationField === 'room' ? 'hero-room-required' : undefined}
-                    maxLength={80}
-                    className="flex-1"
-                    data-testid="hero-room-name"
-                />
+            <fieldset disabled={pending} className="contents">
+                <div className="flex items-stretch gap-2" style={heroBeat(110)} data-motion-surface>
+                    <BaseInput
+                        ref={nameRef}
+                        value={name}
+                        onChange={(event) => changeName(event.target.value)}
+                        onKeyDown={(event) => {
+                            if (event.key !== 'Enter' || event.nativeEvent.isComposing) return
+                            event.preventDefault()
+                            creatorRef.current?.focus()
+                        }}
+                        enterKeyHint="next"
+                        placeholder={tCreate('namePlaceholder')}
+                        aria-label={tCreate('name')}
+                        aria-invalid={validationField === 'room' || undefined}
+                        aria-describedby={validationField === 'room' ? 'hero-room-required' : undefined}
+                        maxLength={80}
+                        className="flex-1"
+                        data-testid="hero-room-name"
+                    />
 
-                {/* A details/summary rather than a popover library: one line tall when closed,
+                    {/* A details/summary rather than a popover library: one line tall when closed,
                     no JS, and it reuses the same curated picker `/new` uses. */}
-                <details
-                    ref={pickerRef}
-                    open={pickerOpen}
-                    onToggle={(event) => setPickerOpen((event.target as HTMLDetailsElement).open)}
-                    className="relative"
-                >
-                    {/* The one piece of the form that is a toy rather than a field, so it
-                        answers a tap the way a toy does. */}
-                    <motion.summary
-                        aria-label={tCreate('emoji')}
-                        whileTap={{ scale: 0.88, rotate: -9 }}
-                        transition={{ type: 'spring', stiffness: 620, damping: 18 }}
-                        className="flex h-full cursor-pointer list-none items-center justify-center rounded-sm border border-n-1 bg-white px-3 [&::-webkit-details-marker]:hidden"
+                    <details
+                        ref={pickerRef}
+                        open={pickerOpen}
+                        onToggle={(event) => setPickerOpen((event.target as HTMLDetailsElement).open)}
+                        className="relative"
                     >
-                        <RoomEmblem value={shownEmblem} name={name} size={24} />
-                    </motion.summary>
-                    <div className="shadow-4 absolute right-0 z-20 mt-2 w-64 rounded-sm border border-n-1 bg-white p-3">
-                        <DoodlePicker
-                            value={shownEmblem}
-                            onChange={(next) => {
-                                setEmblem(next)
-                                feedback('tick')
-                                setPickerOpen(false)
+                        {/* The one piece of the form that is a toy rather than a field, so it
+                        answers a tap the way a toy does. */}
+                        <motion.summary
+                            aria-label={tCreate('emoji')}
+                            whileTap={{ scale: 0.88, rotate: -9 }}
+                            transition={{ type: 'spring', stiffness: 620, damping: 18 }}
+                            className="flex h-full cursor-pointer list-none items-center justify-center rounded-sm border border-n-1 bg-white px-3 [&::-webkit-details-marker]:hidden"
+                        >
+                            <RoomEmblem value={shownEmblem} name={name} size={24} />
+                        </motion.summary>
+                        <div className="shadow-4 absolute right-0 z-20 mt-2 w-64 rounded-sm border border-n-1 bg-white p-3">
+                            <DoodlePicker
+                                value={shownEmblem}
+                                onChange={(next) => {
+                                    setEmblem(next)
+                                    feedback('tick')
+                                    setPickerOpen(false)
+                                }}
+                                onDrawingOpenChange={setDrawingOpen}
+                            />
+                        </div>
+                    </details>
+                </div>
+
+                {validationField === 'room' && (
+                    <motion.p
+                        id="hero-room-required"
+                        role="alert"
+                        initial={motionAllowed ? { opacity: 0, y: -4 } : false}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ type: 'spring', stiffness: 480, damping: 30 }}
+                        className="text-sm font-bold text-error"
+                    >
+                        {t('validation.roomRequired')}
+                    </motion.p>
+                )}
+
+                <div className="flex items-stretch gap-2" style={heroBeat(160)} data-motion-surface>
+                    <div className="relative min-w-0 flex-1">
+                        <label
+                            htmlFor="hero-creator-name"
+                            className="pointer-events-none absolute left-5 top-2 z-10 text-xs leading-4 text-grey-1"
+                        >
+                            {tCreate('people.yourName')}
+                        </label>
+                        <BaseInput
+                            id="hero-creator-name"
+                            ref={creatorRef}
+                            value={creatorName}
+                            onChange={(event) => {
+                                setCreatorName(event.target.value)
+                                people.changeMembers(people.memberNames)
+                                if (validationField === 'creator') setValidationField(null)
                             }}
-                            onDrawingOpenChange={setDrawingOpen}
+                            onKeyDown={(event) => {
+                                if (event.key !== 'Enter' || event.nativeEvent.isComposing) return
+                                event.preventDefault()
+                                people.focusPerson(0)
+                            }}
+                            enterKeyHint="next"
+                            placeholder={tCreate('creatorNamePlaceholder')}
+                            aria-label={tCreate('people.yourName')}
+                            aria-invalid={validationField === 'creator' || undefined}
+                            aria-describedby={validationField === 'creator' ? 'hero-creator-required' : undefined}
+                            maxLength={80}
+                            className="pb-1 pt-5"
+                            data-testid="hero-creator-name"
                         />
                     </div>
-                </details>
-            </div>
+                    <CurrencySelect
+                        value={currency}
+                        onChange={chooseCurrency}
+                        currencies={FALLBACK_CURRENCIES}
+                        suggested={hints.map((hint) => hint.currency)}
+                        aria-label={tCreate('currencyLabel')}
+                        className="w-32 shrink-0"
+                        data-testid="hero-currency"
+                    />
+                </div>
 
-            {validationField === 'room' && (
-                <motion.p
-                    id="hero-room-required"
-                    role="alert"
-                    initial={motionAllowed ? { opacity: 0, y: -4 } : false}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ type: 'spring', stiffness: 480, damping: 30 }}
-                    className="text-sm font-bold text-error"
-                >
-                    {t('validation.roomRequired')}
-                </motion.p>
-            )}
+                {validationField === 'creator' && (
+                    <motion.p
+                        id="hero-creator-required"
+                        role="alert"
+                        initial={motionAllowed ? { opacity: 0, y: -4 } : false}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ type: 'spring', stiffness: 480, damping: 30 }}
+                        className="text-sm font-bold text-error"
+                    >
+                        {t('validation.creatorRequired')}
+                    </motion.p>
+                )}
 
-            <div className="flex items-stretch gap-2" style={heroBeat(160)} data-motion-surface>
-                <BaseInput
-                    ref={creatorRef}
-                    value={creatorName}
-                    onChange={(event) => {
-                        setCreatorName(event.target.value)
-                        if (validationField === 'creator') setValidationField(null)
-                    }}
-                    placeholder={tCreate('creatorNamePlaceholder')}
-                    aria-label={tCreate('creatorName')}
-                    aria-invalid={validationField === 'creator' || undefined}
-                    aria-describedby={validationField === 'creator' ? 'hero-creator-required' : undefined}
-                    maxLength={80}
-                    className="flex-1"
-                    data-testid="hero-creator-name"
-                />
-                <CurrencySelect
-                    value={currency}
-                    onChange={chooseCurrency}
-                    currencies={FALLBACK_CURRENCIES}
-                    suggested={hints.map((hint) => hint.currency)}
-                    aria-label={tCreate('currencyLabel')}
-                    className="w-32 shrink-0"
-                    data-testid="hero-currency"
-                />
-            </div>
-
-            {validationField === 'creator' && (
-                <motion.p
-                    id="hero-creator-required"
-                    role="alert"
-                    initial={motionAllowed ? { opacity: 0, y: -4 } : false}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ type: 'spring', stiffness: 480, damping: 30 }}
-                    className="text-sm font-bold text-error"
-                >
-                    {t('validation.creatorRequired')}
-                </motion.p>
-            )}
-
-            {/* An invented ticker has no rate, so this room converts nothing. Said at the pick,
+                {/* An invented ticker has no rate, so this room converts nothing. Said at the pick,
                 exactly as `/new` says it: it is a property of the choice, not a later warning. */}
-            {!FALLBACK_CURRENCIES.some((info) => info.code === currency) && (
-                <p className="text-xs text-grey-1" data-testid="hero-currency-hint">
-                    {tCreate('currencyCustomHint', { code: currency })}
+                {!FALLBACK_CURRENCIES.some((info) => info.code === currency) && (
+                    <p className="text-xs text-grey-1" data-testid="hero-currency-hint">
+                        {tCreate('currencyCustomHint', { code: currency })}
+                    </p>
+                )}
+
+                <RoomPeopleFields creatorName={creatorName} draft={people} disabled={pending} />
+
+                {/* The stem is real and the tail is honest about not existing yet. */}
+                <p
+                    className="flex items-center gap-1.5 font-mono text-xs leading-5 text-n-1"
+                    style={heroBeat(210)}
+                    data-motion-surface
+                >
+                    <span data-testid="hero-slug-preview">
+                        peanutsplit.com/r/
+                        <span className={stem ? '' : 'text-grey-1'}>{stem || tCreate('namePlaceholderSlug')}</span>
+                        <span className="tracking-widest text-grey-1">{SLUG_TAIL_HINT}</span>
+                    </span>
+                    <motion.button
+                        type="button"
+                        onClick={() => setExplainerOpen(true)}
+                        aria-label={t('linkExplainerTrigger')}
+                        whileTap={{ scale: 0.82, rotate: -14 }}
+                        transition={{ type: 'spring', stiffness: 620, damping: 18 }}
+                        // The padding is 41px of tap target cancelled by an equal negative
+                        // margin, so the mark stays put and the row's width for the URL
+                        // text above is unchanged — see RoomHeader's avatar button for the
+                        // same trick.
+                        className="-m-3 p-3 text-grey-1 transition-colors hover:text-n-1"
+                        data-testid="hero-link-explainer"
+                    >
+                        <Doodle name="question" size={17} weight={2.4} />
+                    </motion.button>
                 </p>
-            )}
 
-            {/* The stem is real and the tail is honest about not existing yet. */}
-            <p
-                className="flex items-center gap-1.5 font-mono text-xs leading-5 text-n-1"
-                style={heroBeat(210)}
-                data-motion-surface
-            >
-                <span data-testid="hero-slug-preview">
-                    peanutsplit.com/r/
-                    <span className={stem ? '' : 'text-grey-1'}>{stem || tCreate('namePlaceholderSlug')}</span>
-                    <span className="tracking-widest text-grey-1">{SLUG_TAIL_HINT}</span>
-                </span>
-                <motion.button
-                    type="button"
-                    onClick={() => setExplainerOpen(true)}
-                    aria-label={t('linkExplainerTrigger')}
-                    whileTap={{ scale: 0.82, rotate: -14 }}
-                    transition={{ type: 'spring', stiffness: 620, damping: 18 }}
-                    // The padding is 41px of tap target cancelled by an equal negative
-                    // margin, so the mark stays put and the row's width for the URL
-                    // text above is unchanged — see RoomHeader's avatar button for the
-                    // same trick.
-                    className="-m-3 p-3 text-grey-1 transition-colors hover:text-n-1"
-                    data-testid="hero-link-explainer"
-                >
-                    <Doodle name="question" size={17} weight={2.4} />
-                </motion.button>
-            </p>
+                {error && (
+                    <motion.p
+                        role="alert"
+                        initial={motionAllowed ? { opacity: 0, y: -4 } : false}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ type: 'spring', stiffness: 480, damping: 30 }}
+                        className="text-sm font-bold text-error"
+                    >
+                        {error}
+                    </motion.p>
+                )}
 
-            {error && (
-                <motion.p
-                    role="alert"
-                    initial={motionAllowed ? { opacity: 0, y: -4 } : false}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ type: 'spring', stiffness: 480, damping: 30 }}
-                    className="text-sm font-bold text-error"
-                >
-                    {error}
-                </motion.p>
-            )}
-
-            {/* Yellow carries the product's primary-action language and stands out cleanly
+                {/* Yellow carries the product's primary-action language and stands out cleanly
                 against the white composer card and pink landing background. */}
-            <Button
-                type="submit"
-                variant="primary"
-                shadowSize="4"
-                loading={pending}
-                className="justify-center text-h6"
-                // The last beat, and no `data-motion-surface`: that rule flattens transforms,
-                // which would take the button's own press affordance with it.
-                style={heroBeat(250)}
-                data-testid="hero-create-room"
-            >
-                <span>{t('cta')}</span>
-                <Doodle name="iconarrowright" size={22} weight={2.2} />
-            </Button>
+                <Button
+                    type="submit"
+                    variant="primary"
+                    shadowSize="4"
+                    loading={pending}
+                    className="justify-center text-h6"
+                    // The last beat, and no `data-motion-surface`: that rule flattens transforms,
+                    // which would take the button's own press affordance with it.
+                    style={heroBeat(250)}
+                    data-testid="hero-create-room"
+                >
+                    <span>{tCreate('submit')}</span>
+                    <Doodle name="iconarrowright" size={22} weight={2.2} />
+                </Button>
+                <p className="text-center text-xs text-grey-1">{tCreate('people.hint')}</p>
 
-            <LinkExplainer open={explainerOpen} onClose={() => setExplainerOpen(false)} />
+                <LinkExplainer open={explainerOpen} onClose={() => setExplainerOpen(false)} />
+            </fieldset>
         </form>
     )
 }

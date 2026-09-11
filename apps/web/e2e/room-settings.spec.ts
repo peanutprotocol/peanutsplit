@@ -152,8 +152,7 @@ test('room-scoped Settings keeps the link through rename and adds people in cont
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('go-to-room')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('go-to-room').click()
+    await expect(page.getByTestId('open-room-switcher')).toBeVisible({ timeout: 15_000 })
     await page.waitForURL(/\/r\/weekend-away-/)
 
     const permanentUrl = page.url()

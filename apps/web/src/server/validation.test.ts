@@ -26,6 +26,42 @@ describe('person names', () => {
     })
 })
 
+describe('the initial room roster', () => {
+    const room = { name: 'Trip', currency: 'EUR', creatorName: 'Ana' }
+
+    it('keeps requests without additional people compatible', () => {
+        expect(createRoomSchema.parse(room)).toEqual(room)
+        expect(createRoomSchema.parse({ ...room, memberNames: [] }).memberNames).toEqual([])
+    })
+
+    it('applies the existing person-name normalization to every additional person', () => {
+        const parsed = createRoomSchema.parse({
+            ...room,
+            memberNames: ['  Bea  ', 'Jose\u0301', 'Dani\n  Lee'],
+        })
+        expect(parsed.memberNames).toEqual(['Bea', 'José', 'Dani Lee'])
+    })
+
+    it('rejects an invalid name anywhere in the roster', () => {
+        for (const name of ['', '  ', '\u200b', 'x'.repeat(81), 'x'.repeat(321), null, 42]) {
+            const parsed = createRoomSchema.safeParse({ ...room, memberNames: ['Bea', name] })
+            expect(parsed.success).toBe(false)
+            if (!parsed.success) expect(parsed.error.issues[0].path).toEqual(['memberNames', 1])
+        }
+    })
+
+    it('requires an array when additional people are supplied', () => {
+        for (const memberNames of ['Bea', null, { name: 'Bea' }]) {
+            expect(createRoomSchema.safeParse({ ...room, memberNames }).success).toBe(false)
+        }
+    })
+
+    it('accepts a roster with more than twenty people', () => {
+        const memberNames = Array.from({ length: 25 }, (_, index) => `Person ${index + 1}`)
+        expect(createRoomSchema.parse({ ...room, memberNames }).memberNames).toEqual(memberNames)
+    })
+})
+
 const expense = (amountMinor: unknown) => ({
     description: 'Dinner',
     amountMinor,

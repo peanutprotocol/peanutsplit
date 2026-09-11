@@ -850,7 +850,20 @@
             "currencyHint": "Balances use this currency; expenses can use others.",
             "creatorName": "And you are…",
             "creatorNamePlaceholder": "Your name…",
-            "submit": "Create the room",
+            "people": {
+                "title": "People",
+                "count": "{count, plural, one {# person} other {# people}}",
+                "you": "You",
+                "yourName": "Your name",
+                "namePlaceholder": "Person’s name",
+                "nameLabel": "Name of person {number}",
+                "add": "Add another person",
+                "remove": "Remove {name}",
+                "removeEmpty": "Remove person {number}",
+                "duplicate": "{name} is listed twice. Add a surname or nickname.",
+                "hint": "You can add more people later."
+            },
+            "submit": "Create room",
             "failed": "could not create the room — try again",
             "rosterCheckpoint": {
                 "title": "Who’s in?",

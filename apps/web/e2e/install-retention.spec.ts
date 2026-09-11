@@ -128,13 +128,8 @@ async function createTwoPersonRoom(page: Page, name: string): Promise<string> {
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('room-name').fill(name)
     await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('room-person-name').first().fill('Bea')
     await page.getByTestId('create-room').click()
-
-    const checkpoint = page.getByTestId('roster-checkpoint')
-    await expect(checkpoint).toBeVisible({ timeout: 15_000 })
-    await checkpoint.getByRole('textbox', { name: 'Name' }).fill('Bea')
-    await checkpoint.getByRole('button', { name: 'Add', exact: true }).click()
-    await expect(checkpoint.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
     return enterCreatedRoom(page)
 }
 

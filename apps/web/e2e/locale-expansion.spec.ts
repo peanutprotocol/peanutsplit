@@ -87,18 +87,9 @@ for (const { locale, messages } of cases) {
         await page.getByTestId('room-name').fill(roomName)
         await page.getByTestId('room-currency').selectOption('EUR')
         await page.getByTestId('creator-name').fill(creatorName)
+        await page.getByTestId('room-person-name').first().fill(friendName)
         await page.getByTestId('create-room').click()
-
-        await expect(page).toHaveURL(/\/r\/[^/?]+\?roster=1$/, { timeout: 45_000 })
-        const checkpoint = page.getByTestId('roster-checkpoint')
-        await expect(checkpoint).toBeVisible({ timeout: 45_000 })
-        await checkpoint.getByTestId('checkpoint-name').fill(friendName)
-        await checkpoint.getByTestId('checkpoint-add').click()
-        await expect(checkpoint.locator(`[data-testid="checkpoint-member"][data-member="${friendName}"]`)).toBeVisible({
-            timeout: 15_000,
-        })
-        await checkpoint.getByTestId('go-to-room').click()
-        await expect(page).toHaveURL(/\/r\/[^/?]+$/)
+        await expect(page).toHaveURL(/\/r\/[^/?]+$/, { timeout: 45_000 })
 
         await page.getByTestId('open-add-expense').click()
         await page.getByTestId('expense-amount').fill('60')

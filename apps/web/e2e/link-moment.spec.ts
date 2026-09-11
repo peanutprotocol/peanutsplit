@@ -1,48 +1,31 @@
 import { expect } from '@playwright/test'
 import { test } from './fixtures'
-import { openCurrentRoomSettings } from './helpers'
+import { enterCreatedRoom, openCurrentRoomSettings } from './helpers'
 
-const createRoom = async (page: import('@playwright/test').Page, name: string) => {
+const createRoom = async (page: import('@playwright/test').Page, name: string, friend?: string) => {
     await page.goto('/new')
     await page.getByTestId('room-name').fill(name)
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
+    if (friend) await page.getByTestId('room-person-name').first().fill(friend)
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('roster-checkpoint')).toBeVisible({ timeout: 15_000 })
+    await enterCreatedRoom(page)
 }
 
-test('creation pauses at a concise roster checkpoint before entering the room', async ({ page }) => {
-    await createRoom(page, 'Roster trip')
-
-    await expect(page.getByRole('heading', { name: 'Who’s in?' })).toBeVisible()
-    await expect(page.getByText('This can be changed later.')).toBeVisible()
-    await expect(page.locator('[data-testid="checkpoint-member"][data-member="Ana"]')).toBeVisible()
+test('the created room contains every person drafted in setup', async ({ page }) => {
+    await createRoom(page, 'Roster trip', 'Bea')
+    await expect(page.getByTestId('roster-checkpoint')).toHaveCount(0)
     await expect(page.getByTestId('room-share-card')).toHaveCount(0)
-    await expect(page.getByTestId('go-to-room')).toHaveText('Skip')
-    await expect(page.getByTestId('checkpoint-add')).toHaveAccessibleName('Add')
-
-    await page.getByTestId('checkpoint-name').fill('Bea')
-    await page.getByTestId('checkpoint-add').click()
-    await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
-    await expect(page.getByTestId('checkpoint-name')).toHaveValue('')
-    await expect(page.getByTestId('go-to-room')).toHaveText('Done')
-
-    await page.getByTestId('go-to-room').click()
-    await page.waitForURL(/\/r\/roster-trip-/)
     await openCurrentRoomSettings(page)
+    await expect(page.locator('[data-testid="person-row"][data-member="Ana"]')).toBeVisible()
     await expect(page.locator('[data-testid="person-row"][data-member="Bea"]')).toBeVisible()
 })
 
 test('the in-room hand-off keeps copy inline and makes sharing the primary action', async ({ page }) => {
-    // The preview warm waits for the room itself. Its URL is minted by Next —
-    // a build-scoped hash on the segment — so the room document's own head is
-    // the only place it is written down, and the roster checkpoint is still on
-    // `/new`, describing `/new`. Registered before creation, awaited after the
-    // room is on screen.
+    // Register before creation because the room warms its build-scoped preview on arrival.
     const previewRequestPromise = page.waitForRequest((request) => request.url().includes('/opengraph-image'))
     await createRoom(page, 'Beer trip')
 
-    await page.getByRole('button', { name: 'Skip', exact: true }).click()
     await page.waitForURL(/\/r\/beer-trip-/)
 
     const previewRequest = await previewRequestPromise

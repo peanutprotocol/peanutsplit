@@ -29,21 +29,20 @@ export async function expectBalance(page: Page, member: string, netMinor: string
     await expect(balanceCard(page, member)).toHaveAttribute('data-net', netMinor, { timeout: 15_000 })
 }
 
-/**
- * Finish the shared creation boundary without depending on whichever action the
- * room offers next. Tests that need initial roster names add them at the visible
- * checkpoint before calling this helper.
- *
- * The checkpoint already stands on the room URL, so what has to settle after the
- * single exit is `?roster=1` leaving it — that, not the path, is what makes the
- * returned URL the room's permanent one.
- */
+/** Wait for the room created by the setup form, including its stored creator identity. */
 export async function enterCreatedRoom(page: Page): Promise<string> {
-    await expect(page.getByTestId('roster-checkpoint')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('go-to-room').click()
-    await expect(page).toHaveURL(/\/r\/[^/?]+$/)
+    await expect(page).toHaveURL(/\/r\/[^/?]+$/, { timeout: 15_000 })
     await expect(page.getByTestId('open-room-switcher')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('join-gate')).toHaveCount(0)
     return page.url()
+}
+
+/** Fill the optional people draft before the single Create room submission. */
+export async function draftRoomPeople(page: Page, names: string[]): Promise<void> {
+    for (const [index, name] of names.entries()) {
+        if (index > 0) await page.getByTestId('add-room-person').click()
+        await page.getByTestId('room-person-name').nth(index).fill(name)
+    }
 }
 
 /** Open Settings for the loaded room through its room-picker action. */

@@ -850,6 +850,19 @@
             "currencyHint": "Les soldes utilisent cette devise ; les dépenses peuvent en utiliser d’autres.",
             "creatorName": "Et toi, tu t’appelles…",
             "creatorNamePlaceholder": "Ton nom…",
+            "people": {
+                "title": "Personnes",
+                "count": "{count, plural, one {# personne} many {# personnes} other {# personnes}}",
+                "you": "Toi",
+                "yourName": "Ton nom",
+                "namePlaceholder": "Nom de la personne",
+                "nameLabel": "Nom de la personne {number}",
+                "add": "Ajouter une autre personne",
+                "remove": "Retirer {name}",
+                "removeEmpty": "Retirer la personne {number}",
+                "duplicate": "{name} apparaît deux fois. Ajoute un nom de famille ou un surnom.",
+                "hint": "Tu pourras ajouter d’autres personnes plus tard."
+            },
             "submit": "Créer le groupe",
             "failed": "impossible de créer le groupe — réessaie",
             "rosterCheckpoint": {

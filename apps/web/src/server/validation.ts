@@ -99,6 +99,7 @@ export const createRoomSchema = z.object({
     emoji: roomEmblem.nullish(),
     currency: currencyCode,
     creatorName: personName,
+    memberNames: z.array(personName).optional(),
 })
 
 export const createMemberSchema = z.object({

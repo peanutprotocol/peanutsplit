@@ -3,6 +3,7 @@ import path from 'node:path'
 import { expect, type APIRequestContext } from '@playwright/test'
 import { test } from './fixtures'
 import { ARTICLE_IMAGE_URL } from '../src/lib/seo'
+import { CANONICAL_ORIGIN } from '../src/lib/domains'
 
 /**
  * The landing card, as a crawler sees it.
@@ -13,7 +14,7 @@ import { ARTICLE_IMAGE_URL } from '../src/lib/seo'
  * drew a different one, and nothing failed.
  *
  * One trap dominates how these tests have to be written. `pageMetadata()` pins
- * `metadataBase: new URL(siteUrl)`, so the landing page advertises
+ * `metadataBase: new URL(CANONICAL_ORIGIN)`, so the landing page advertises
  * `https://peanutsplit.com/opengraph-image-<hash>.png` even when it is served from localhost.
  * Fetching the advertised URL verbatim therefore tests production and never the build in front of
  * you — a local swap of one of the two copies stays green. Every fetch below is rebased onto the
@@ -53,11 +54,9 @@ test.describe('landing social card', () => {
         await expect(advertised).toHaveAttribute('content', /^https?:\/\/[^/]+\/opengraph-image-[a-z0-9]+\.png(\?|$)/)
 
         const cardUrl = (await advertised.getAttribute('content'))!
-        // A card advertised on the wrong host unfurls dead everywhere, while still fetching fine
-        // from a machine that can reach it. The landing card follows `metadataBase`, which is now
-        // the configured origin (prod: the canonical host; a fork or E2E: its own origin) — so the
-        // guard is that the advertised host is the one actually serving the page.
-        expect(new URL(cardUrl).origin, 'og:image is advertised on a foreign origin').toBe(new URL(page.url()).origin)
+        // Public marketing metadata uses the canonical host even in a local build.
+        // Fetch the local copy below so a valid production image cannot hide a broken build.
+        expect(new URL(cardUrl).origin, 'og:image must use the public canonical origin').toBe(CANONICAL_ORIGIN)
 
         const card = await fetchImage(request, onOriginUnderTest(cardUrl, page.url()))
 

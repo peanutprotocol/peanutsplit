@@ -6,7 +6,7 @@ import { expectSlideReset, slideToConfirm } from './slide-to-confirm'
 
 /**
  * The whole product in one journey, against the real API and the real database:
- * create → optional roster → share → a second device joins → an EQUAL expense → a
+ * draft room and people → create → share → a second device joins → an EQUAL expense → a
  * foreign-currency EXACT expense → balances → settle → all settled → undo.
  *
  * Balances are asserted from `data-net` (raw minor units off the server) rather
@@ -25,8 +25,7 @@ import { expectSlideReset, slideToConfirm } from './slide-to-confirm'
 const allSettled = (page: Page) => page.locator('main [data-testid="all-settled"]')
 
 const expectStill = async (page: Page) => {
-    // A screen may legitimately animate nothing — the roster checkpoint draws no motion surface at
-    // all — and stillness is then trivially true with no opacity to read. Every caller waits for a
+    // A screen may legitimately animate nothing, leaving no opacity to read. Every caller waits for a
     // visible anchor on the screen first, so the count below is taken on a settled page. The real
     // guarantee is the body-wide check underneath, which runs either way.
     const surfaces = page.locator('[data-motion-surface]')
@@ -56,15 +55,10 @@ const runStillRouteMatrix = async (page: Page) => {
     await expectStill(page)
     await page.getByTestId('room-name').fill(`Still room ${Date.now()}`)
     await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('room-person-name').first().fill('Bea')
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('roster-checkpoint')).toBeVisible({ timeout: 15_000 })
-    await expectStill(page)
-
-    await page.getByTestId('checkpoint-name').fill('Bea')
-    await page.getByTestId('checkpoint-add').click()
-    await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
-    await page.getByTestId('go-to-room').click()
-    // Bea was added at the checkpoint, so this is a two-person room and the one card is about her.
+    await enterCreatedRoom(page)
+    // The two-person room has one card about the creator's counterparty.
     await expectBalance(page, 'Bea', '0')
     await expectStill(page)
 
@@ -114,14 +108,11 @@ test('the deferred install prompt is still when the OS requests reduced motion',
     await page.goto('/new')
     await page.getByTestId('room-name').fill(`Still install ${Date.now()}`)
     await page.getByTestId('creator-name').fill('Ana')
-    await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('roster-checkpoint')).toBeVisible({ timeout: 15_000 })
-    await page.getByRole('textbox', { name: 'Name' }).fill('Bea')
-    await page.getByRole('button', { name: 'Add', exact: true }).click()
+    await page.getByTestId('room-person-name').first().fill('Bea')
 
-    // Install before the room navigation: InstallPrompt does not exist on /new,
-    // so every timer in its mounted lifecycle belongs to the controlled clock.
+    // Install before room creation so every InstallPrompt timer uses the controlled clock.
     await page.clock.install()
+    await page.getByTestId('create-room').click()
     await enterCreatedRoom(page)
     await expectBalance(page, 'Bea', '0')
 

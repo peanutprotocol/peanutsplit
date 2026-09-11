@@ -155,8 +155,7 @@ async function openDeviceSheet(page: Page, name: string, { reloadRoom = false } 
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('go-to-room')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('go-to-room').click()
+    await expect(page.getByTestId('open-room-switcher')).toBeVisible({ timeout: 15_000 })
     await page.waitForURL(/\/r\//)
     if (reloadRoom) await page.reload()
 

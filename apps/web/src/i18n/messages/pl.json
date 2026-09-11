@@ -850,6 +850,19 @@
             "currencyHint": "Waluta sald. Wydatki mogą być w innych walutach.",
             "creatorName": "Twoje imię",
             "creatorNamePlaceholder": "Twoje imię…",
+            "people": {
+                "title": "Osoby",
+                "count": "{count, plural, one {# osoba} few {# osoby} many {# osób} other {# osoby}}",
+                "you": "Ty",
+                "yourName": "Twoje imię",
+                "namePlaceholder": "Imię osoby",
+                "nameLabel": "Imię osoby {number}",
+                "add": "Dodaj kolejną osobę",
+                "remove": "Usuń: {name}",
+                "removeEmpty": "Usuń osobę {number}",
+                "duplicate": "{name} jest na liście dwa razy. Dodaj nazwisko lub pseudonim.",
+                "hint": "Możesz później dodać więcej osób."
+            },
             "submit": "Utwórz pokój",
             "failed": "nie udało się utworzyć pokoju — spróbuj ponownie",
             "rosterCheckpoint": {

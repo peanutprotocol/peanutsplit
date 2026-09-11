@@ -90,11 +90,8 @@ test('a real-currency room can price an invented expense with a frozen manual ra
     await page.getByTestId('room-name').fill('Ski trip')
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
+    await page.getByTestId('room-person-name').first().fill('Bea')
     await page.getByTestId('create-room').click()
-    await expect(page.getByTestId('roster-checkpoint')).toBeVisible({ timeout: 15_000 })
-    await page.getByTestId('checkpoint-name').fill('Bea')
-    await page.getByTestId('checkpoint-add').click()
-    await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
     await enterCreatedRoom(page)
 
     await page.getByTestId('open-add-expense').click()
@@ -195,11 +192,8 @@ test('expense currency remembers only this device’s saved choices in this room
         await page.getByTestId('room-name').fill('Currency preferences QA')
         await page.getByTestId('room-currency').selectOption(currency)
         await page.getByTestId('creator-name').fill('Ana')
+        await page.getByTestId('room-person-name').first().fill('Bea')
         await page.getByTestId('create-room').click()
-        await expect(page.getByTestId('roster-checkpoint')).toBeVisible({ timeout: 15_000 })
-        await page.getByTestId('checkpoint-name').fill('Bea')
-        await page.getByTestId('checkpoint-add').click()
-        await expect(page.locator('[data-testid="checkpoint-member"][data-member="Bea"]')).toBeVisible()
         return enterCreatedRoom(page)
     }
     const expectMenu = async (device: Page, selected: string, codes: string[]) => {

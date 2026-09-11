@@ -850,6 +850,19 @@
             "currencyHint": "Os saldos usam esta moeda; as despesas podem usar outras.",
             "creatorName": "E você é…",
             "creatorNamePlaceholder": "Seu nome…",
+            "people": {
+                "title": "Pessoas",
+                "count": "{count, plural, one {# pessoa} many {# pessoas} other {# pessoas}}",
+                "you": "Você",
+                "yourName": "Seu nome",
+                "namePlaceholder": "Nome da pessoa",
+                "nameLabel": "Nome da pessoa {number}",
+                "add": "Adicionar outra pessoa",
+                "remove": "Remover {name}",
+                "removeEmpty": "Remover pessoa {number}",
+                "duplicate": "{name} aparece duas vezes. Adicione um sobrenome ou apelido.",
+                "hint": "Você pode adicionar mais pessoas depois."
+            },
             "submit": "Criar a sala",
             "failed": "não deu para criar a sala — tente de novo",
             "rosterCheckpoint": {

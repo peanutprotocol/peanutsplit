@@ -206,6 +206,8 @@ export interface CreateRoomInput {
     emoji?: string | null
     currency: string
     creatorName: string
+    /** Additional people in the room, excluding the creator. */
+    memberNames?: string[]
 }
 
 export interface CreateMemberInput {

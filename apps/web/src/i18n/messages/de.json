@@ -850,6 +850,19 @@
             "currencyHint": "Die Salden verwenden diese Währung; Ausgaben können andere verwenden.",
             "creatorName": "Und du bist …",
             "creatorNamePlaceholder": "Dein Name …",
+            "people": {
+                "title": "Personen",
+                "count": "{count, plural, one {# Person} other {# Personen}}",
+                "you": "Du",
+                "yourName": "Dein Name",
+                "namePlaceholder": "Name der Person",
+                "nameLabel": "Name von Person {number}",
+                "add": "Weitere Person hinzufügen",
+                "remove": "{name} entfernen",
+                "removeEmpty": "Person {number} entfernen",
+                "duplicate": "{name} steht zweimal auf der Liste. Ergänze einen Nachnamen oder Spitznamen.",
+                "hint": "Du kannst später weitere Personen hinzufügen."
+            },
             "submit": "Gruppe erstellen",
             "failed": "Die Gruppe konnte nicht erstellt werden – versuche es noch einmal",
             "rosterCheckpoint": {
