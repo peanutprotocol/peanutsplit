@@ -94,7 +94,7 @@ export function HeroCreateForm({
     const [localName, setLocalName] = useState('')
     const [creatorName, setCreatorName] = useState('')
     const people = useRoomPeopleDraft(creatorName)
-    const [validationField, setValidationField] = useState<'room' | 'creator' | null>(null)
+    const [validationField, setValidationField] = useState<'creator' | null>(null)
     // null means "follow the name". The emblem used to be rolled at random after mount, which
     // needed an effect purely to dodge a hydration mismatch — a random value renders differently
     // on each side of it. Reading the name instead is both deterministic and better: it is right
@@ -125,7 +125,6 @@ export function HeroCreateForm({
     const changeName = (next: string) => {
         if (roomName === undefined) setLocalName(next)
         onRoomNameChange?.(next)
-        if (validationField === 'room') setValidationField(null)
     }
 
     /** Seeded after mount, not during render: `Intl` and `navigator` do not exist on the server.
@@ -149,17 +148,7 @@ export function HeroCreateForm({
      *  name field turns into a pair of skis while you are still writing "Ski trip". */
     const shownEmblem = emblem ?? roomDoodleFor(name)
 
-    /**
-     * The button is never disabled, which is a deliberate reversal of what `/new` does.
-     *
-     * This one is the visual anchor of the whole page — it is what the yellow band is built
-     * around — and a greyed-out primary action at the top of a landing page reads as a product
-     * that is already broken, before anyone has typed a character. So it stays black and alive,
-     * and an empty field sends the cursor to itself instead of refusing silently. Nothing can be
-     * submitted half-filled either way; the difference is whether the page looks dead while you
-     * read it.
-     */
-    const nameRef = useRef<HTMLInputElement>(null)
+    // Keep the landing action available; a missing creator name moves focus to its field.
     const creatorRef = useRef<HTMLInputElement>(null)
 
     /** A `<details>` has no light-dismiss of its own, so the drawing grid stayed open over the
@@ -181,10 +170,6 @@ export function HeroCreateForm({
         event.preventDefault()
         if (pending) return
         trackLanding('landing_creation_attempted', analyticsVariant)
-        if (!name.trim()) {
-            setValidationField('room')
-            return nameRef.current?.focus()
-        }
         if (!creatorName.trim()) {
             setValidationField('creator')
             return creatorRef.current?.focus()
@@ -212,7 +197,6 @@ export function HeroCreateForm({
             <fieldset disabled={pending} className="contents">
                 <div className="flex items-stretch gap-2" style={heroBeat(110)} data-motion-surface>
                     <BaseInput
-                        ref={nameRef}
                         value={name}
                         onChange={(event) => changeName(event.target.value)}
                         onKeyDown={(event) => {
@@ -223,8 +207,6 @@ export function HeroCreateForm({
                         enterKeyHint="next"
                         placeholder={tCreate('namePlaceholder')}
                         aria-label={tCreate('name')}
-                        aria-invalid={validationField === 'room' || undefined}
-                        aria-describedby={validationField === 'room' ? 'hero-room-required' : undefined}
                         maxLength={80}
                         className="flex-1"
                         data-testid="hero-room-name"
@@ -261,19 +243,6 @@ export function HeroCreateForm({
                         </div>
                     </details>
                 </div>
-
-                {validationField === 'room' && (
-                    <motion.p
-                        id="hero-room-required"
-                        role="alert"
-                        initial={motionAllowed ? { opacity: 0, y: -4 } : false}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ type: 'spring', stiffness: 480, damping: 30 }}
-                        className="text-sm font-bold text-error"
-                    >
-                        {t('validation.roomRequired')}
-                    </motion.p>
-                )}
 
                 <div className="flex items-stretch gap-2" style={heroBeat(160)} data-motion-surface>
                     <div className="relative min-w-0 flex-1">

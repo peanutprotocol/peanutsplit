@@ -95,7 +95,7 @@ const roomEmblem = z
     })
 
 export const createRoomSchema = z.object({
-    name: z.string().trim().min(1, 'is required').max(80),
+    name: z.string().trim().max(80).default(''),
     emoji: roomEmblem.nullish(),
     currency: currencyCode,
     creatorName: personName,

@@ -1,10 +1,12 @@
 /** Room + member writes. Kept out of the route handlers so the maths and the
  *  HTTP layer stay separable. */
 import { Prisma } from '@prisma/client'
+import { randomInt } from 'node:crypto'
 import { prisma } from '@/server/db'
 import { conflict } from '@/server/http'
 import { actorForMember, actorFromToken, appendRoomAuditEvent } from '@/server/history'
 import { randomPersonaKey } from '@/lib/avatars'
+import { ROOM_NAME_FALLBACKS } from '@/lib/room-names'
 import { effectiveAvatarPaletteKey, randomAvatarPaletteKey, separatedAvatarPaletteKeys } from '@/lib/avatar-palettes'
 import { memberToken, roomSlug } from '@/server/slug'
 import { loadRoom, type RoomWithRelations } from '@/server/roomState'
@@ -35,14 +37,16 @@ export async function createRoom(
     request: Request = new Request('http://localhost')
 ): Promise<{ room: RoomWithRelations } & CreatedMember> {
     const token = memberToken()
+    // Resolve once so a slug collision cannot change the room's chosen name.
+    const name = body.name || ROOM_NAME_FALLBACKS[randomInt(ROOM_NAME_FALLBACKS.length)]
 
     for (let attempt = 0; attempt < SLUG_ATTEMPTS; attempt++) {
         try {
             return await prisma.$transaction(async (tx) => {
                 const created = await tx.room.create({
                     data: {
-                        slug: roomSlug(body.name),
-                        name: body.name,
+                        slug: roomSlug(name),
+                        name,
                         emoji: body.emoji ?? null,
                         currency: body.currency,
                         locale,

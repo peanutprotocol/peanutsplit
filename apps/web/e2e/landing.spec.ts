@@ -469,11 +469,13 @@ test('both landing variants put the room composer in the hero itself', async ({ 
     await expect(page.getByTestId('landing-hero-variant').locator('form')).toHaveCount(1)
 
     await page.getByTestId('hero-create-room').click()
-    const roomName = page.getByTestId('hero-room-name')
-    await expect(roomName).toBeFocused()
-    const roomDescription = await roomName.getAttribute('aria-describedby')
-    expect(roomDescription).toBeTruthy()
-    await expect(page.locator(`#${roomDescription}`)).toContainText(catalogs.en.marketing.hero.validation.roomRequired)
+    const creatorName = page.getByTestId('hero-creator-name')
+    await expect(creatorName).toBeFocused()
+    const creatorDescription = await creatorName.getAttribute('aria-describedby')
+    expect(creatorDescription).toBeTruthy()
+    await expect(page.locator(`#${creatorDescription}`)).toContainText(
+        catalogs.en.marketing.hero.validation.creatorRequired
+    )
 })
 
 test('the real hero form creates a real room and retains the creator identity', async ({ page }, testInfo) => {
@@ -648,15 +650,8 @@ test.describe('Pass-the-link default', () => {
         const creatorName = page.getByTestId('hero-creator-name')
 
         await page.getByTestId('hero-create-room').click()
-        await expect(roomName).toBeFocused()
-        await expect(roomName).toHaveAttribute('aria-invalid', 'true')
-        const roomDescription = await roomName.getAttribute('aria-describedby')
-        expect(roomDescription).toBeTruthy()
-        await expect(page.locator(`#${roomDescription}`)).toHaveRole('alert')
-        await expect(page.locator(`#${roomDescription}`)).toHaveText(hero.validation.roomRequired)
-
-        await roomName.fill('Lisbon weekend')
-        await page.getByTestId('hero-create-room').click()
+        await expect(roomName).toHaveValue('')
+        await expect(roomName).not.toHaveAttribute('aria-invalid', 'true')
         await expect(creatorName).toBeFocused()
         await expect(creatorName).toHaveAttribute('aria-invalid', 'true')
         const creatorDescription = await creatorName.getAttribute('aria-describedby')
@@ -1007,8 +1002,8 @@ test.describe('Pass-the-link default', () => {
             await expect(page.getByTestId('hero-create-room')).toContainText(catalogs[locale].room.create.submit)
 
             await page.getByTestId('hero-create-room').click()
-            await expect(page.locator('#hero-room-required')).toHaveRole('alert')
-            await expect(page.locator('#hero-room-required')).toHaveText(messages.hero.validation.roomRequired)
+            await expect(page.locator('#hero-creator-required')).toHaveRole('alert')
+            await expect(page.locator('#hero-creator-required')).toHaveText(messages.hero.validation.creatorRequired)
 
             await expect(page.getByTestId('proof-link-identity')).toContainText(messages.proof.linkIdentity.title)
             await expect(page.getByTestId('proof-everyone-adds')).toContainText(messages.proof.everyoneAdds.title)

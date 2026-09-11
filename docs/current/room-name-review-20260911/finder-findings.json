@@ -1,0 +1,56 @@
+[
+  {
+    "lens": "clarity",
+    "coverage": [
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+      32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50
+    ],
+    "findings": [
+      {
+        "id": "clarity-01",
+        "line": 13,
+        "severity": "LOW",
+        "claim": "Roasted & Toasted reads as a description or slogan, not clearly a group."
+      },
+      {
+        "id": "clarity-02",
+        "line": 21,
+        "severity": "LOW",
+        "claim": "Adults Allegedly lacks punctuation that clarifies its joke."
+      },
+      {
+        "id": "clarity-03",
+        "line": 33,
+        "severity": "LOW",
+        "claim": "The Afterparty names an event more directly than a group."
+      }
+    ]
+  },
+  {
+    "lens": "fit",
+    "coverage": [
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+      32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50
+    ],
+    "findings": [
+      {
+        "id": "fit-01",
+        "line": 13,
+        "severity": "LOW",
+        "claim": "Roasted & Toasted reads as a description, not clearly a group."
+      },
+      {
+        "id": "fit-02",
+        "line": 22,
+        "severity": "LOW",
+        "claim": "Impulse Buyers assigns an unfavorable spending habit to an unchosen group."
+      },
+      {
+        "id": "fit-03",
+        "line": 24,
+        "severity": "LOW",
+        "claim": "Cheap Dates implies a romantic group and can judge its members."
+      }
+    ]
+  }
+]

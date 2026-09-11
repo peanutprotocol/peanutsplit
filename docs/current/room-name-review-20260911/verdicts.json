@@ -1,0 +1,37 @@
+[
+  {
+    "id": "clarity-01",
+    "line": 13,
+    "verdict": "CONFIRMED",
+    "evidence": "Descriptive participles rather than a collective name; conflicts with explicit group-name requirement.",
+    "resolution": "The Crunch Crew"
+  },
+  {
+    "id": "clarity-02",
+    "line": 21,
+    "verdict": "REFUTED",
+    "evidence": "Adults already names people; allegedly is intelligible without a comma. Punctuation preference is not a demonstrated defect.",
+    "resolution": "Retained Adults Allegedly"
+  },
+  {
+    "id": "clarity-03",
+    "line": 33,
+    "verdict": "CONFIRMED",
+    "evidence": "Afterparty names an event; a collective noun makes the required group reading explicit.",
+    "resolution": "The Afterparty Crew"
+  },
+  {
+    "id": "fit-02",
+    "line": 22,
+    "verdict": "REFUTED",
+    "evidence": "Impulse Buyers is a clear group name within the specifically requested mild spending-personality humor. No stronger concrete defect established.",
+    "resolution": "Retained Impulse Buyers"
+  },
+  {
+    "id": "fit-03",
+    "line": 24,
+    "verdict": "CONFIRMED",
+    "evidence": "Cheap Dates directly suggests dating relationships, an unwanted framing for arbitrary groups. Money humor itself is not the defect.",
+    "resolution": "The Bargain Bunch"
+  }
+]

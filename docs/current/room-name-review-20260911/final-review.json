@@ -1,0 +1,14 @@
+{
+  "reviewedCount": 50,
+  "findings": [],
+  "reportGaps": [],
+  "approved": true,
+  "evidence": {
+    "distinctNames": 50,
+    "maximumCharacterCount": 20,
+    "replacements": ["The Crunch Crew", "The Bargain Bunch", "The Afterparty Crew"],
+    "reportMatchesSource": true,
+    "scope": "Name pool and review completeness; application behavior tested separately.",
+    "sourceSha256": "4d7e2f4e6968f74e8680c1b2633eca1876bc1b77d3d33745418c718c91c8db48"
+  }
+}

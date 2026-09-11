@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
@@ -90,10 +90,7 @@ export function CreateRoomForm({ prefill = {} }: { prefill?: RoomPrefill }) {
     /** The guess, until somebody overrules it with the grid below. */
     const shownEmblem = emblem ?? roomDoodleFor(name)
 
-    const canSubmit = useMemo(
-        () => name.trim().length > 0 && creatorName.trim().length > 0 && !pending,
-        [name, creatorName, pending]
-    )
+    const canSubmit = creatorName.trim().length > 0 && !pending
 
     const submit = async (event: React.FormEvent) => {
         event.preventDefault()

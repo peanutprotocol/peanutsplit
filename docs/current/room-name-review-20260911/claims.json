@@ -1,0 +1,42 @@
+[
+  {
+    "id": "clarity-01",
+    "line": 13,
+    "severity": "LOW",
+    "claim": "Roasted & Toasted reads as a description or slogan, not clearly a group.",
+    "sources": ["clarity-01", "fit-01"],
+    "file": "docs/current/room-name-review-20260911/candidates.txt"
+  },
+  {
+    "id": "clarity-02",
+    "line": 21,
+    "severity": "LOW",
+    "claim": "Adults Allegedly lacks punctuation that clarifies its joke.",
+    "sources": ["clarity-02"],
+    "file": "docs/current/room-name-review-20260911/candidates.txt"
+  },
+  {
+    "id": "clarity-03",
+    "line": 33,
+    "severity": "LOW",
+    "claim": "The Afterparty names an event more directly than a group.",
+    "sources": ["clarity-03"],
+    "file": "docs/current/room-name-review-20260911/candidates.txt"
+  },
+  {
+    "id": "fit-02",
+    "line": 22,
+    "severity": "LOW",
+    "claim": "Impulse Buyers assigns an unfavorable spending habit to an unchosen group.",
+    "sources": ["fit-02"],
+    "file": "docs/current/room-name-review-20260911/candidates.txt"
+  },
+  {
+    "id": "fit-03",
+    "line": 24,
+    "severity": "LOW",
+    "claim": "Cheap Dates implies a romantic group and can judge its members.",
+    "sources": ["fit-03"],
+    "file": "docs/current/room-name-review-20260911/candidates.txt"
+  }
+]

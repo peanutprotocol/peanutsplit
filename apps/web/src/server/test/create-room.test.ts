@@ -1,8 +1,11 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { POST as postRoom } from '@/app/api/rooms/route'
 import { POST as claimMember } from '@/app/api/rooms/[slug]/members/[memberId]/claim/route'
 import type { ApiError, RoomStateWithMember } from '@/lib/api-types'
 import { encodeRoomDrawing } from '@/lib/room-drawing'
+import { ROOM_NAME_FALLBACKS } from '@/lib/room-names'
+import { slugStem } from '@/lib/slugify'
+import * as slug from '@/server/slug'
 import { resetRateLimits } from '@/server/rateLimit'
 import { createRoom } from '@/server/rooms'
 import { createRoomSchema } from '@/server/validation'
@@ -24,6 +27,48 @@ async function requestRoom<T = RoomStateWithMember>(overrides: Record<string, un
 beforeEach(async () => {
     await truncateAll()
     resetRateLimits()
+})
+
+afterEach(() => vi.restoreAllMocks())
+
+describe('room name fallbacks', () => {
+    it.each([undefined, '', ' \t\n '])('saves one group name when the supplied name is %j', async (name) => {
+        const { status, body } = await requestRoom({ name, memberNames: ['Bea'] })
+
+        expect(status).toBe(201)
+        expect(ROOM_NAME_FALLBACKS).toContain(body.room.name)
+        expect(body.room.slug).toMatch(new RegExp(`^${slugStem(body.room.name)}-[A-Za-z0-9_-]{22}$`))
+        expect(body.members.map((member) => member.name)).toEqual(['Ana', 'Bea'])
+        expect(await prisma.room.findUnique({ where: { id: body.room.id } })).toMatchObject({ name: body.room.name })
+        const event = await prisma.roomAuditEvent.findFirstOrThrow({
+            where: { roomId: body.room.id, action: 'room_created' },
+        })
+        expect(event.after).toMatchObject({ room: { name: body.room.name, slug: body.room.slug } })
+    })
+
+    it.each(['  Lisbon weekend  ', '🎿🎿', '友達の旅行'])('keeps a supplied name: %s', async (name) => {
+        const { status, body } = await requestRoom({ name })
+        expect(status).toBe(201)
+        expect(body.room.name).toBe(name.trim())
+    })
+
+    it.each([null, 123, 'a'.repeat(81)])('rejects an invalid name without falling back: %j', async (name) => {
+        const { status } = await requestRoom({ name })
+        expect(status).toBe(400)
+        expect(await prisma.room.count()).toBe(0)
+    })
+
+    it('keeps the same fallback when retrying a slug collision', async () => {
+        const { body: existing } = await requestRoom()
+        const roomSlug = vi.spyOn(slug, 'roomSlug').mockReturnValueOnce(existing.room.slug)
+        const { status, body } = await requestRoom({ name: '' })
+
+        expect(status).toBe(201)
+        expect(roomSlug).toHaveBeenCalledTimes(2)
+        expect(roomSlug.mock.calls).toEqual([[body.room.name], [body.room.name]])
+        expect(body.room.slug).not.toBe(existing.room.slug)
+        expect(await prisma.room.count()).toBe(2)
+    })
 })
 
 describe('creating a room with its people', () => {
