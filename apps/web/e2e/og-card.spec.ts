@@ -15,7 +15,8 @@ import { CANONICAL_ORIGIN } from '../src/lib/domains'
  *
  * One trap dominates how these tests have to be written. `pageMetadata()` pins
  * `metadataBase: new URL(CANONICAL_ORIGIN)`, so the landing page advertises
- * `https://peanutsplit.com/opengraph-image-<hash>.png` even when it is served from localhost.
+ * `https://peanutsplit.com/opengraph-image-<hash>.png` in a production build served from localhost.
+ * Next development mode instead resolves static image metadata against its local origin.
  * Fetching the advertised URL verbatim therefore tests production and never the build in front of
  * you — a local swap of one of the two copies stays green. Every fetch below is rebased onto the
  * origin under test, and the advertised host is asserted separately, on purpose.
@@ -54,9 +55,12 @@ test.describe('landing social card', () => {
         await expect(advertised).toHaveAttribute('content', /^https?:\/\/[^/]+\/opengraph-image-[a-z0-9]+\.png(\?|$)/)
 
         const cardUrl = (await advertised.getAttribute('content'))!
-        // Public marketing metadata uses the canonical host even in a local build.
+        // Next uses the local origin in development and metadataBase in production builds.
         // Fetch the local copy below so a valid production image cannot hide a broken build.
-        expect(new URL(cardUrl).origin, 'og:image must use the public canonical origin').toBe(CANONICAL_ORIGIN)
+        expect(
+            [CANONICAL_ORIGIN, new URL(page.url()).origin],
+            'og:image must use the canonical origin or the origin under test'
+        ).toContain(new URL(cardUrl).origin)
 
         const card = await fetchImage(request, onOriginUnderTest(cardUrl, page.url()))
 
