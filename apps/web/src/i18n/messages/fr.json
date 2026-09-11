@@ -3,7 +3,7 @@
         "hero": {
             "title": "FAIS TOURNER LE LIEN",
             "controlTitleAccessible": "FAIS TOURNER LE LIEN",
-            "titleAccessible": "UN LIEN. ON PARTAGE. C’EST RÉGLÉ.",
+            "titleAccessible": "Les <highlight>bons comptes</highlight> font les <highlight>bons amis</highlight>",
             "subtitle": "Partagez vos dépenses entre amis et voyez qui doit quoi.",
             "cta": "Créer le lien",
             "linkExplainerTrigger": "Comment fonctionne le lien",

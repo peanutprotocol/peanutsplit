@@ -3,7 +3,7 @@
         "hero": {
             "title": "MANDA AI",
             "controlTitleAccessible": "MANDA AÍ",
-            "titleAccessible": "LINK. DIVIDE. PRONTO.",
+            "titleAccessible": "<highlight>Contas em dia</highlight> mantêm <highlight>boas amizades</highlight>",
             "subtitle": "Divida despesas com amigos e veja quanto cada um deve.",
             "cta": "Criar o link",
             "linkExplainerTrigger": "Como o link funciona",

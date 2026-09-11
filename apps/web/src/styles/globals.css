@@ -1036,11 +1036,21 @@
     max-width: 49rem;
     margin: 0;
     overflow-wrap: normal;
-    font-size: clamp(4.25rem, 6.15vw, 6rem);
-    font-weight: 950;
-    letter-spacing: -0.065em;
-    line-height: 0.84;
-    white-space: pre-line;
+    font-size: clamp(2.5rem, 4vw, 4rem);
+    font-stretch: 50%;
+    font-weight: 1000;
+    letter-spacing: -0.045em;
+    line-height: 1.05;
+    text-transform: uppercase;
+    text-wrap: balance;
+}
+
+.pass-link-copy mark {
+    display: inline-block;
+    max-width: 100%;
+    padding-inline: 0.08em;
+    background: var(--primary-color);
+    color: inherit;
 }
 
 .pass-link-form-wrap {
@@ -1920,9 +1930,7 @@
 
     .pass-link-copy h1 {
         max-width: 35rem;
-        font-size: clamp(2.12rem, 10vw, 2.4rem);
-        letter-spacing: -0.06em;
-        line-height: 0.84;
+        font-size: clamp(1.375rem, 7vw, 2.5rem);
     }
 
     .pass-link-stage-shell,
@@ -2192,7 +2200,7 @@
     }
 
     .pass-link-copy h1 {
-        font-size: 2.12rem;
+        font-size: 1.375rem;
     }
 
     .pass-link-form {

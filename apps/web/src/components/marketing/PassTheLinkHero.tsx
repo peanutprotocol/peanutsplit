@@ -71,7 +71,11 @@ export function PassTheLinkHero() {
                     CSS. The band itself never animates: it is the page's first paint. */}
                 <div className="pass-link-layout">
                     <div className="pass-link-copy" style={heroBeat(0, 420)} data-motion-surface>
-                        <h1 data-testid="pass-link-headline">{t('titleAccessible')}</h1>
+                        <h1 data-testid="pass-link-headline">
+                            {t.rich('titleAccessible', {
+                                highlight: (words) => <mark>{words}</mark>,
+                            })}
+                        </h1>
                     </div>
 
                     <PassTheLinkStage roomName={roomName} state={stageState} />

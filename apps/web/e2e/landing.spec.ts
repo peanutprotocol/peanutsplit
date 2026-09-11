@@ -997,7 +997,9 @@ test.describe('Pass-the-link default', () => {
             await openLanding(page, locale)
             const messages = catalogs[locale].marketing
 
-            await expect(page.getByRole('heading', { level: 1 })).toHaveText(messages.hero.titleAccessible)
+            await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+                messages.hero.titleAccessible.replace(/<\/?highlight>/g, '')
+            )
             await expect(page.getByTestId('pass-link-stage-summary')).toHaveText(messages.hero.stageSummary)
             await expect(page.getByTestId('hero-create-room')).toContainText(catalogs[locale].room.create.submit)
 

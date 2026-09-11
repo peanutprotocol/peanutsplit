@@ -73,7 +73,9 @@ for (const { locale, messages } of cases) {
         await page.reload()
 
         await expect(page.locator('html')).toHaveAttribute('lang', locale)
-        await expect(page.getByRole('heading', { level: 1 })).toHaveText(messages.marketing.hero.titleAccessible)
+        await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+            messages.marketing.hero.titleAccessible.replace(/<\/?highlight>/g, '')
+        )
         await expect(page.getByTestId(`locale-${locale}`)).toHaveAttribute('aria-pressed', 'true')
         await expect(page.getByTestId('pass-link-stage')).toHaveAttribute('data-state', 'complete', { timeout: 10_000 })
         await expectNoHorizontalOverflow(page)

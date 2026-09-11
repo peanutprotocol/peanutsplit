@@ -3,7 +3,7 @@
         "hero": {
             "title": "PASALO",
             "controlTitleAccessible": "PÁSALO",
-            "titleAccessible": "LINK. DIVIDÍ. LISTO.",
+            "titleAccessible": "Las <highlight>cuentas claras</highlight> mantienen las <highlight>buenas amistades</highlight>",
             "subtitle": "Comparte gastos con amigos y consulta cuánto debe cada uno.",
             "cta": "Crear el link",
             "linkExplainerTrigger": "Cómo funciona el link",

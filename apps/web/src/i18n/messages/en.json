@@ -3,7 +3,7 @@
         "hero": {
             "title": "PASS IT",
             "controlTitleAccessible": "PASS IT",
-            "titleAccessible": "LINK. SPLIT. DONE.",
+            "titleAccessible": "Good <highlight>accounting</highlight> makes <highlight>good friends</highlight>",
             "subtitle": "Share expenses with friends and see who owes what.",
             "cta": "Make the link",
             "linkExplainerTrigger": "How the link works",

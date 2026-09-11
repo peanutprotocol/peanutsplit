@@ -3,7 +3,7 @@
         "hero": {
             "title": "PODAJ DALEJ",
             "controlTitleAccessible": "PODAJ DALEJ",
-            "titleAccessible": "KTO KOMU ILE? SPLIT TO POLICZY.",
+            "titleAccessible": "<highlight>Jasne rozliczenia</highlight> sprzyjają <highlight>dobrej przyjaźni</highlight>",
             "subtitle": "Dziel wydatki ze znajomymi i sprawdzaj, kto ile jest winien.",
             "cta": "Stwórz link",
             "linkExplainerTrigger": "Jak działa link",

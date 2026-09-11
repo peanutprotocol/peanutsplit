@@ -3,7 +3,7 @@
         "hero": {
             "title": "ПЕРЕДАЙ ДАЛІ",
             "controlTitleAccessible": "ПЕРЕДАЙ ДАЛІ",
-            "titleAccessible": "ХТО КОМУ СКІЛЬКИ? SPLIT ПОРАХУЄ.",
+            "titleAccessible": "<highlight>Чіткі розрахунки</highlight> зберігають <highlight>міцну дружбу</highlight>",
             "subtitle": "Діліть витрати з друзями та дивіться, хто скільки винен.",
             "cta": "Створити посилання",
             "linkExplainerTrigger": "Як працює посилання",

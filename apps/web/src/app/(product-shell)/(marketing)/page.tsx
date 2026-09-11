@@ -18,7 +18,7 @@ import { pageMetadata } from '@/lib/seo'
 const heroSubtitle = enMessages.marketing.hero.subtitle
 
 export const metadata = pageMetadata({
-    title: 'Peanut Split — pass the link, not the spreadsheet',
+    title: 'Peanut Split — good accounting makes good friends',
     description: heroSubtitle,
     path: '/',
     type: 'website',
