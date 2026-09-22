@@ -1,3 +1,4 @@
+import { readdirSync } from 'node:fs'
 import { expect, test } from '@playwright/test'
 
 const port = Number(process.env.PWA_BOUNDARY_PORT ?? 8777)
@@ -146,6 +147,19 @@ test('canonical product routes register through Serwist and remain installable a
     const offlineResponse = await page.reload({ waitUntil: 'domcontentloaded' })
     expect(offlineResponse?.status()).toBe(200)
     expect(offlineResponse?.fromServiceWorker()).toBe(true)
+    const installIcons = readdirSync(new URL('../public/install', import.meta.url)).filter((name) =>
+        name.endsWith('.svg')
+    )
+    expect(installIcons.length).toBeGreaterThan(0)
+    for (const icon of installIcons) {
+        const path = `/install/${icon}`
+        const cachedResponse = page.waitForResponse((response) => new URL(response.url()).pathname === path)
+        const contents = await page.evaluate(async (url) => (await fetch(url)).text(), path)
+        const response = await cachedResponse
+        expect(response.status(), icon).toBe(200)
+        expect(response.fromServiceWorker(), icon).toBe(true)
+        expect(contents, icon).toContain('<svg')
+    }
     await context.setOffline(false)
     await context.close()
 })

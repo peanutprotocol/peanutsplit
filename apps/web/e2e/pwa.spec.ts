@@ -157,11 +157,13 @@ async function openDeviceSheet(page: Page, name: string, { reloadRoom = false } 
     await page.getByTestId('create-room').click()
     await expect(page.getByTestId('open-room-switcher')).toBeVisible({ timeout: 15_000 })
     await page.waitForURL(/\/r\//)
+    const roomUrl = page.url()
     if (reloadRoom) await page.reload()
 
     await openCurrentRoomSettings(page)
     await page.getByTestId('device-row').click()
     await expect(page.getByTestId('device-sheet')).toBeVisible()
+    return roomUrl
 }
 
 /**
@@ -219,7 +221,7 @@ test.describe('the install row', () => {
         onlyOn('mobile')
         test.setTimeout(60_000)
         await modelAndroidBrowser(page)
-        await openDeviceSheet(page, 'Install Android Chrome')
+        const roomUrl = await openDeviceSheet(page, 'Install Android Chrome')
 
         const browserRow = page.getByTestId('install-row-browser')
         await expect(browserRow).toContainText('Install Split')
@@ -245,17 +247,21 @@ test.describe('the install row', () => {
         await expect(surface).toContainText('Room missing after installing? Open the original room link once.')
         await expect(surface.getByTestId('install-copy-room')).toHaveText('Copy original room link')
         expect(await page.evaluate(() => localStorage.getItem('ps:pwa-snoozed-until'))).toBeNull()
-        const appOrigin = new URL(page.url()).origin
 
         // Chromium can deliver its event after this document paints. The same surface becomes a
         // real one-tap action; the person does not have to leave help and reopen Device settings.
         await offerTheBrowserPrompt(page, 'accepted')
         const nativeInstall = surface.getByTestId('install-app-native')
         await expect(nativeInstall).toHaveText('Install Split')
+        const installedNavigation = page.waitForRequest(
+            (request) => request.isNavigationRequest() && request.url() === new URL('/app', roomUrl).href
+        )
         await nativeInstall.click()
         await expect.poll(() => page.evaluate(() => sessionStorage.getItem('__test-install-prompts'))).toBe('1')
-        await expect(page).toHaveURL(`${appOrigin}/app`)
-        await expect(page).toHaveTitle('Split')
+        await installedNavigation
+        await expect(page).toHaveURL(roomUrl)
+        await expect(page.getByTestId('join-gate')).toHaveCount(0)
+        await expect(page.getByTestId('room-title')).toHaveText('Install Android Chrome')
     })
 
     test('keeps desktop fallback instructions short and platform-specific', async ({ page }) => {
@@ -355,18 +361,22 @@ test.describe('the install row', () => {
         onlyOn('mobile')
         test.setTimeout(60_000)
         await modelAndroidBrowser(page)
-        await openDeviceSheet(page, 'Install through menu')
+        const roomUrl = await openDeviceSheet(page, 'Install through menu')
 
         await page.getByTestId('install-row-browser').click()
         await expect(page).toHaveURL(/\/app\?install=1&source=settings$/)
         await expect(page.getByTestId('install-app-surface')).toBeVisible()
         await expect(page.getByTestId('browser-install-steps')).toBeVisible()
-        const appOrigin = new URL(page.url()).origin
+        const installedNavigation = page.waitForRequest(
+            (request) => request.isNavigationRequest() && request.url() === new URL('/app', roomUrl).href
+        )
         await page.evaluate(() => window.dispatchEvent(new Event('appinstalled')))
 
         await expect(page.getByTestId('install-app-surface')).toHaveCount(0)
-        await expect(page).toHaveURL(`${appOrigin}/app`)
-        await expect(page).toHaveTitle('Split')
+        await installedNavigation
+        await expect(page).toHaveURL(roomUrl)
+        await expect(page.getByTestId('join-gate')).toHaveCount(0)
+        await expect(page.getByTestId('room-title')).toHaveText('Install through menu')
     })
 
     test('keeps a healthy canonical standalone app installed when a synthetic prompt arrives', async ({ page }) => {
