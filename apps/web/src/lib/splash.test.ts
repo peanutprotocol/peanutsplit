@@ -1,4 +1,4 @@
-import { existsSync, readdirSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { SPLASH_SCREENS, appleStartupImages, splashUrl } from './splash'
@@ -45,6 +45,7 @@ describe('iOS launch screens', () => {
             .filter((entry) => entry.isDirectory())
             .map((entry) => entry.name)
             .sort()
-        expect(folders).toEqual(['dev', 'doodles', 'fonts', 'icons', 'press'])
+        expect(folders).toEqual(['dev', 'doodles', 'fonts', 'icons', 'install', 'press'])
+        expect(readFileSync(path.join(WEB, 'next.config.js'), 'utf8')).toContain("'install/*.svg'")
     })
 })
