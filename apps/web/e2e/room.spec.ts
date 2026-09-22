@@ -104,6 +104,8 @@ test('the deferred install prompt is still when the OS requests reduced motion',
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.addInitScript(() => {
         Object.defineProperty(navigator, 'share', { configurable: true, value: async () => undefined })
+        // Keep notification setup from taking priority over the install card this test exercises.
+        Reflect.deleteProperty(Navigator.prototype, 'serviceWorker')
     })
     await page.goto('/new')
     await page.getByTestId('room-name').fill(`Still install ${Date.now()}`)
