@@ -674,7 +674,7 @@
             "description": "¿De qué fue? (opcional)",
             "descriptionPlaceholder": "Cena, taxi, pase de esquí… (opcional)",
             "amountPreview": "Con formato: {amount}",
-            "category": "Categoría de la ilustración",
+            "category": "Categoría",
             "categoryAutomatic": "Auto",
             "categories": {
                 "foodDrink": "Comida",

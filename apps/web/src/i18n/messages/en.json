@@ -674,7 +674,7 @@
             "description": "What for? (optional)",
             "descriptionPlaceholder": "Dinner, taxi, lift pass… (optional)",
             "amountPreview": "Formatted: {amount}",
-            "category": "Artwork category",
+            "category": "Category",
             "categoryAutomatic": "Auto",
             "categories": {
                 "foodDrink": "Food",

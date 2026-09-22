@@ -674,7 +674,7 @@
             "description": "Wofür? (optional)",
             "descriptionPlaceholder": "Abendessen, Taxi, Skipass … (optional)",
             "amountPreview": "Formatiert: {amount}",
-            "category": "Bildkategorie",
+            "category": "Kategorie",
             "categoryAutomatic": "Automatisch",
             "categories": {
                 "foodDrink": "Essen",

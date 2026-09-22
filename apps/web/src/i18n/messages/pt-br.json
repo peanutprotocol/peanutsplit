@@ -674,7 +674,7 @@
             "description": "Foi com o quê? (opcional)",
             "descriptionPlaceholder": "Jantar, táxi, passe de esqui… (opcional)",
             "amountPreview": "Formatado: {amount}",
-            "category": "Categoria da ilustração",
+            "category": "Categoria",
             "categoryAutomatic": "Auto",
             "categories": {
                 "foodDrink": "Comida",

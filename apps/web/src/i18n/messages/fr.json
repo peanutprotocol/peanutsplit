@@ -674,7 +674,7 @@
             "description": "Objet de la dépense (facultatif)",
             "descriptionPlaceholder": "Dîner, taxi, forfait de ski… (facultatif)",
             "amountPreview": "Formaté : {amount}",
-            "category": "Catégorie de l’illustration",
+            "category": "Catégorie",
             "categoryAutomatic": "Auto",
             "categories": {
                 "foodDrink": "Nourriture",

@@ -674,7 +674,7 @@
             "description": "За що? (необов’язково)",
             "descriptionPlaceholder": "Вечеря, таксі, абонемент на підйомник…",
             "amountPreview": "У форматі: {amount}",
-            "category": "Категорія ілюстрації",
+            "category": "Категорія",
             "categoryAutomatic": "Автоматично",
             "categories": {
                 "foodDrink": "Їжа",

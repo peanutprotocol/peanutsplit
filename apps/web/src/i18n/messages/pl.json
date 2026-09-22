@@ -674,7 +674,7 @@
             "description": "Za co? (opcjonalnie)",
             "descriptionPlaceholder": "Kolacja, taksówka, karnet…",
             "amountPreview": "Po sformatowaniu: {amount}",
-            "category": "Kategoria grafiki",
+            "category": "Kategoria",
             "categoryAutomatic": "Automatycznie",
             "categories": {
                 "foodDrink": "Jedzenie",
