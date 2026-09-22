@@ -1,8 +1,9 @@
 # Notifications, PWA installation, and return visits
 
 An active shared room offers notifications in its existing inline guidance slot.
-The offer uses the same room notification control and copy as Settings. Installation
-remains available in Device settings and becomes a later step when notifications
+The notification and install offers share a compact card with a mascot, one primary
+button, and Not now. Their CTAs are Notify me and Install Split, without descriptions.
+Installation remains available in Device settings and becomes a later step when notifications
 are already enabled. Neither action blocks joining, sharing, or recording an expense.
 
 ## Connected setup
@@ -10,7 +11,7 @@ are already enabled. Neither action blocks joining, sharing, or recording an exp
 - After joining an active room or reaching its first shared balance, a proven member
   can enable notifications in the room. Share and other active tasks retain priority.
 - Supported Android and desktop browsers request permission only when the person
-  taps the notification switch. Success requires a saved server subscription for
+  taps Notify me. Success requires a saved server subscription for
   this room; browser permission or another room's subscription is not sufficient.
 - An iPhone or iPad browser offers the existing Home Screen instructions first,
   including when that browser does not expose the push APIs. The temporary install
@@ -19,7 +20,7 @@ are already enabled. Neither action blocks joining, sharing, or recording an exp
   the notification control. A separate tap is still required to grant permission.
 - Starting installation from the notification control in Settings preserves the same
   intent. Ordinary installation does not imply notification intent or consent.
-- Successful opt-in confirms the switch briefly, then retires the offer for that visit.
+- Successful opt-in shows a check on the button briefly, then retires the offer for that visit.
   Installation can be offered on a later visit, at least 30 minutes after subscription.
   A backgrounded app can resume after 30 minutes away without needing a reload.
 - Notification and install refusals share the existing exponential backoff across
@@ -76,7 +77,7 @@ name, amount, or currency.
 - Empty-room Share/Add, identity recovery, stale or pending writes, open sheets/forms,
   latecomer correction, achievements, and the fresh All settled transition take priority.
 - Reaching All settled suppresses Install for the rest of that mounted celebration. A later
-  visit may show it with next-trip copy because the transition is over.
+  visit may show it because the transition is over.
 - Skipping post-activation Share, saying Not now to latecomer review, or dismissing an
   achievement defers the fallback for 30 minutes. A completed meaningful action may clear
   that defer.
@@ -89,6 +90,9 @@ name, amount, or currency.
   **Create shortcut**, which must not be used as an equivalent. The original room URL is
   retained only in this tab's sessionStorage so it can be copied and reopened once if a
   browser switch does not carry the room.
+- Manual installation uses numbered steps with recognizable browser-control icons from
+  Peanut UI. iOS includes the optional More menu and Open as Web App toggle; Android
+  follows Chrome's installation menus. The five SVGs are precached for offline access.
 - Rendering an automatic offer alone does not suppress a later quiet slot. Explicit dismissal or
   a browser decline uses the exponential backoff. A healthy canonical standalone app stays
   installed even if an unusual late Chromium prompt appears; an unmarked standalone room stays on
