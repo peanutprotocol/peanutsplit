@@ -50,7 +50,9 @@ jobs:
       - run: pnpm bootstrap
       - run: env -u DATABASE_URL DATABASE_URL="$TEST_DATABASE_URL" pnpm --filter @peanut-split/api exec prisma migrate deploy
       - name: Build both apps
-        run: pnpm build 2>&1 | tee "${RUNNER_TEMP}/split-build.log"
+        run: |
+          set -euo pipefail
+          pnpm build 2>&1 | tee "${RUNNER_TEMP}/split-build.log"
       - name: Start the API used by the settlement verifier
         run: |
           pnpm --filter @peanut-split/api exec tsx src/index.ts > "${RUNNER_TEMP}/split-api.log" 2>&1 &
@@ -63,7 +65,9 @@ jobs:
           cat "${RUNNER_TEMP}/split-api.log"
           exit 1
       - name: Full repository gate
-        run: pnpm verify 2>&1 | tee "${RUNNER_TEMP}/split-verify.log"
+        run: |
+          set -euo pipefail
+          pnpm verify 2>&1 | tee "${RUNNER_TEMP}/split-verify.log"
       - name: Keep verification logs
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -152,6 +156,7 @@ jobs:
           done
       - name: Verify the new flow and existing installation and Settings journeys
         run: |
+          set -euo pipefail
           pnpm --dir apps/web exec playwright test \
             e2e/notification-flow.spec.ts \
             e2e/install-retention.spec.ts \
