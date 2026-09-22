@@ -24,7 +24,6 @@ concurrency:
 jobs:
   verify:
     name: Full verification and production build
-    if: inputs.focus == ''
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
@@ -104,7 +103,7 @@ jobs:
       E2E_BROWSER: ${{ matrix.browser }}
       E2E_BASE_URL: https://localhost:8777
       E2E_SKIP_GLOBAL_SETUP: '1'
-      E2E_WORKERS: 2
+      E2E_WORKERS: 1
       SPLIT_FX_MODE: static
       NEXT_PUBLIC_BASE_URL: https://localhost:8777
       NEXT_PUBLIC_VAPID_PUBLIC_KEY: aGkh
@@ -210,8 +209,19 @@ jobs:
             e2e/install-handoff.spec.ts \
             e2e/pwa.spec.ts \
             e2e/room-settings.spec.ts \
-            --workers=2 --retries=0 --trace=retain-on-failure --reporter=list,html "${arguments[@]}" \
+            --workers=1 --retries=0 --trace=retain-on-failure --reporter=list,html "${arguments[@]}" \
             2>&1 | tee "${RUNNER_TEMP}/split-browser.log"
+      - name: Verify product and content service-worker boundaries
+        if: matrix.browser == 'chromium'
+        env:
+          PWA_BOUNDARY_PRODUCT_ORIGIN: http://localhost:8778
+          PWA_BOUNDARY_CONTENT_ORIGIN: http://localhost:8778
+        run: |
+          set -euo pipefail
+          pnpm --dir apps/web exec playwright test --config playwright.pwa-boundary.config.ts \
+            --workers=1 --retries=0 --trace=retain-on-failure --reporter=list \
+            --output=boundary-test-results \
+            2>&1 | tee "${RUNNER_TEMP}/split-boundary.log"
       - name: Keep screenshots, traces, reports and server logs
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -220,6 +230,8 @@ jobs:
           path: |
             apps/web/playwright-report
             apps/web/test-results
+            apps/web/boundary-test-results
+            ${{ runner.temp }}/split-boundary.log
             ${{ runner.temp }}/split-web.log
             ${{ runner.temp }}/split-proxy.log
             ${{ runner.temp }}/split-browser-build.log
