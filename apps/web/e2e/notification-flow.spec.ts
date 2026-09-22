@@ -133,6 +133,8 @@ test('Android asks only after a tap, saves this room, and keeps Settings in sync
     await openCurrentRoomSettings(page)
     await expect(page.getByTestId('push-disable')).toHaveAttribute('aria-checked', 'true')
     await page.getByTestId('close-room-settings').click()
+    await expect(page.getByTestId('settings-sheet')).toHaveCount(0)
+    await expect(page).toHaveURL(new RegExp(`/r/${room.slug}$`))
     await page.reload()
     await expect(page.getByTestId('room-title')).toBeVisible()
     await page.waitForTimeout(2_000)
@@ -361,26 +363,29 @@ test('a delayed notification save keeps Settings busy and cannot start a second 
     await expect(page).toHaveURL(new RegExp(`/r/${room.slug}`))
 })
 
-test('the inline offer fits 320px and yields to an expense drawer without prompting', async ({ page, request }) => {
-    await page.setViewportSize({ width: 320, height: 844 })
-    await modelNotificationBrowser(page)
-    await joinMatureRoom(
-        page,
-        await createMatureRoom(request, `A long weekend room with all our friends ${Date.now()}`)
-    )
-    const prompt = page.getByTestId('room-updates-prompt')
-    await expect(prompt).toBeVisible({ timeout: 6_000 })
-    const box = await prompt.boundingBox()
-    expect(box).not.toBeNull()
-    expect(box!.x).toBeGreaterThanOrEqual(0)
-    expect(box!.x + box!.width).toBeLessThanOrEqual(320)
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
-    await prompt.scrollIntoViewIfNeeded()
-    await test.info().attach('room-updates-320px', { body: await page.screenshot(), contentType: 'image/png' })
-    await page.getByTestId('open-add-expense').click()
-    await expect(page.getByTestId('expense-drawer')).toBeVisible()
-    await expect(prompt).toHaveCount(0)
-    expect(await permissionRequests(page)).toBe(0)
+test.describe('narrow notification layout', () => {
+    test.use({ viewport: { width: 320, height: 844 } })
+
+    test('the inline offer fits 320px and yields to an expense drawer without prompting', async ({ page, request }) => {
+        await modelNotificationBrowser(page)
+        await joinMatureRoom(
+            page,
+            await createMatureRoom(request, `A long weekend room with all our friends ${Date.now()}`)
+        )
+        const prompt = page.getByTestId('room-updates-prompt')
+        await expect(prompt).toBeVisible({ timeout: 6_000 })
+        const box = await prompt.boundingBox()
+        expect(box).not.toBeNull()
+        expect(box!.x).toBeGreaterThanOrEqual(0)
+        expect(box!.x + box!.width).toBeLessThanOrEqual(320)
+        expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
+        await prompt.scrollIntoViewIfNeeded()
+        await test.info().attach('room-updates-320px', { body: await page.screenshot(), contentType: 'image/png' })
+        await page.getByTestId('open-add-expense').click()
+        await expect(page.getByTestId('expense-drawer')).toBeVisible()
+        await expect(prompt).toHaveCount(0)
+        expect(await permissionRequests(page)).toBe(0)
+    })
 })
 
 test('iOS without browser push APIs installs first and resumes its room after a cookie-only app launch', async ({

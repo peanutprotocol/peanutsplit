@@ -1,7 +1,6 @@
 import { expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
 import { enterCreatedRoom, openCurrentRoomSettings } from './helpers'
-import { slideToConfirm } from './slide-to-confirm'
 
 test.setTimeout(90_000)
 
@@ -180,91 +179,98 @@ test('empty-room and post-aha guidance own the slot, and skipping Share defers i
     await expect(page.getByTestId('install-prompt')).toHaveCount(0)
 })
 
-test('the install card survives realtime rerenders, fits 320px, upgrades, suspends, and resumes', async ({ page }) => {
-    await page.setViewportSize({ width: 320, height: 844 })
-    await modelAndroidBrowser(page)
-    await modelNoisyRoomEvents(page)
-    await stubSuccessfulShare(page)
-    let roomReads = 0
-    page.on('request', (request) => {
-        const url = new URL(request.url())
-        if (request.method() === 'GET' && /^\/api\/rooms\/[^/]+$/.test(url.pathname)) roomReads += 1
+test.describe('narrow install layout', () => {
+    test.use({ viewport: { width: 320, height: 844 } })
+
+    test('the install card survives realtime rerenders, fits 320px, upgrades, suspends, and resumes', async ({
+        page,
+    }) => {
+        await modelAndroidBrowser(page)
+        await modelNoisyRoomEvents(page)
+        await stubSuccessfulShare(page)
+        let roomReads = 0
+        page.on('request', (request) => {
+            const url = new URL(request.url())
+            if (request.method() === 'GET' && /^\/api\/rooms\/[^/]+$/.test(url.pathname)) roomReads += 1
+        })
+        await createTwoPersonRoom(page, `Earned install ${Date.now()}`)
+
+        await addExpense(page, 'Shared dinner', '60')
+        const postAha = page.getByRole('dialog', { name: 'First split done' })
+        await expect(postAha).toBeVisible({ timeout: 15_000 })
+        await page.waitForTimeout(2_000)
+        await expect(page.getByTestId('install-prompt')).toHaveCount(0)
+
+        await postAha.getByTestId('share-link').click()
+        await expect(postAha.getByTestId('finish-post-aha-share')).toHaveText('Done')
+        await expect
+            .poll(() =>
+                page.evaluate(
+                    () => (window as Window & { __installRetentionShare?: ShareData }).__installRetentionShare
+                )
+            )
+            .toBeTruthy()
+
+        await postAha.getByTestId('finish-post-aha-share').click()
+        await expect(postAha).toHaveCount(0)
+        const readsWhenQuietWindowStarted = roomReads
+        const prompt = page.getByTestId('install-prompt')
+        await expect(prompt).toBeVisible({ timeout: 6_000 })
+        await expect(prompt).toContainText('Get back to this room faster. No app store. No account.')
+        await expect(prompt).toHaveAttribute('role', 'region')
+        await expect(prompt).not.toHaveClass(/\bfixed\b/)
+        await expect(prompt.getByRole('button', { name: 'Show install steps' })).toBeVisible()
+        await expect(prompt.getByRole('button', { name: 'Not now' })).toBeVisible()
+        await expect(prompt.locator('button')).toHaveCount(2)
+        await expect(prompt.getByRole('button', { name: /close/i })).toHaveCount(0)
+        expect(
+            await page.evaluate(() => (window as Window & { __pwaSsePokes?: number }).__pwaSsePokes ?? 0)
+        ).toBeGreaterThan(1)
+        expect(roomReads).toBeGreaterThan(readsWhenQuietWindowStarted)
+
+        // This is an inline next step, not a bottom overlay competing with the room's
+        // persistent actions. Bring it into view and prove it remains above the footer.
+        await prompt.scrollIntoViewIfNeeded()
+        const [promptBox, footerActionBox, installStepsBox, dismissBox] = await Promise.all([
+            prompt.boundingBox(),
+            page.getByTestId('open-add-expense').boundingBox(),
+            prompt.getByRole('button', { name: 'Show install steps' }).boundingBox(),
+            prompt.getByRole('button', { name: 'Not now' }).boundingBox(),
+        ])
+        expect(promptBox).not.toBeNull()
+        expect(footerActionBox).not.toBeNull()
+        expect(installStepsBox).not.toBeNull()
+        expect(dismissBox).not.toBeNull()
+        expect(promptBox!.x).toBeGreaterThanOrEqual(0)
+        expect(promptBox!.x + promptBox!.width).toBeLessThanOrEqual(320)
+        expect(promptBox!.y + promptBox!.height).toBeLessThanOrEqual(footerActionBox!.y)
+        expect(dismissBox!.y).toBeGreaterThan(installStepsBox!.y)
+        expect(Math.abs(dismissBox!.width - installStepsBox!.width)).toBeLessThanOrEqual(1)
+
+        // A late browser event upgrades this same card instead of creating a second
+        // impression or tearing away the fallback while somebody is considering it.
+        await offerBrowserInstall(page, 'accepted')
+        await expect(prompt.getByRole('button', { name: 'Install Split' })).toBeVisible()
+
+        // Persistent utility controls do not permanently disqualify installation, but
+        // the drawer they open temporarily owns the guidance slot.
+        await page.getByTestId('share-room').click()
+        const genericShare = page.getByRole('dialog', { name: 'Share room' })
+        await expect(genericShare).toBeVisible()
+        await expect(prompt).toHaveCount(0)
+        await genericShare.getByTestId('close-share').click()
+        await expect(genericShare).toHaveCount(0)
+        await expect(prompt).toBeVisible({ timeout: 6_000 })
+        await expect(prompt.getByRole('button', { name: 'Install Split' })).toBeVisible()
+
+        await prompt.getByRole('button', { name: 'Install Split' }).click()
+        expect(
+            await page.evaluate(
+                () => (window as Window & { __installRetentionPrompts?: number }).__installRetentionPrompts ?? 0
+            )
+        ).toBe(1)
+        await expect(prompt).toHaveCount(0)
     })
-    await createTwoPersonRoom(page, `Earned install ${Date.now()}`)
-
-    await addExpense(page, 'Shared dinner', '60')
-    const postAha = page.getByRole('dialog', { name: 'First split done' })
-    await expect(postAha).toBeVisible({ timeout: 15_000 })
-    await page.waitForTimeout(2_000)
-    await expect(page.getByTestId('install-prompt')).toHaveCount(0)
-
-    await postAha.getByTestId('share-link').click()
-    await expect(postAha.getByTestId('finish-post-aha-share')).toHaveText('Done')
-    await expect
-        .poll(() =>
-            page.evaluate(() => (window as Window & { __installRetentionShare?: ShareData }).__installRetentionShare)
-        )
-        .toBeTruthy()
-
-    await postAha.getByTestId('finish-post-aha-share').click()
-    await expect(postAha).toHaveCount(0)
-    const readsWhenQuietWindowStarted = roomReads
-    const prompt = page.getByTestId('install-prompt')
-    await expect(prompt).toBeVisible({ timeout: 6_000 })
-    await expect(prompt).toContainText('Get back to this room faster. No app store. No account.')
-    await expect(prompt).toHaveAttribute('role', 'region')
-    await expect(prompt).not.toHaveClass(/\bfixed\b/)
-    await expect(prompt.getByRole('button', { name: 'Show install steps' })).toBeVisible()
-    await expect(prompt.getByRole('button', { name: 'Not now' })).toBeVisible()
-    await expect(prompt.locator('button')).toHaveCount(2)
-    await expect(prompt.getByRole('button', { name: /close/i })).toHaveCount(0)
-    expect(
-        await page.evaluate(() => (window as Window & { __pwaSsePokes?: number }).__pwaSsePokes ?? 0)
-    ).toBeGreaterThan(1)
-    expect(roomReads).toBeGreaterThan(readsWhenQuietWindowStarted)
-
-    // This is an inline next step, not a bottom overlay competing with the room's
-    // persistent actions. Bring it into view and prove it remains above the footer.
-    await prompt.scrollIntoViewIfNeeded()
-    const [promptBox, footerActionBox, installStepsBox, dismissBox] = await Promise.all([
-        prompt.boundingBox(),
-        page.getByTestId('open-add-expense').boundingBox(),
-        prompt.getByRole('button', { name: 'Show install steps' }).boundingBox(),
-        prompt.getByRole('button', { name: 'Not now' }).boundingBox(),
-    ])
-    expect(promptBox).not.toBeNull()
-    expect(footerActionBox).not.toBeNull()
-    expect(installStepsBox).not.toBeNull()
-    expect(dismissBox).not.toBeNull()
-    expect(promptBox!.x).toBeGreaterThanOrEqual(0)
-    expect(promptBox!.x + promptBox!.width).toBeLessThanOrEqual(320)
-    expect(promptBox!.y + promptBox!.height).toBeLessThanOrEqual(footerActionBox!.y)
-    expect(dismissBox!.y).toBeGreaterThan(installStepsBox!.y)
-    expect(Math.abs(dismissBox!.width - installStepsBox!.width)).toBeLessThanOrEqual(1)
-
-    // A late browser event upgrades this same card instead of creating a second
-    // impression or tearing away the fallback while somebody is considering it.
-    await offerBrowserInstall(page, 'accepted')
-    await expect(prompt.getByRole('button', { name: 'Install Split' })).toBeVisible()
-
-    // Persistent utility controls do not permanently disqualify installation, but
-    // the drawer they open temporarily owns the guidance slot.
-    await page.getByTestId('share-room').click()
-    const genericShare = page.getByRole('dialog', { name: 'Share room' })
-    await expect(genericShare).toBeVisible()
-    await expect(prompt).toHaveCount(0)
-    await genericShare.getByTestId('close-share').click()
-    await expect(genericShare).toHaveCount(0)
-    await expect(prompt).toBeVisible({ timeout: 6_000 })
-    await expect(prompt.getByRole('button', { name: 'Install Split' })).toBeVisible()
-
-    await prompt.getByRole('button', { name: 'Install Split' }).click()
-    expect(
-        await page.evaluate(
-            () => (window as Window & { __installRetentionPrompts?: number }).__installRetentionPrompts ?? 0
-        )
-    ).toBe(1)
-    await expect(prompt).toHaveCount(0)
 })
 
 test('editing a solo expense into the first shared balance enters the same post-aha path', async ({ page }) => {
@@ -305,7 +311,7 @@ test('deleting the only ledger row gives the empty-room activation actions prior
     // durable maturity latch remains true, but the empty-room actions own the slot.
     await page.locator('[data-testid="expense-row"][data-description="Temporary dinner"]').click()
     await page.getByTestId('delete-expense').click()
-    await slideToConfirm(page, page.getByTestId('confirm-delete-expense'))
+    await page.getByTestId('confirm-delete-expense').press('Enter')
     await expect(page.locator('[data-testid="expense-row"][data-description="Temporary dinner"]')).toHaveCount(0)
     await page.waitForTimeout(2_000)
     await expect(page.getByTestId('install-prompt')).toHaveCount(0)
@@ -521,138 +527,147 @@ test('the all-settled arrival owns this visit, while a later visit gets next-tri
     await expect(bea.getByTestId('install-prompt')).toHaveCount(0)
 })
 
-test('the earned iOS offer withholds instructions on arm failure, then restores this exact room on retry', async ({
-    page,
-}) => {
-    await modelIOSBrowser(page)
-    await stubSuccessfulShare(page)
-    await createTwoPersonRoom(page, `iOS earned install ${Date.now()}`)
+test.describe('controlled iOS installation requests', () => {
+    // Service workers bypass page.route, which these request-race tests use.
+    test.use({ serviceWorkers: 'block' })
 
-    await addExpense(page, 'Shared dinner')
-    const postAha = page.getByRole('dialog', { name: 'First split done' })
-    await expect(postAha).toBeVisible({ timeout: 15_000 })
-    await postAha.getByTestId('share-link').click()
-    await postAha.getByTestId('finish-post-aha-share').click()
+    test('the earned iOS offer withholds instructions on arm failure, then restores this exact room on retry', async ({
+        page,
+    }) => {
+        await modelIOSBrowser(page)
+        await stubSuccessfulShare(page)
+        await createTwoPersonRoom(page, `iOS earned install ${Date.now()}`)
 
-    const prompt = page.getByTestId('room-updates-prompt')
-    await expect(prompt).toBeVisible({ timeout: 6_000 })
-    await expect(prompt.getByRole('button', { name: 'Show install steps' })).toBeVisible()
+        await addExpense(page, 'Shared dinner')
+        const postAha = page.getByRole('dialog', { name: 'First split done' })
+        await expect(postAha).toBeVisible({ timeout: 15_000 })
+        await postAha.getByTestId('share-link').click()
+        await postAha.getByTestId('finish-post-aha-share').click()
 
-    await page.route('**/api/rooms/*/install-handoff', (route) =>
-        route.fulfill({
-            status: 503,
-            contentType: 'application/json',
-            body: JSON.stringify({ error: { code: 'INTERNAL', message: 'temporary failure' } }),
+        const prompt = page.getByTestId('room-updates-prompt')
+        await expect(prompt).toBeVisible({ timeout: 6_000 })
+        await expect(prompt.getByRole('button', { name: 'Show install steps' })).toBeVisible()
+
+        await page.route('**/api/rooms/*/install-handoff', (route) =>
+            route.fulfill({
+                status: 503,
+                contentType: 'application/json',
+                body: JSON.stringify({ error: { code: 'INTERNAL', message: 'temporary failure' } }),
+            })
+        )
+        await prompt.getByRole('button', { name: 'Show install steps' }).click()
+        await expect(page.getByText('Couldn’t prepare this room. Try again in a moment.')).toBeVisible()
+        await expect(page.getByTestId('install-app-surface')).toHaveCount(0)
+
+        await page.unroute('**/api/rooms/*/install-handoff')
+        await prompt.getByRole('button', { name: 'Show install steps' }).click()
+        await expect(page).toHaveURL(/\/app\?install=1&source=auto$/, { timeout: 10_000 })
+        await expect(page).toHaveTitle('Split')
+        const installSurface = page.getByTestId('install-app-surface')
+        await expect(installSurface.getByRole('heading', { name: 'Add Split to your Home Screen' })).toBeVisible()
+        await expect(installSurface.locator('ol > li')).toHaveCount(4)
+        await expect(installSurface).toContainText('Then open Split from the new icon.')
+        await expect(installSurface).not.toContainText('within 24 hours')
+        expect(page.url()).not.toContain('/r/')
+        const cookies = await page.context().cookies()
+        expect(cookies.find((cookie) => cookie.name === '__Host-ps-install-handoff')).toMatchObject({
+            httpOnly: true,
+            secure: true,
+            sameSite: 'Strict',
         })
-    )
-    await prompt.getByRole('button', { name: 'Show install steps' }).click()
-    await expect(page.getByText('Couldn’t prepare this room. Try again in a moment.')).toBeVisible()
-    await expect(page.getByTestId('install-app-surface')).toHaveCount(0)
 
-    await page.unroute('**/api/rooms/*/install-handoff')
-    await prompt.getByRole('button', { name: 'Show install steps' }).click()
-    await expect(page).toHaveURL(/\/app\?install=1&source=auto$/, { timeout: 10_000 })
-    await expect(page).toHaveTitle('Split')
-    const installSurface = page.getByTestId('install-app-surface')
-    await expect(installSurface.getByRole('heading', { name: 'Add Split to your Home Screen' })).toBeVisible()
-    await expect(installSurface.locator('ol > li')).toHaveCount(4)
-    await expect(installSurface).toContainText('Then open Split from the new icon.')
-    await expect(installSurface).not.toContainText('within 24 hours')
-    expect(page.url()).not.toContain('/r/')
-    const cookies = await page.context().cookies()
-    expect(cookies.find((cookie) => cookie.name === '__Host-ps-install-handoff')).toMatchObject({
-        httpOnly: true,
-        secure: true,
-        sameSite: 'Strict',
+        await installSurface.getByRole('link', { name: 'Back to Split' }).click()
+        await expect(page).toHaveURL(/\/app\?manage=1$/)
+        expect(
+            await page.evaluate(() => ({
+                legacy: localStorage.getItem('ps:pwa-snoozed-until'),
+                count: localStorage.getItem('ps:pwa-dismiss-count'),
+            }))
+        ).toEqual({ legacy: null, count: null })
     })
 
-    await installSurface.getByRole('link', { name: 'Back to Split' }).click()
-    await expect(page).toHaveURL(/\/app\?manage=1$/)
-    expect(
-        await page.evaluate(() => ({
-            legacy: localStorage.getItem('ps:pwa-snoozed-until'),
-            count: localStorage.getItem('ps:pwa-dismiss-count'),
-        }))
-    ).toEqual({ legacy: null, count: null })
-})
+    test('a delayed iOS arm cannot open instructions over a newer room drawer', async ({ page }) => {
+        await modelIOSBrowser(page)
+        await stubSuccessfulShare(page)
+        await createTwoPersonRoom(page, `iOS blocker race ${Date.now()}`)
+        await addExpense(page, 'Shared dinner')
+        const postAha = page.getByRole('dialog', { name: 'First split done' })
+        await postAha.getByTestId('share-link').click()
+        await postAha.getByTestId('finish-post-aha-share').click()
 
-test('a delayed iOS arm cannot open instructions over a newer room drawer', async ({ page }) => {
-    await modelIOSBrowser(page)
-    await stubSuccessfulShare(page)
-    await createTwoPersonRoom(page, `iOS blocker race ${Date.now()}`)
-    await addExpense(page, 'Shared dinner')
-    const postAha = page.getByRole('dialog', { name: 'First split done' })
-    await postAha.getByTestId('share-link').click()
-    await postAha.getByTestId('finish-post-aha-share').click()
+        const prompt = page.getByTestId('room-updates-prompt')
+        await expect(prompt).toBeVisible({ timeout: 6_000 })
+        let releasePrepare: (() => void) | undefined
+        let sawPrepare: (() => void) | undefined
+        const prepareStarted = new Promise<void>((resolve) => {
+            sawPrepare = resolve
+        })
+        const prepareGate = new Promise<void>((resolve) => {
+            releasePrepare = resolve
+        })
+        await page.route('**/api/rooms/*/install-handoff', async (route) => {
+            sawPrepare?.()
+            await prepareGate
+            await route.continue()
+        })
 
-    const prompt = page.getByTestId('room-updates-prompt')
-    await expect(prompt).toBeVisible({ timeout: 6_000 })
-    let releasePrepare: (() => void) | undefined
-    let sawPrepare: (() => void) | undefined
-    const prepareStarted = new Promise<void>((resolve) => {
-        sawPrepare = resolve
-    })
-    const prepareGate = new Promise<void>((resolve) => {
-        releasePrepare = resolve
-    })
-    await page.route('**/api/rooms/*/install-handoff', async (route) => {
-        sawPrepare?.()
-        await prepareGate
-        await route.continue()
-    })
-
-    await prompt.getByRole('button', { name: 'Show install steps' }).click()
-    await prepareStarted
-    await page.getByTestId('open-room-switcher').click()
-    await expect(page.getByRole('dialog', { name: 'Rooms' })).toBeVisible()
-    const preparedResponse = page.waitForResponse(
-        (response) => response.request().method() === 'POST' && response.url().includes('/install-handoff')
-    )
-    releasePrepare?.()
-    expect((await preparedResponse).status()).toBe(201)
-    await page.waitForTimeout(100)
-    await expect(page.getByTestId('install-app-surface')).toHaveCount(0)
-    await expect(page).toHaveURL(/\/r\//)
-    await expect(page.getByRole('dialog', { name: 'Rooms' })).toBeVisible()
-    await expect
-        .poll(async () => (await page.context().cookies()).some((cookie) => cookie.name.includes('install-handoff')))
-        .toBe(false)
-})
-
-test('closing Device settings cancels a late iOS handoff instead of arming a hidden surface', async ({ page }) => {
-    await modelIOSBrowser(page)
-    await createTwoPersonRoom(page, `iOS settings cancellation ${Date.now()}`)
-    await openCurrentRoomSettings(page)
-    await page.getByTestId('device-row').click()
-    const installRow = page.getByTestId('install-row-ios')
-    await expect(installRow).toBeVisible()
-
-    let releasePrepare: (() => void) | undefined
-    let sawPrepare: (() => void) | undefined
-    const prepareStarted = new Promise<void>((resolve) => {
-        sawPrepare = resolve
-    })
-    const prepareGate = new Promise<void>((resolve) => {
-        releasePrepare = resolve
-    })
-    await page.route('**/api/rooms/*/install-handoff', async (route) => {
-        sawPrepare?.()
-        await prepareGate
-        await route.continue()
+        await prompt.getByRole('button', { name: 'Show install steps' }).click()
+        await prepareStarted
+        await page.getByTestId('open-room-switcher').click()
+        await expect(page.getByRole('dialog', { name: 'Rooms' })).toBeVisible()
+        const preparedResponse = page.waitForResponse(
+            (response) => response.request().method() === 'POST' && response.url().includes('/install-handoff')
+        )
+        releasePrepare?.()
+        expect((await preparedResponse).status()).toBe(201)
+        await page.waitForTimeout(100)
+        await expect(page.getByTestId('install-app-surface')).toHaveCount(0)
+        await expect(page).toHaveURL(/\/r\//)
+        await expect(page.getByRole('dialog', { name: 'Rooms' })).toBeVisible()
+        await expect
+            .poll(async () =>
+                (await page.context().cookies()).some((cookie) => cookie.name.includes('install-handoff'))
+            )
+            .toBe(false)
     })
 
-    await installRow.click()
-    await prepareStarted
-    await page.getByTestId('close-device-sheet').click()
-    const preparedResponse = page.waitForResponse(
-        (response) => response.request().method() === 'POST' && response.url().includes('/install-handoff')
-    )
-    releasePrepare?.()
-    expect((await preparedResponse).status()).toBe(201)
+    test('closing Device settings cancels a late iOS handoff instead of arming a hidden surface', async ({ page }) => {
+        await modelIOSBrowser(page)
+        await createTwoPersonRoom(page, `iOS settings cancellation ${Date.now()}`)
+        await openCurrentRoomSettings(page)
+        await page.getByTestId('device-row').click()
+        const installRow = page.getByTestId('install-row-ios')
+        await expect(installRow).toBeVisible()
 
-    await expect
-        .poll(async () => (await page.context().cookies()).some((cookie) => cookie.name.includes('install-handoff')))
-        .toBe(false)
-    await expect(page.getByTestId('install-app-surface')).toHaveCount(0)
-    await expect(page).toHaveURL(/\/r\//)
+        let releasePrepare: (() => void) | undefined
+        let sawPrepare: (() => void) | undefined
+        const prepareStarted = new Promise<void>((resolve) => {
+            sawPrepare = resolve
+        })
+        const prepareGate = new Promise<void>((resolve) => {
+            releasePrepare = resolve
+        })
+        await page.route('**/api/rooms/*/install-handoff', async (route) => {
+            sawPrepare?.()
+            await prepareGate
+            await route.continue()
+        })
+
+        await installRow.click()
+        await prepareStarted
+        await page.getByTestId('close-device-sheet').click()
+        const preparedResponse = page.waitForResponse(
+            (response) => response.request().method() === 'POST' && response.url().includes('/install-handoff')
+        )
+        releasePrepare?.()
+        expect((await preparedResponse).status()).toBe(201)
+
+        await expect
+            .poll(async () =>
+                (await page.context().cookies()).some((cookie) => cookie.name.includes('install-handoff'))
+            )
+            .toBe(false)
+        await expect(page.getByTestId('install-app-surface')).toHaveCount(0)
+        await expect(page).toHaveURL(/\/r\//)
+    })
 })
