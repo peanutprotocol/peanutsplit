@@ -158,24 +158,26 @@
                 "body": "Use a opção de instalação do navegador, não “Criar atalho”.",
                 "bodyAndroid": "Use o menu do navegador. Escolha “Instalar app”, não “Criar atalho”.",
                 "embedded": "Está dentro de outro app? Primeiro escolha “Abrir no navegador”.",
-                "step1Android": "Abra o menu do navegador.",
-                "step2Android": "Toque em “Instalar app”. Pode estar em “Adicionar à tela de início”.",
-                "step3Android": "Confirme que o nome é “Split”.",
-                "step4Android": "Toque em “Instalar”.",
+                "step1Android": "Toque em Mais no Chrome.",
+                "step2Android": "Escolha “Adicionar à tela inicial” ou “Instalar e criar atalho”.",
+                "step3Android": "Escolha “Instalar” ou “Instalar app”.",
+                "step4Android": "Confirme que o nome é “Split” e toque em “Instalar”.",
                 "step1Other": "Abra o menu do navegador.",
                 "step2Other": "Escolha “Instalar app”. No Mac, escolha “Adicionar ao Dock”.",
                 "step3Other": "Confirme que o nome é “Split” e prossiga.",
-                "noOption": "Não encontrou a opção de instalação? Abra esta página no Chrome."
+                "noOption": "Não encontrou a opção de instalação? Abra esta página no Chrome.",
+                "install": "Instalar"
             },
             "ios": {
                 "title": "Adicione o Split à tela de início",
-                "step1": "Toque em Compartilhar.",
+                "step1": "Toque em Compartilhar. Se não aparecer, toque primeiro em Mais.",
                 "step2": "Toque em “Adicionar à Tela de Início”.",
                 "step3": "Ative “Abrir como App da Web”, se aparecer.",
                 "step4": "Toque em “Adicionar”.",
                 "openAfter": "Depois, abra o Split pelo novo ícone.",
                 "body": "Use o menu Compartilhar do navegador.",
-                "prepareFailed": "Não foi possível preparar esta sala. Tente novamente em instantes."
+                "prepareFailed": "Não foi possível preparar esta sala. Tente novamente em instantes.",
+                "add": "Adicionar"
             },
             "repair": {
                 "announcement": "Você pode verificar o ícone do Split.",
@@ -1108,6 +1110,7 @@
     "push": {
         "label": "Notificações",
         "notifyMe": "Me avisar sobre {room}",
+        "cta": "Me avisar",
         "on": "Ativadas",
         "iosNeedsPwa": "Adicione o Split à sua tela de início.",
         "iosHow": "Como?",

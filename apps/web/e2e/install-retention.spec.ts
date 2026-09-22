@@ -216,10 +216,10 @@ test.describe('narrow install layout', () => {
         const readsWhenQuietWindowStarted = roomReads
         const prompt = page.getByTestId('install-prompt')
         await expect(prompt).toBeVisible({ timeout: 6_000 })
-        await expect(prompt).toContainText('Get back to this room faster. No app store. No account.')
+        await expect(prompt).toHaveText('Install SplitNot now')
         await expect(prompt).toHaveAttribute('role', 'region')
         await expect(prompt).not.toHaveClass(/\bfixed\b/)
-        await expect(prompt.getByRole('button', { name: 'Show install steps' })).toBeVisible()
+        await expect(prompt.getByRole('button', { name: 'Install Split' })).toBeVisible()
         await expect(prompt.getByRole('button', { name: 'Not now' })).toBeVisible()
         await expect(prompt.locator('button')).toHaveCount(2)
         await expect(prompt.getByRole('button', { name: /close/i })).toHaveCount(0)
@@ -234,7 +234,7 @@ test.describe('narrow install layout', () => {
         const [promptBox, footerActionBox, installStepsBox, dismissBox] = await Promise.all([
             prompt.boundingBox(),
             page.getByTestId('open-add-expense').boundingBox(),
-            prompt.getByRole('button', { name: 'Show install steps' }).boundingBox(),
+            prompt.getByRole('button', { name: 'Install Split' }).boundingBox(),
             prompt.getByRole('button', { name: 'Not now' }).boundingBox(),
         ])
         expect(promptBox).not.toBeNull()
@@ -415,12 +415,12 @@ test('a fresh browser entering a mature room gets the waiting/manual install pat
     // the room document before showing browser instructions.
     const prompt = bea.getByTestId('install-prompt')
     await expect(prompt).toBeVisible({ timeout: 6_000 })
-    await expect(prompt.getByRole('button', { name: 'Show install steps' })).toBeVisible()
+    await expect(prompt.getByRole('button', { name: 'Install Split' })).toBeVisible()
     const installNavigation = bea.waitForRequest((request) => {
         const url = new URL(request.url())
         return request.isNavigationRequest() && url.pathname === '/app' && url.searchParams.get('install') === '1'
     })
-    await prompt.getByRole('button', { name: 'Show install steps' }).click()
+    await prompt.getByRole('button', { name: 'Install Split' }).click()
 
     expect(await (await installNavigation).headerValue('referer')).toBeNull()
     await expect(bea).toHaveURL(/\/app\?install=1&source=auto$/)
@@ -511,7 +511,7 @@ test('the all-settled arrival owns this visit, while a later visit gets next-tri
     await expect(bea.locator('main [data-testid="all-settled"]')).toBeVisible({ timeout: 15_000 })
     const prompt = bea.getByTestId('install-prompt')
     await expect(prompt).toBeVisible({ timeout: 6_000 })
-    await expect(prompt).toContainText('Keep this trip—and the next one—one tap away.')
+    await expect(prompt).toHaveText('Install SplitNot now')
     await prompt.getByRole('button', { name: 'Not now' }).click()
     await expect(prompt).toHaveCount(0)
     const refusal = await bea.evaluate(() => ({
@@ -546,7 +546,7 @@ test.describe('controlled iOS installation requests', () => {
 
         const prompt = page.getByTestId('room-updates-prompt')
         await expect(prompt).toBeVisible({ timeout: 6_000 })
-        await expect(prompt.getByRole('button', { name: 'Show install steps' })).toBeVisible()
+        await expect(prompt.getByRole('button', { name: 'Install Split' })).toBeVisible()
 
         await page.route('**/api/rooms/*/install-handoff', (route) =>
             route.fulfill({
@@ -555,12 +555,12 @@ test.describe('controlled iOS installation requests', () => {
                 body: JSON.stringify({ error: { code: 'INTERNAL', message: 'temporary failure' } }),
             })
         )
-        await prompt.getByRole('button', { name: 'Show install steps' }).click()
+        await prompt.getByRole('button', { name: 'Install Split' }).click()
         await expect(page.getByText('Couldn’t prepare this room. Try again in a moment.')).toBeVisible()
         await expect(page.getByTestId('install-app-surface')).toHaveCount(0)
 
         await page.unroute('**/api/rooms/*/install-handoff')
-        await prompt.getByRole('button', { name: 'Show install steps' }).click()
+        await prompt.getByRole('button', { name: 'Install Split' }).click()
         await expect(page).toHaveURL(/\/app\?install=1&source=auto$/, { timeout: 10_000 })
         await expect(page).toHaveTitle('Split')
         const installSurface = page.getByTestId('install-app-surface')
@@ -611,7 +611,7 @@ test.describe('controlled iOS installation requests', () => {
             await route.continue()
         })
 
-        await prompt.getByRole('button', { name: 'Show install steps' }).click()
+        await prompt.getByRole('button', { name: 'Install Split' }).click()
         await prepareStarted
         await page.getByTestId('open-room-switcher').click()
         await expect(page.getByRole('dialog', { name: 'Rooms' })).toBeVisible()

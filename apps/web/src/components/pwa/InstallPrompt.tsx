@@ -1,11 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
-import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
-import { peanutPointing } from '@/assets/mascot'
 import { Button } from '@/components/ui/Button'
 import { BTN_MEDIUM } from '@/components/ui/control'
 import { installMeasureProps, track } from '@/lib/analytics'
@@ -24,6 +22,7 @@ import {
 } from '@/lib/install'
 import { useMotionAllowed } from '@/lib/use-motion'
 import { useFeedback } from '@/lib/use-settings'
+import { DeviceSetupCard } from './DeviceSetupCard'
 
 /** Let a higher-priority moment settle after its drawer closes; this is composure, not eligibility. */
 const QUIET_MS = 1_500
@@ -50,8 +49,6 @@ export interface InstallPromptProps {
     /** Used only to prepare the private iOS storage handoff; never sent to analytics. */
     slug: string
     token?: string | null
-    /** A completed room needs a next-trip promise rather than a return-task promise. */
-    settled?: boolean
     /** Stable room landmark for banner dismissal. */
     returnFocusRef?: RefObject<HTMLElement | null>
     /** `pwa_installed` is not here: `lib/install.ts` remains its one Chromium source. */
@@ -67,14 +64,13 @@ export interface InstallPromptProps {
 /**
  * Inline install card. Native Chromium installation stays one tap. Manual Android and iOS paths
  * leave the room for the slug-free `/app` install surface, so browser help never encourages a
- * room-titled shortcut. Instruction-only actions say what they do instead of claiming success.
+ * room-titled shortcut.
  */
 export function InstallPrompt({
     trigger,
     blocked,
     slug,
     token,
-    settled = false,
     returnFocusRef,
     onShown,
     onDismissed,
@@ -263,7 +259,7 @@ export function InstallPrompt({
         }
     }, [dismiss, feedback, repairExposure, restoreRoomFocus, slug, state, t, token, trigger])
 
-    const actionLabel = repairExposure ? t('repair.cta') : state === 'promptable' ? t('cta') : t('ctaSteps')
+    const actionLabel = repairExposure ? t('repair.cta') : t('cta')
 
     return (
         <>
@@ -283,44 +279,35 @@ export function InstallPrompt({
                         role="region"
                         aria-label={repairExposure ? t('repair.title') : t('title')}
                     >
-                        <div className="shadow-4 flex w-full gap-3 rounded-sm border border-n-1 bg-white p-4">
-                            <Image
-                                src={peanutPointing}
-                                alt=""
-                                aria-hidden="true"
-                                unoptimized
-                                className="size-12 shrink-0 object-contain"
-                            />
-                            <div className="flex min-w-0 flex-1 flex-col gap-1">
-                                <p className="text-h7">{repairExposure ? t('repair.title') : t('title')}</p>
-                                <p className="text-sm leading-5 text-grey-1">
-                                    {repairExposure ? t('repair.cardBody') : settled ? t('bodySettled') : t('body')}
-                                </p>
-                                <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-                                    <Button
-                                        variant="primary"
-                                        size="medium"
-                                        shadowSize="3"
-                                        width="auto"
-                                        className={cn(BTN_MEDIUM, 'w-full justify-center sm:w-auto')}
-                                        onClick={install}
-                                        disabled={arming}
-                                        loading={arming}
-                                    >
-                                        {actionLabel}
-                                    </Button>
-                                    <Button
-                                        variant="transparent"
-                                        size="medium"
-                                        width="auto"
-                                        className={cn(BTN_MEDIUM, 'w-full justify-center text-grey-1 sm:w-auto')}
-                                        onClick={() => dismiss('not_now')}
-                                    >
-                                        {t('dismiss')}
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
+                        <DeviceSetupCard>
+                            {repairExposure && (
+                                <>
+                                    <p className="text-h7">{t('repair.title')}</p>
+                                    <p className="text-sm leading-5 text-grey-1">{t('repair.cardBody')}</p>
+                                </>
+                            )}
+                            <Button
+                                variant="primary"
+                                size="medium"
+                                shadowSize="3"
+                                width="auto"
+                                className={cn(BTN_MEDIUM, 'w-full justify-center')}
+                                onClick={install}
+                                disabled={arming}
+                                loading={arming}
+                            >
+                                {actionLabel}
+                            </Button>
+                            <Button
+                                variant="transparent"
+                                size="medium"
+                                width="auto"
+                                className={cn(BTN_MEDIUM, 'w-full justify-center text-grey-1')}
+                                onClick={() => dismiss('not_now')}
+                            >
+                                {t('dismiss')}
+                            </Button>
+                        </DeviceSetupCard>
                     </motion.div>
                 )}
             </AnimatePresence>

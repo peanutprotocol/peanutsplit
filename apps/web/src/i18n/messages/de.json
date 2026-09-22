@@ -158,24 +158,26 @@
                 "body": "Nutze die Installationsoption deines Browsers – nicht „Verknüpfung erstellen“.",
                 "bodyAndroid": "Öffne das Browsermenü. Wähle „App installieren“ – nicht „Verknüpfung erstellen“.",
                 "embedded": "In einer anderen App? Wähle zuerst „Im Browser öffnen“.",
-                "step1Android": "Öffne das Browsermenü.",
-                "step2Android": "Tippe auf „App installieren“. Die Option kann unter „Zum Startbildschirm hinzufügen“ stehen.",
-                "step3Android": "Achte darauf, dass der Name „Split“ lautet.",
-                "step4Android": "Tippe auf „Installieren“.",
+                "step1Android": "Tippe in Chrome auf „Mehr“.",
+                "step2Android": "Wähle „Zum Startbildschirm hinzufügen“ oder „Installieren und Verknüpfung erstellen“.",
+                "step3Android": "Wähle „Installieren“ oder „App installieren“.",
+                "step4Android": "Prüfe, ob der Name „Split“ lautet, und tippe auf „Installieren“.",
                 "step1Other": "Öffne das Menü deines Browsers.",
                 "step2Other": "Wähle „App installieren“. Auf dem Mac wählst du „Zum Dock hinzufügen“.",
                 "step3Other": "Achte darauf, dass der Name „Split“ lautet, und bestätige.",
-                "noOption": "Keine Installationsoption? Öffne diese Seite in Chrome."
+                "noOption": "Keine Installationsoption? Öffne diese Seite in Chrome.",
+                "install": "Installieren"
             },
             "ios": {
                 "title": "Split zum Home-Bildschirm hinzufügen",
-                "step1": "Tippe auf „Teilen“.",
+                "step1": "Tippe auf „Teilen“. Falls es nicht sichtbar ist, tippe zuerst auf „Mehr“.",
                 "step2": "Tippe auf „Zum Home-Bildschirm“.",
                 "step3": "Aktiviere „Als Web-App öffnen“, falls die Option angezeigt wird.",
                 "step4": "Tippe auf „Hinzufügen“.",
                 "openAfter": "Öffne Split danach über das neue Symbol.",
                 "body": "Nutze das Teilen-Menü deines Browsers.",
-                "prepareFailed": "Diese Gruppe konnte nicht vorbereitet werden. Versuche es gleich noch einmal."
+                "prepareFailed": "Diese Gruppe konnte nicht vorbereitet werden. Versuche es gleich noch einmal.",
+                "add": "Hinzufügen"
             },
             "repair": {
                 "announcement": "Du kannst dein Split-Symbol prüfen.",
@@ -1108,6 +1110,7 @@
     "push": {
         "label": "Benachrichtigungen",
         "notifyMe": "Benachrichtigungen zu {room}",
+        "cta": "Benachrichtige mich",
         "on": "Ein",
         "iosNeedsPwa": "Füge Split zu deinem Home-Bildschirm hinzu.",
         "iosHow": "Wie?",

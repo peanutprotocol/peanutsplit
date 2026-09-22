@@ -628,7 +628,6 @@ export function RoomScreen({ slug }: { slug: string }) {
                                     blocked={guidanceOwner !== 'install'}
                                     slug={slug}
                                     token={identity?.token}
-                                    settled={settledUp}
                                     returnFocusRef={roomTitleRef}
                                     onShown={({ trigger, delivery }) =>
                                         track(

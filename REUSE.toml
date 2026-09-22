@@ -64,6 +64,12 @@ SPDX-License-Identifier = "CC-BY-4.0"
 # Third-party material — these terms come with the files
 # ---------------------------------------------------------------------------
 
+[[annotations]]
+path = "apps/web/public/install/**"
+precedence = "override"
+SPDX-FileCopyrightText = ["2026 Lucide Icons and Contributors", "2013-present Cole Bemis"]
+SPDX-License-Identifier = "ISC AND MIT"
+
 # 300 expense-subject geometries traced from Lucide, part of which Lucide itself derives from
 # Feather. Both notices must travel with any distribution that includes them.
 [[annotations]]

@@ -175,7 +175,6 @@ export function InstallAppSurface({ source, repair = false }: { source: InstallS
                     <h2 id="install-app-title" className="text-h5">
                         {t('title')}
                     </h2>
-                    <p className="mt-2 text-sm leading-5 text-grey-1">{t('body')}</p>
                     <Button
                         variant="primary"
                         shadowSize="4"
@@ -191,7 +190,6 @@ export function InstallAppSurface({ source, repair = false }: { source: InstallS
                     <h2 id="install-app-title" className="text-h5">
                         {t('ios.title')}
                     </h2>
-                    <p className="mt-2 text-sm leading-5 text-grey-1">{t('ios.body')}</p>
                     <div className="mt-5">
                         <IosInstallSteps />
                     </div>
@@ -203,9 +201,6 @@ export function InstallAppSurface({ source, repair = false }: { source: InstallS
                     <h2 id="install-app-title" className="text-h5">
                         {t('browser.title')}
                     </h2>
-                    <p className="mt-2 text-sm leading-5 text-grey-1">
-                        {t(browserIsAndroid ? 'browser.bodyAndroid' : 'browser.body')}
-                    </p>
                     <div className="mt-5">
                         <BrowserInstallSteps android={browserIsAndroid} />
                     </div>

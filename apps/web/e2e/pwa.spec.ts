@@ -1,4 +1,4 @@
-import { expect, type APIRequestContext, type Page } from '@playwright/test'
+import { expect, type APIRequestContext, type Locator, type Page } from '@playwright/test'
 import { test } from './fixtures'
 import { openCurrentRoomSettings } from './helpers'
 
@@ -189,6 +189,27 @@ const offerTheBrowserPrompt = (page: Page, outcome: 'accepted' | 'dismissed') =>
         window.dispatchEvent(event)
     }, outcome)
 
+async function expectInstallVisuals(surface: Locator, count: number): Promise<void> {
+    const visuals = surface.getByTestId('install-step-visual')
+    await expect(visuals).toHaveCount(count)
+    for (const visual of await visuals.all()) {
+        await expect(visual).toBeVisible()
+        await expect(visual).toHaveAttribute('aria-hidden', 'true')
+    }
+    const images = visuals.locator('img')
+    expect(await images.count()).toBeGreaterThan(0)
+    await expect
+        .poll(() =>
+            images.evaluateAll((elements) =>
+                elements.every((element) => {
+                    const image = element as HTMLImageElement
+                    return image.complete && image.naturalWidth > 0
+                })
+            )
+        )
+        .toBe(true)
+}
+
 test.describe('the install row', () => {
     test.beforeEach(async ({ page }) => {
         await snoozeInstallBanner(page)
@@ -210,13 +231,16 @@ test.describe('the install row', () => {
         const surface = page.getByTestId('install-app-surface')
         await expect(surface).toBeVisible()
         await expect(surface.getByRole('heading', { name: 'Install Split' })).toBeVisible()
-        await expect(surface).toContainText('Use your browser menu. Choose “Install app”—not “Create shortcut”.')
         await expect(surface).toContainText('Inside another app? Choose “Open in browser” first.')
         await expect(surface.getByTestId('browser-install-steps').locator('li')).toHaveCount(4)
-        await expect(surface).toContainText('Open your browser menu.')
-        await expect(surface).toContainText('Tap “Install app”. It may be under “Add to Home screen”.')
-        await expect(surface).toContainText('Make sure the name is “Split”.')
-        await expect(surface).toContainText('Tap “Install”.')
+        await expectInstallVisuals(surface, 4)
+        await test
+            .info()
+            .attach('android-install-instructions', { body: await page.screenshot(), contentType: 'image/png' })
+        await expect(surface).toContainText('Tap More in Chrome.')
+        await expect(surface).toContainText('Choose “Add to Home screen” or “Install and create shortcut”.')
+        await expect(surface).toContainText('Choose “Install” or “Install app”.')
+        await expect(surface).toContainText('Confirm the name is “Split”, then tap “Install”.')
         await expect(surface).toContainText('No install option? Open this page in Chrome.')
         await expect(surface).toContainText('Room missing after installing? Open the original room link once.')
         await expect(surface.getByTestId('install-copy-room')).toHaveText('Copy original room link')
@@ -242,9 +266,9 @@ test.describe('the install row', () => {
         await expect(page).toHaveTitle('Split')
         const surface = page.getByTestId('install-app-surface')
         await expect(surface.getByRole('heading', { name: 'Install Split' })).toBeVisible()
-        await expect(surface).toContainText('Use your browser’s install option—not “Create shortcut”.')
         await expect(surface).toContainText('Inside another app? Choose “Open in browser” first.')
         await expect(surface.getByTestId('browser-install-steps').locator('li')).toHaveCount(3)
+        await expectInstallVisuals(surface, 3)
         await expect(surface).toContainText('Open your browser’s menu.')
         await expect(surface).toContainText('Choose “Install app”. On Mac, choose “Add to Dock”.')
         await expect(surface).toContainText('Make sure the name is “Split”, then confirm.')
@@ -267,9 +291,12 @@ test.describe('the install row', () => {
         await expect(page).toHaveTitle('Split')
         const surface = page.getByTestId('install-app-surface')
         await expect(surface.getByRole('heading', { name: 'Add Split to your Home Screen' })).toBeVisible()
-        await expect(surface).toContainText('Use your browser’s Share menu.')
         await expect(surface.locator('ol > li')).toHaveCount(4)
-        await expect(surface).toContainText('Tap Share.')
+        await expectInstallVisuals(surface, 4)
+        await test
+            .info()
+            .attach('ios-install-instructions', { body: await page.screenshot(), contentType: 'image/png' })
+        await expect(surface).toContainText('Tap Share. If it is hidden, tap More first.')
         await expect(surface).toContainText('Tap “Add to Home Screen”.')
         await expect(surface).toContainText('Turn on “Open as Web App”, if you see it.')
         await expect(surface).toContainText('Tap “Add”.')

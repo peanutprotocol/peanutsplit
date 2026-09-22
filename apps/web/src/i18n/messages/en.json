@@ -158,24 +158,26 @@
                 "body": "Use your browser’s install option—not “Create shortcut”.",
                 "bodyAndroid": "Use your browser menu. Choose “Install app”—not “Create shortcut”.",
                 "embedded": "Inside another app? Choose “Open in browser” first.",
-                "step1Android": "Open your browser menu.",
-                "step2Android": "Tap “Install app”. It may be under “Add to Home screen”.",
-                "step3Android": "Make sure the name is “Split”.",
-                "step4Android": "Tap “Install”.",
+                "step1Android": "Tap More in Chrome.",
+                "step2Android": "Choose “Add to Home screen” or “Install and create shortcut”.",
+                "step3Android": "Choose “Install” or “Install app”.",
+                "step4Android": "Confirm the name is “Split”, then tap “Install”.",
                 "step1Other": "Open your browser’s menu.",
                 "step2Other": "Choose “Install app”. On Mac, choose “Add to Dock”.",
                 "step3Other": "Make sure the name is “Split”, then confirm.",
-                "noOption": "No install option? Open this page in Chrome."
+                "noOption": "No install option? Open this page in Chrome.",
+                "install": "Install"
             },
             "ios": {
                 "title": "Add Split to your Home Screen",
-                "step1": "Tap Share.",
+                "step1": "Tap Share. If it is hidden, tap More first.",
                 "step2": "Tap “Add to Home Screen”.",
                 "step3": "Turn on “Open as Web App”, if you see it.",
                 "step4": "Tap “Add”.",
                 "openAfter": "Then open Split from the new icon.",
                 "body": "Use your browser’s Share menu.",
-                "prepareFailed": "Couldn’t prepare this room. Try again in a moment."
+                "prepareFailed": "Couldn’t prepare this room. Try again in a moment.",
+                "add": "Add"
             },
             "repair": {
                 "announcement": "A Split icon check is available.",
@@ -1108,6 +1110,7 @@
     "push": {
         "label": "Notifications",
         "notifyMe": "Notify me about {room}",
+        "cta": "Notify me",
         "on": "On",
         "iosNeedsPwa": "Add Split to your home screen.",
         "iosHow": "How?",

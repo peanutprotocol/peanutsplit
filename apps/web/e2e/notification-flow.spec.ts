@@ -98,7 +98,10 @@ test('Android asks only after a tap, saves this room, and keeps Settings in sync
     await joinMatureRoom(page, room)
     const prompt = page.getByTestId('room-updates-prompt')
     await expect(prompt).toBeVisible({ timeout: 6_000 })
-    await expect(prompt).toContainText(`Notify me about ${room.name}`)
+    await expect(prompt.getByTestId('room-updates-enable')).toHaveText('Notify me')
+    await expect(prompt.getByTestId('room-updates-enable')).toHaveAccessibleName('Notify me')
+    await expect(prompt).toHaveAccessibleName(`Notify me about ${room.name}`)
+    await expect(prompt).toHaveText('Notify meNot now')
     await expect(page.getByTestId('install-prompt')).toHaveCount(0)
     expect(await permissionRequests(page)).toBe(0)
     expect(await subscriptionStatus(page, room.slug, endpoint)).toBe(false)
@@ -120,11 +123,11 @@ test('Android asks only after a tap, saves this room, and keeps Settings in sync
     await saveStarted
     await expect(prompt.getByTestId('room-updates-enable')).toBeDisabled()
     await expect(prompt.getByTestId('room-updates-enable')).toHaveAttribute('aria-busy', 'true')
-    await expect(prompt.getByTestId('room-updates-enable')).toHaveAttribute('aria-checked', 'false')
+    await expect(prompt.getByTestId('room-updates-enable')).toHaveAttribute('aria-pressed', 'false')
     expect(await subscriptionStatus(page, room.slug, endpoint)).toBe(false)
     releaseSave?.()
     await expect.poll(() => subscriptionStatus(page, room.slug, endpoint)).toBe(true)
-    await expect(prompt.getByTestId('room-updates-enable')).toHaveAttribute('aria-checked', 'true')
+    await expect(prompt.getByTestId('room-updates-enable')).toHaveAttribute('aria-pressed', 'true')
     await test.info().attach('android-updates-enabled', { body: await page.screenshot(), contentType: 'image/png' })
     await expect(prompt).toHaveCount(0, { timeout: 6_000 })
     await expect(page.getByTestId('install-prompt')).toHaveCount(0)
@@ -202,7 +205,7 @@ test('unsupported Android keeps the existing install path without a notification
     await joinMatureRoom(page, await createMatureRoom(request, `Install fallback ${Date.now()}`))
     await expect(page.getByTestId('install-prompt')).toBeVisible({ timeout: 6_000 })
     await expect(page.getByTestId('room-updates-prompt')).toHaveCount(0)
-    await expect(page.getByTestId('install-prompt').getByRole('button', { name: 'Show install steps' })).toBeVisible()
+    await expect(page.getByTestId('install-prompt').getByRole('button', { name: 'Install Split' })).toBeVisible()
 })
 
 for (const platform of ['android', 'ios'] as const) {
@@ -224,7 +227,7 @@ for (const platform of ['android', 'ios'] as const) {
         await page.reload()
         const install = page.getByTestId('install-prompt')
         await expect(install).toBeVisible({ timeout: 6_000 })
-        await expect(install).toContainText('Keep this trip—and the next one—one tap away.')
+        await expect(install).toHaveText('Install SplitNot now')
         await install.getByRole('button', { name: 'Not now' }).click()
         await expect(install).toHaveCount(0)
 
@@ -319,7 +322,7 @@ test('a failed server save stays off and can be retried without losing the notif
     )
     await prompt.getByTestId('room-updates-enable').click()
     await expect(prompt.getByTestId('room-updates-enable')).toBeEnabled()
-    await expect(prompt.getByTestId('room-updates-enable')).toHaveAttribute('aria-checked', 'false')
+    await expect(prompt.getByTestId('room-updates-enable')).toHaveAttribute('aria-pressed', 'false')
     expect(await subscriptionStatus(page, room.slug, endpoint)).toBe(false)
     await page.unroute(`**/api/rooms/${room.slug}/push-subscriptions`)
     await prompt.getByTestId('room-updates-enable').click()
@@ -374,7 +377,17 @@ test.describe('narrow notification layout', () => {
         )
         const prompt = page.getByTestId('room-updates-prompt')
         await expect(prompt).toBeVisible({ timeout: 6_000 })
-        const box = await prompt.boundingBox()
+        const [box, actionBox, dismissBox] = await Promise.all([
+            prompt.boundingBox(),
+            prompt.getByTestId('room-updates-enable').boundingBox(),
+            prompt.getByTestId('room-updates-dismiss').boundingBox(),
+        ])
+        expect(actionBox).not.toBeNull()
+        expect(dismissBox).not.toBeNull()
+        expect(dismissBox!.y).toBeGreaterThan(actionBox!.y)
+        expect(Math.abs(dismissBox!.width - actionBox!.width)).toBeLessThanOrEqual(1)
+        await expect(prompt).toHaveText('Notify meNot now')
+        await expect(prompt.locator('button')).toHaveCount(2)
         expect(box).not.toBeNull()
         expect(box!.x).toBeGreaterThanOrEqual(0)
         expect(box!.x + box!.width).toBeLessThanOrEqual(320)
@@ -398,13 +411,31 @@ test('iOS without browser push APIs installs first and resumes its room after a 
     await joinMatureRoom(page, room)
     const prompt = page.getByTestId('room-updates-prompt')
     await expect(prompt).toBeVisible({ timeout: 6_000 })
-    await expect(prompt).toContainText('Add Split to your home screen.')
+    await expect(prompt.getByTestId('room-updates-install')).toHaveText('Install Split')
+    await expect(prompt).toHaveText('Install SplitNot now')
     await expect(page.getByTestId('install-prompt')).toHaveCount(0)
     await prompt.scrollIntoViewIfNeeded()
     await test.info().attach('ios-install-for-updates', { body: await page.screenshot(), contentType: 'image/png' })
     await prompt.getByTestId('room-updates-install').click()
     await expect(page).toHaveURL(/\/app\?install=1&source=auto$/)
-    await expect(page.getByTestId('install-app-surface')).toBeVisible()
+    const instructions = page.getByTestId('install-app-surface')
+    await expect(instructions.locator('ol > li')).toHaveCount(4)
+    await expect(instructions.getByTestId('install-step-visual')).toHaveCount(4)
+    await expect
+        .poll(() =>
+            instructions
+                .getByTestId('install-step-visual')
+                .locator('img')
+                .evaluateAll(
+                    (images) =>
+                        images.length > 0 &&
+                        images.every((element) => {
+                            const image = element as HTMLImageElement
+                            return image.complete && image.naturalWidth > 0
+                        })
+                )
+        )
+        .toBe(true)
     await test.info().attach('ios-install-instructions', { body: await page.screenshot(), contentType: 'image/png' })
     const cookies = (await page.context().cookies()).filter((cookie) => cookie.name.includes('install-handoff'))
     expect(cookies).toHaveLength(2)

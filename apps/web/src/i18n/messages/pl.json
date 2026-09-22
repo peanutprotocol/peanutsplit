@@ -158,24 +158,26 @@
                 "body": "Użyj opcji instalacji w przeglądarce — nie „Utwórz skrót”.",
                 "bodyAndroid": "Otwórz menu przeglądarki. Wybierz „Zainstaluj aplikację” — nie „Utwórz skrót”.",
                 "embedded": "Jesteś w innej aplikacji? Najpierw wybierz „Otwórz w przeglądarce”.",
-                "step1Android": "Otwórz menu przeglądarki.",
-                "step2Android": "Dotknij „Zainstaluj aplikację”. Opcja może być pod „Dodaj do ekranu głównego”.",
-                "step3Android": "Upewnij się, że nazwa to „Split”.",
-                "step4Android": "Dotknij „Zainstaluj”.",
+                "step1Android": "W Chrome stuknij „Więcej”.",
+                "step2Android": "Wybierz „Dodaj do ekranu głównego” lub „Zainstaluj i utwórz skrót”.",
+                "step3Android": "Wybierz „Zainstaluj” lub „Zainstaluj aplikację”.",
+                "step4Android": "Sprawdź, czy nazwa to „Split”, i stuknij „Zainstaluj”.",
                 "step1Other": "Otwórz menu przeglądarki.",
                 "step2Other": "Wybierz „Zainstaluj aplikację”. Na Macu wybierz „Dodaj do Docka”.",
                 "step3Other": "Upewnij się, że nazwa to „Split”, i potwierdź.",
-                "noOption": "Brak opcji instalacji? Otwórz tę stronę w Chrome."
+                "noOption": "Brak opcji instalacji? Otwórz tę stronę w Chrome.",
+                "install": "Zainstaluj"
             },
             "ios": {
                 "title": "Dodaj Split do ekranu początkowego",
-                "step1": "Stuknij „Udostępnij”.",
+                "step1": "Stuknij „Udostępnij”. Jeśli tej opcji nie widać, najpierw stuknij „Więcej”.",
                 "step2": "Dotknij „Do ekranu początkowego”.",
                 "step3": "Włącz „Otwieraj jako aplikację internetową”, jeśli widzisz tę opcję.",
                 "step4": "Dotknij „Dodaj”.",
                 "openAfter": "Potem otwórz Split z nowej ikony.",
                 "body": "Otwórz menu „Udostępnij” w przeglądarce.",
-                "prepareFailed": "Nie udało się przygotować tego pokoju. Spróbuj ponownie za chwilę."
+                "prepareFailed": "Nie udało się przygotować tego pokoju. Spróbuj ponownie za chwilę.",
+                "add": "Dodaj"
             },
             "repair": {
                 "announcement": "Możesz sprawdzić ikonę Split.",
@@ -1108,6 +1110,7 @@
     "push": {
         "label": "Powiadomienia",
         "notifyMe": "Włącz powiadomienia dla pokoju: {room}",
+        "cta": "Powiadom mnie",
         "on": "Wł.",
         "iosNeedsPwa": "Dodaj Split do ekranu początkowego.",
         "iosHow": "Jak?",

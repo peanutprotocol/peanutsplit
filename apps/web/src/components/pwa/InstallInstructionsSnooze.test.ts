@@ -29,10 +29,10 @@ describe('canonical install-surface wiring', () => {
         expect(contents).not.toContain('<Drawer')
     })
 
-    it('labels instruction-only actions separately from the native install action', () => {
+    it('uses one install action label for native and guided installation', () => {
         const contents = source('InstallPrompt')
 
-        expect(contents).toContain("state === 'promptable' ? t('cta') : t('ctaSteps')")
+        expect(contents).toContain("repairExposure ? t('repair.cta') : t('cta')")
     })
 
     it('rejects a prepared handoff response after the automatic card has been blocked', () => {

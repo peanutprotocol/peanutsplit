@@ -6,7 +6,6 @@ import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
 import { BTN_MEDIUM } from '@/components/ui/control'
-import { SettingToggle } from '@/components/ui/SettingToggle'
 import { roomProps, track } from '@/lib/analytics'
 import { useErrorMessage } from '@/lib/error-messages'
 import { INSTALL_SNOOZE_CHANGE_EVENT, isInstallSnoozed, noteInstallDismissed, useInstallState } from '@/lib/install'
@@ -24,6 +23,7 @@ import { useMotionAllowed } from '@/lib/use-motion'
 import { usePush } from '@/lib/use-push'
 import { useFeedback } from '@/lib/use-settings'
 import { InstallPrompt, type InstallPromptProps } from './InstallPrompt'
+import { DeviceSetupCard } from './DeviceSetupCard'
 
 const QUIET_MS = 1_500
 
@@ -314,48 +314,52 @@ export function RoomUpdatesPrompt({
                         transition={motionAllowed ? { type: 'spring', stiffness: 320, damping: 30 } : { duration: 0 }}
                         role="region"
                         aria-label={label}
-                        className="shadow-4 mx-4 break-words rounded-sm border border-n-1 bg-white p-3"
+                        className="mx-4 break-words"
                         data-testid="room-updates-prompt"
                         data-motion-surface
                     >
-                        {ios ? (
-                            <>
-                                <p className="text-h8">{label}</p>
-                                <p className="mt-1 text-sm text-grey-1">{t('iosNeedsPwa')}</p>
+                        <DeviceSetupCard>
+                            {ios ? (
                                 <Button
                                     variant="primary"
                                     size="medium"
                                     shadowSize="3"
-                                    className={`${BTN_MEDIUM} mt-3 w-full justify-center`}
+                                    className={`${BTN_MEDIUM} w-full justify-center`}
                                     onClick={() => void install()}
                                     loading={arming}
                                     data-testid="room-updates-install"
                                 >
-                                    {tInstall('ctaSteps')}
+                                    {tInstall('cta')}
                                 </Button>
-                            </>
-                        ) : (
-                            <SettingToggle
-                                label={label}
-                                checked={complete}
-                                onChange={() => void enable()}
-                                disabled={complete}
-                                loading={status === 'pending'}
-                                testId="room-updates-enable"
-                            />
-                        )}
-                        {!complete && (
-                            <Button
-                                variant="transparent"
-                                size="medium"
-                                className={`${BTN_MEDIUM} mt-1 w-full justify-center text-grey-1`}
-                                onClick={() => dismiss()}
-                                disabled={status === 'pending'}
-                                data-testid="room-updates-dismiss"
-                            >
-                                {tInstall('dismiss')}
-                            </Button>
-                        )}
+                            ) : (
+                                <Button
+                                    variant="primary"
+                                    size="medium"
+                                    shadowSize="3"
+                                    className={`${BTN_MEDIUM} w-full justify-center`}
+                                    aria-pressed={complete}
+                                    onClick={() => void enable()}
+                                    disabled={complete}
+                                    loading={status === 'pending'}
+                                    icon={complete ? 'check' : undefined}
+                                    data-testid="room-updates-enable"
+                                >
+                                    {t('cta')}
+                                </Button>
+                            )}
+                            {!complete && (
+                                <Button
+                                    variant="transparent"
+                                    size="medium"
+                                    className={`${BTN_MEDIUM} w-full justify-center text-grey-1`}
+                                    onClick={() => dismiss()}
+                                    disabled={status === 'pending'}
+                                    data-testid="room-updates-dismiss"
+                                >
+                                    {tInstall('dismiss')}
+                                </Button>
+                            )}
+                        </DeviceSetupCard>
                     </motion.div>
                 )}
             </AnimatePresence>

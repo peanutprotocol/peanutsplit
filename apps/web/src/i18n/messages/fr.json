@@ -158,24 +158,26 @@
                 "body": "Utilise l’option d’installation de ton navigateur — pas « Créer un raccourci ».",
                 "bodyAndroid": "Ouvre le menu de ton navigateur. Choisis « Installer l’application » — pas « Créer un raccourci ».",
                 "embedded": "Dans une autre application ? Choisis d’abord « Ouvrir dans le navigateur ».",
-                "step1Android": "Ouvre le menu de ton navigateur.",
-                "step2Android": "Touche « Installer l’application ». L’option peut se trouver sous « Ajouter à l’écran d’accueil ».",
-                "step3Android": "Vérifie que le nom est « Split ».",
-                "step4Android": "Touche « Installer ».",
+                "step1Android": "Touche Plus dans Chrome.",
+                "step2Android": "Choisis « Ajouter à l’écran d’accueil » ou « Installer et créer un raccourci ».",
+                "step3Android": "Choisis « Installer » ou « Installer l’application ».",
+                "step4Android": "Vérifie que le nom est « Split », puis touche « Installer ».",
                 "step1Other": "Ouvre le menu de ton navigateur.",
                 "step2Other": "Choisis « Installer l’application ». Sur Mac, choisis « Ajouter au Dock ».",
                 "step3Other": "Vérifie que le nom est « Split », puis confirme.",
-                "noOption": "Pas d’option d’installation ? Ouvre cette page dans Chrome."
+                "noOption": "Pas d’option d’installation ? Ouvre cette page dans Chrome.",
+                "install": "Installer"
             },
             "ios": {
                 "title": "Ajouter Split à ton écran d’accueil",
-                "step1": "Touche Partager.",
+                "step1": "Touche Partager. Si l’option est masquée, touche d’abord Plus.",
                 "step2": "Touche « Ajouter à l’écran d’accueil ».",
                 "step3": "Active « Ouvrir comme app web » si l’option apparaît.",
                 "step4": "Touche « Ajouter ».",
                 "openAfter": "Ouvre ensuite Split depuis la nouvelle icône.",
                 "body": "Utilise le menu Partager de ton navigateur.",
-                "prepareFailed": "Impossible de préparer ce groupe. Réessaie dans un instant."
+                "prepareFailed": "Impossible de préparer ce groupe. Réessaie dans un instant.",
+                "add": "Ajouter"
             },
             "repair": {
                 "announcement": "Tu peux maintenant vérifier l’icône Split.",
@@ -1108,6 +1110,7 @@
     "push": {
         "label": "Notifications",
         "notifyMe": "M’avertir à propos de {room}",
+        "cta": "M’avertir",
         "on": "Activées",
         "iosNeedsPwa": "Ajoute Split à ton écran d’accueil.",
         "iosHow": "Comment ?",

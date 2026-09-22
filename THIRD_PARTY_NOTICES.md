@@ -20,6 +20,10 @@ it carries all three licenses at once and its header says so.
 The per-icon derivation list is in
 [`design/doodles/LUCIDE-LICENSE.txt`](design/doodles/LUCIDE-LICENSE.txt).
 
+The browser-control illustrations in `apps/web/public/install/` reuse Lucide 1.8.0 geometry from
+Peanut UI's install instructions. Their ISC and MIT notices travel in
+[`apps/web/public/install/LICENSE.txt`](apps/web/public/install/LICENSE.txt).
+
 ## Sniglet — SIL Open Font License 1.1
 
 `apps/web/public/fonts/sniglet-regular.ttf` and `apps/web/public/fonts/sniglet-extrabold.ttf` are
