@@ -395,7 +395,8 @@ test('a fresh browser entering a mature room gets the waiting/manual install pat
     page,
     newDevice,
 }) => {
-    const roomUrl = await createTwoPersonRoom(page, `Mature first visit ${Date.now()}`)
+    const roomName = `Mature first visit ${Date.now()}`
+    const roomUrl = await createTwoPersonRoom(page, roomName)
     await addExpense(page, 'Organizer dinner')
     await page.getByTestId('skip-post-aha-share').click()
 
@@ -431,14 +432,19 @@ test('a fresh browser entering a mature room gets the waiting/manual install pat
     expect(new URL(bea.url()).pathname).toBe('/app')
     expect(bea.url()).not.toContain('/r/')
     expect(await bea.evaluate(() => localStorage.getItem('ps:pwa-snoozed-until'))).toBeNull()
-    const appOrigin = new URL(bea.url()).origin
 
     // A browser-menu install can complete while the canonical steps are open. The install surface
     // should leave immediately; it must not mark reading help as a dismissal.
+    const installedNavigation = bea.waitForRequest(
+        (request) => request.isNavigationRequest() && request.url() === new URL('/app', roomUrl).href
+    )
     await bea.evaluate(() => window.dispatchEvent(new Event('appinstalled')))
     await expect(installSurface).toHaveCount(0)
-    await expect(bea).toHaveURL(`${appOrigin}/app`)
-    await expect(bea).toHaveTitle('Split')
+    await installedNavigation
+    await expect(bea).toHaveURL(roomUrl)
+    await expect(bea).toHaveTitle(`${roomName} — Peanut Split`)
+    await expect(bea.getByTestId('join-gate')).toHaveCount(0)
+    await expect(bea.getByTestId('room-title')).toHaveText(roomName)
 })
 
 test('a room-named standalone shortcut gets the one-time repair CTA after Join', async ({ page, newDevice }) => {
