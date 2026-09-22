@@ -4,8 +4,8 @@ import { test } from './fixtures'
 import { enterCreatedRoom, openCurrentRoomSettings } from './helpers'
 
 test('the drawing grid has one tab stop, radio arrow keys, and reliable focus return', async ({ page }) => {
-    await page.goto('/new')
-    await page.getByTestId('room-name').fill('Keyboard drawing')
+    await page.goto('/new?name=Keyboard%20drawing')
+    await expect(page.getByTestId('room-name')).toHaveValue('Keyboard drawing')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
     await enterCreatedRoom(page)
@@ -41,6 +41,7 @@ test('the drawing grid has one tab stop, radio arrow keys, and reliable focus re
     expect((await arrowSave).ok()).toBe(true)
     await expect(details).toHaveAttribute('open', '')
     await expect(picker.locator('[data-doodle="mountain"]')).toBeFocused()
+    await expect(picker.locator('[data-doodle="mountain"]')).toBeEnabled()
 
     // The newly checked radio becomes the sole tab stop without closing the
     // group, and End can select the last option without tabbing fifteen times.
@@ -54,6 +55,7 @@ test('the drawing grid has one tab stop, radio arrow keys, and reliable focus re
     expect((await endSave).ok()).toBe(true)
     await expect(picker.locator('[data-doodle="cake"]')).toBeFocused()
     await expect(details).toHaveAttribute('open', '')
+    await expect(picker.locator('[data-doodle="cake"]')).toBeEnabled()
 
     // Pointer selection keeps the existing compact picker behavior: commit,
     // close, and return focus to the control that opened it.
@@ -70,8 +72,8 @@ test('the drawing grid has one tab stop, radio arrow keys, and reliable focus re
 })
 
 test('room history keeps stats available and downloads a capability-free full log', async ({ page }) => {
-    await page.goto('/new')
-    await page.getByTestId('room-name').fill('History room')
+    await page.goto('/new?name=History%20room')
+    await expect(page.getByTestId('room-name')).toHaveValue('History room')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
     await enterCreatedRoom(page)
@@ -147,8 +149,8 @@ test('room-scoped Settings keeps the link through rename and adds people in cont
         Object.defineProperty(navigator, 'standalone', { configurable: true, value: true })
     })
 
-    await page.goto('/new')
-    await page.getByTestId('room-name').fill('Weekend away')
+    await page.goto('/new?name=Weekend%20away&currency=EUR')
+    await expect(page.getByTestId('room-name')).toHaveValue('Weekend away')
     await page.getByTestId('room-currency').selectOption('EUR')
     await page.getByTestId('creator-name').fill('Ana')
     await page.getByTestId('create-room').click()
