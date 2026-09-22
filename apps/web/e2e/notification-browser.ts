@@ -56,6 +56,13 @@ export async function modelNotificationBrowser(page: Page, options: Notification
                 },
             }
             const registration = {
+                scope: `${location.origin}/`,
+                active: null,
+                installing: null,
+                waiting: null,
+                addEventListener() {},
+                removeEventListener() {},
+                update: async () => {},
                 pushManager: {
                     getSubscription: async () =>
                         localStorage.getItem('__qa-push-subscribed') === '1' ? subscription : null,
@@ -82,6 +89,8 @@ export async function modelNotificationBrowser(page: Page, options: Notification
             Object.defineProperty(navigator, 'serviceWorker', {
                 configurable: true,
                 value: {
+                    controller: null,
+                    register: async () => registration,
                     getRegistration: async () => registration,
                     getRegistrations: async () => [registration],
                     ready: Promise.resolve(registration),

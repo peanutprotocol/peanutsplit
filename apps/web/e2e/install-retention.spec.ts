@@ -312,6 +312,7 @@ test('deleting the only ledger row gives the empty-room activation actions prior
 })
 
 test('a hidden page neither records nor cools down an unseen earned offer', async ({ page }) => {
+    await modelAndroidBrowser(page)
     await stubSuccessfulShare(page)
     await createTwoPersonRoom(page, `Hidden install guard ${Date.now()}`)
     await offerBrowserInstall(page)

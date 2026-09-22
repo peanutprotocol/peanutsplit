@@ -365,7 +365,7 @@ test.describe('the install row', () => {
         await expect(page.getByTestId('install-row-installed')).toBeVisible()
     })
 
-    test('gives a room-named standalone shortcut an honest, slug-free repair path', async ({ page }) => {
+    test('gives a room-named standalone shortcut an honest, slug-free repair path', async ({ page, browserName }) => {
         onlyOn('mobile')
         test.setTimeout(60_000)
         await modelAndroidBrowser(page)
@@ -386,6 +386,7 @@ test.describe('the install row', () => {
         await page.getByTestId('open-room-switcher').click()
         await page.getByTestId('room-switcher-manage').click()
         await expect(page).toHaveURL(/\/app\?manage=1$/)
+        await expect(page.getByTestId('app-home')).toBeVisible()
         expect(await page.evaluate(() => localStorage.getItem('ps:pwa-canonical-launch:v1'))).toBeNull()
 
         await page.goto(`${roomUrl.origin}${roomUrl.pathname}`)
@@ -405,7 +406,8 @@ test.describe('the install row', () => {
         await expect(surface.locator('ol > li')).toHaveCount(3)
         await expect(surface).toContainText('Remove the icon named after the room.')
         await expect(surface).toContainText('Open the original room link in Chrome.')
-        await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], { origin: roomUrl.origin })
+        if (browserName === 'chromium')
+            await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], { origin: roomUrl.origin })
         await surface.getByTestId('install-repair-copy-room').click()
         await expect(surface.getByRole('status')).toHaveText('Room link copied.')
         await expect(surface).toContainText('Open the copied room link in Chrome.')
