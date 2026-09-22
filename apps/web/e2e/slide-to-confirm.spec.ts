@@ -3,6 +3,9 @@ import { test } from './fixtures'
 import { openCurrentRoomSettings } from './helpers'
 import { expectSlideReset, slideToConfirm } from './slide-to-confirm'
 
+// Controlled failures must reach Playwright's route handler before a service worker.
+test.use({ serviceWorkers: 'block' })
+
 test('destructive ledger and identity actions require a slide or keyboard confirmation', async ({ page }, testInfo) => {
     test.setTimeout(90_000)
     // The limiter is intentionally in-memory per server. A unique synthetic
