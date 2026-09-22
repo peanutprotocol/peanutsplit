@@ -8,6 +8,11 @@ on:
         required: false
         default: true
         type: boolean
+      focus:
+        description: Optional Playwright test-name pattern for a targeted rerun
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -19,6 +24,7 @@ concurrency:
 jobs:
   verify:
     name: Full verification and production build
+    if: inputs.focus == ''
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
@@ -188,15 +194,22 @@ jobs:
             curl --insecure --fail --silent --max-time 180 "https://localhost:8777${path}" > /dev/null
           done
       - name: Verify the new flow and existing installation and Settings journeys
+        env:
+          QA_FOCUS: ${{ inputs.focus }}
         run: |
           set -euo pipefail
+          arguments=()
+          if [[ -n "$QA_FOCUS" ]]; then
+            arguments+=(--grep "$QA_FOCUS")
+          fi
           pnpm --dir apps/web exec playwright test \
             e2e/notification-flow.spec.ts \
             e2e/install-retention.spec.ts \
             e2e/install-handoff.spec.ts \
             e2e/pwa.spec.ts \
             e2e/room-settings.spec.ts \
-            --workers=2 --retries=0 --reporter=list,html \
+            e2e/slide-to-confirm.spec.ts \
+            --workers=2 --retries=0 --trace=retain-on-failure --reporter=list,html "${arguments[@]}" \
             2>&1 | tee "${RUNNER_TEMP}/split-browser.log"
       - name: Keep screenshots, traces, reports and server logs
         if: always()
