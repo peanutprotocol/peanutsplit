@@ -90,7 +90,7 @@ jobs:
         browser: [chromium, firefox, webkit]
     env:
       CI: true
-      NODE_OPTIONS: --max-old-space-size=3072
+      NODE_OPTIONS: --max-old-space-size=4096
       DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
       E2E_DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
       E2E_BROWSER: ${{ matrix.browser }}
@@ -123,17 +123,50 @@ jobs:
       - run: pnpm bootstrap
       - run: env -u DATABASE_URL DATABASE_URL="$E2E_DATABASE_URL" pnpm --dir apps/web exec prisma migrate deploy
       - run: pnpm --dir apps/web exec playwright install --with-deps ${{ matrix.browser }}
-      - name: Start the HTTPS app for secure installation cookies
+      - name: Build the app used by the browser journeys
         run: |
+          set -euo pipefail
+          pnpm --dir apps/web build 2>&1 | tee "${RUNNER_TEMP}/split-browser-build.log"
+      - name: Start the production app behind local HTTPS
+        run: |
+          set -euo pipefail
           openssl req -x509 -newkey rsa:2048 -nodes -days 2 \
             -keyout "${RUNNER_TEMP}/split-localhost-key.pem" \
             -out "${RUNNER_TEMP}/split-localhost-cert.pem" \
             -subj '/CN=localhost' \
             -addext 'subjectAltName=DNS:localhost,IP:127.0.0.1'
-          pnpm --dir apps/web dev --webpack --port 8777 --experimental-https \
-            --experimental-https-key "${RUNNER_TEMP}/split-localhost-key.pem" \
-            --experimental-https-cert "${RUNNER_TEMP}/split-localhost-cert.pem" \
-            > "${RUNNER_TEMP}/split-web.log" 2>&1 &
+          pnpm --dir apps/web start --port 8778 > "${RUNNER_TEMP}/split-web.log" 2>&1 &
+          cat > "${RUNNER_TEMP}/split-https-proxy.mjs" <<'NODE'
+          import https from 'node:https'
+          import http from 'node:http'
+          import fs from 'node:fs'
+          const temp = process.env.RUNNER_TEMP
+          https.createServer({
+            key: fs.readFileSync(`${temp}/split-localhost-key.pem`),
+            cert: fs.readFileSync(`${temp}/split-localhost-cert.pem`),
+          }, (request, response) => {
+            const upstream = http.request({
+              hostname: '127.0.0.1', port: 8778, method: request.method, path: request.url,
+              headers: {
+                ...request.headers,
+                'x-forwarded-host': request.headers['x-forwarded-host'] ?? request.headers.host,
+                'x-forwarded-proto': 'https',
+              },
+            }, (result) => {
+              response.writeHead(result.statusCode ?? 502, result.headers)
+              result.pipe(response)
+            })
+            upstream.on('error', (error) => {
+              if (!response.headersSent) response.writeHead(502)
+              response.end('Local QA proxy could not reach Next')
+              console.error(error.message)
+            })
+            request.on('aborted', () => upstream.destroy())
+            response.on('close', () => { if (!response.writableEnded) upstream.destroy() })
+            request.pipe(upstream)
+          }).listen(8777)
+          NODE
+          node "${RUNNER_TEMP}/split-https-proxy.mjs" > "${RUNNER_TEMP}/split-proxy.log" 2>&1 &
           for attempt in {1..120}; do
             if curl --insecure --fail --silent https://localhost:8777/healthcheck > /dev/null; then
               exit 0
@@ -174,6 +207,8 @@ jobs:
             apps/web/playwright-report
             apps/web/test-results
             ${{ runner.temp }}/split-web.log
+            ${{ runner.temp }}/split-proxy.log
+            ${{ runner.temp }}/split-browser-build.log
             ${{ runner.temp }}/split-browser.log
           if-no-files-found: ignore
           retention-days: 14
