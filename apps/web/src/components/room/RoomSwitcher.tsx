@@ -156,10 +156,10 @@ export function RoomSwitcher({ open, onClose, onOpenSettings, currentSettingsRef
                             )}
                         >
                             <span className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-n-1 bg-white">
-                                <Icon name="plus" size={22} aria-hidden="true" />
+                                <Icon name="settings" size={22} aria-hidden="true" />
                             </span>
                             <span className="min-w-0 flex-1">
-                                <span className="block truncate font-bold">{t('addOrJoinRoom')}</span>
+                                <span className="block truncate font-bold">{t('manageRooms')}</span>
                             </span>
                             <Icon name="chevron-right" size={18} className="shrink-0" aria-hidden="true" />
                         </Link>

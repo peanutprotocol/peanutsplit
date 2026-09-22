@@ -28,37 +28,57 @@ export default async function AppHomePage({
         source?: string | string[]
     }>
 }) {
-    const [tCreate, tFooter] = await Promise.all([getTranslations('room.create'), getTranslations('marketing.footer')])
+    const [tCreate, tFooter, tRooms, tHeader] = await Promise.all([
+        getTranslations('room.create'),
+        getTranslations('marketing.footer'),
+        getTranslations('marketing.rooms'),
+        getTranslations('room.header'),
+    ])
 
     const fallback = (
         <main data-testid="app-home" className="mx-auto min-h-dvh w-full max-w-xl bg-background">
             <header className="flex items-center justify-between gap-3 border-b border-n-1 bg-primary-1 px-5 pb-5 pt-[max(1.5rem,env(safe-area-inset-top))]">
-                <h1 className="text-h4">Split</h1>
+                <h1 className="text-h4">{tRooms('title')}</h1>
                 <LandingLink />
             </header>
 
-            <nav aria-label="Split" className="grid gap-3 px-5 pt-6">
-                <Link
-                    href="/new"
-                    data-testid="app-new-split"
+            <div className="px-5 pt-6">
+                <a
+                    href="#room-options"
+                    data-testid="app-add-or-join"
                     className={buttonClassName({ shadowSize: '4', className: 'justify-center text-h6 no-underline' })}
                 >
-                    {tCreate('title')}
-                    <Doodle name="iconarrowright" size={22} weight={2.2} />
-                </Link>
-                <Link
-                    href="/import"
-                    data-testid="app-import"
-                    className={buttonClassName({
-                        variant: 'stroke',
-                        className: 'justify-center text-sm font-bold no-underline',
-                    })}
-                >
-                    {tFooter('importLink')}
-                </Link>
-            </nav>
-
-            <YourRooms surface="app" />
+                    {tHeader('addOrJoinRoom')}
+                </a>
+            </div>
+            <YourRooms
+                surface="app"
+                entryActions={
+                    <nav aria-label={tHeader('addOrJoinRoom')} className="mb-5 grid gap-3">
+                        <Link
+                            href="/new"
+                            data-testid="app-new-split"
+                            className={buttonClassName({
+                                shadowSize: '4',
+                                className: 'justify-center text-h6 no-underline',
+                            })}
+                        >
+                            {tCreate('title')}
+                            <Doodle name="iconarrowright" size={22} weight={2.2} />
+                        </Link>
+                        <Link
+                            href="/import"
+                            data-testid="app-import"
+                            className={buttonClassName({
+                                variant: 'stroke',
+                                className: 'justify-center text-sm font-bold no-underline',
+                            })}
+                        >
+                            {tFooter('importLink')}
+                        </Link>
+                    </nav>
+                }
+            />
         </main>
     )
 

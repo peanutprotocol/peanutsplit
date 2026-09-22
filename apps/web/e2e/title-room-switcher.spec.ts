@@ -51,7 +51,7 @@ test('an only room keeps an inert body and one settings action', async ({ page }
 
     const manage = sheet.getByTestId('room-switcher-manage')
     await expect(manage).toHaveAttribute('href', '/app?manage=1')
-    await expect(manage).toContainText('Add or join a room')
+    await expect(manage).toContainText('Manage rooms')
     await expect(sheet.locator('a a, a button, button a, button button')).toHaveCount(0)
     await expect(sheet.getByText('Recent rooms are saved only on this device.')).toHaveCount(0)
     expect(new URL(page.url()).pathname).toBe(path)

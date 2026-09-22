@@ -1,7 +1,8 @@
 'use client'
 import { RoomEmblem } from '@/components/room/RoomEmblem'
+import { RemoveRoomSheet } from '@/components/room/RemoveRoomSheet'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion, type Variants } from 'motion/react'
@@ -9,11 +10,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
-import { CloseButton } from '@/components/ui/CloseButton'
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
-import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
-import { SlideToConfirm } from '@/components/ui/SlideToConfirm'
 import { api, isApiError } from '@/lib/api'
 import { readRecentRooms, rememberRoom, roomSlugFromLink, type RecentRoom } from '@/lib/recent-rooms'
 import { themeFor } from '@/lib/themes'
@@ -75,7 +72,13 @@ const relativeTime = (epochMs: number, locale: string): string => {
  * surface in the app. Reads localStorage after mount (never during render, so SSR and hydration
  * agree). Paste-link recovery belongs to the app home, including when the device has no history.
  */
-export function YourRooms({ surface = 'landing' }: { surface?: 'landing' | 'app' }) {
+export function YourRooms({
+    surface = 'landing',
+    entryActions,
+}: {
+    surface?: 'landing' | 'app'
+    entryActions?: ReactNode
+}) {
     const router = useRouter()
     const t = useTranslations('marketing.rooms')
     const locale = useLocale()
@@ -231,8 +234,10 @@ export function YourRooms({ surface = 'landing' }: { surface?: 'landing' | 'app'
                         data-motion-surface
                         className="flex items-baseline justify-between gap-4"
                     >
-                        <h2 className="text-h5">{t('title')}</h2>
-                        <span className="text-right text-sm text-grey-1">{t('subtitle')}</span>
+                        <h2 className="text-h5">{surface === 'app' ? t('subtitle') : t('title')}</h2>
+                        {surface === 'landing' && (
+                            <span className="text-right text-sm text-grey-1">{t('subtitle')}</span>
+                        )}
                     </motion.div>
 
                     <motion.ul
@@ -320,109 +325,72 @@ export function YourRooms({ surface = 'landing' }: { surface?: 'landing' | 'app'
             )}
 
             {surface === 'app' && (
-                <details
-                    className={`${recent.length > 0 ? 'mt-5' : ''} rounded-sm border border-n-1 bg-white px-4`}
-                    data-testid="room-link-recovery"
-                >
-                    <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 py-3 text-h7 [&::-webkit-details-marker]:hidden">
-                        <span>{t('recovery.title')}</span>
-                        <Icon name="chevron-down" size={18} className="shrink-0" aria-hidden="true" />
-                    </summary>
-                    <form
-                        onSubmit={recover}
-                        className="flex flex-col gap-3 border-t border-dashed border-n-1 pb-4 pt-4"
+                <section id="room-options" tabIndex={-1} className="mt-6 scroll-mt-6">
+                    {entryActions}
+                    <details
+                        className={`${recent.length > 0 ? 'mt-5' : ''} rounded-sm border border-n-1 bg-white px-4`}
+                        data-testid="room-link-recovery"
                     >
-                        <label className="text-sm font-bold" htmlFor="recover-room-link">
-                            {t('recovery.label')}
-                        </label>
-                        <BaseInput
-                            id="recover-room-link"
-                            value={pastedLink}
-                            onChange={(event) => {
-                                setPastedLink(event.target.value)
-                                setRecoveryError(null)
-                            }}
-                            placeholder={t('recovery.placeholder')}
-                            inputMode="url"
-                            autoCapitalize="none"
-                            autoCorrect="off"
-                            spellCheck={false}
-                            aria-invalid={recoveryError ? 'true' : undefined}
-                            aria-describedby={recoveryError ? 'recover-room-error' : 'recover-room-hint'}
-                            data-testid="recover-room-input"
-                        />
-                        <p id="recover-room-hint" className="text-sm leading-5 text-grey-1">
-                            {t('recovery.hint')}
-                        </p>
-                        {recoveryError && (
-                            <p id="recover-room-error" role="alert" className="text-sm font-bold text-error">
-                                {recoveryError}
-                            </p>
-                        )}
-                        <Button
-                            type="submit"
-                            variant="stroke"
-                            size="medium"
-                            loading={recovering}
-                            disabled={!pastedLink.trim() || recovering}
-                            className="justify-center"
-                            data-testid="recover-room-submit"
+                        <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 py-3 text-h7 [&::-webkit-details-marker]:hidden">
+                            <span>{t('recovery.title')}</span>
+                            <Icon name="chevron-down" size={18} className="shrink-0" aria-hidden="true" />
+                        </summary>
+                        <form
+                            onSubmit={recover}
+                            className="flex flex-col gap-3 border-t border-dashed border-n-1 pb-4 pt-4"
                         >
-                            {t('recovery.submit')}
-                        </Button>
-                    </form>
-                </details>
-            )}
-
-            {/* Removing a room is the one irreversible thing this page can do:
-                without the link, a room dropped here cannot be reached again from
-                this device. So it asks, and it says what the cost is. */}
-            <Drawer open={pendingForget !== null} onOpenChange={(next) => !next && closeForget()}>
-                {forgetSubject && (
-                    <DrawerContent data-testid="forget-room-confirm">
-                        <DrawerHeader className="flex flex-row items-end justify-between">
-                            <DrawerTitle className="text-h5">
-                                {t('confirmForgetTitle', { room: forgetSubject.name })}
-                            </DrawerTitle>
-                            <CloseButton
-                                onClick={closeForget}
-                                label={t('confirmForgetClose')}
-                                data-testid="close-forget-room"
+                            <label className="text-sm font-bold" htmlFor="recover-room-link">
+                                {t('recovery.label')}
+                            </label>
+                            <BaseInput
+                                id="recover-room-link"
+                                value={pastedLink}
+                                onChange={(event) => {
+                                    setPastedLink(event.target.value)
+                                    setRecoveryError(null)
+                                }}
+                                placeholder={t('recovery.placeholder')}
+                                inputMode="url"
+                                autoCapitalize="none"
+                                autoCorrect="off"
+                                spellCheck={false}
+                                aria-invalid={recoveryError ? 'true' : undefined}
+                                aria-describedby={recoveryError ? 'recover-room-error' : 'recover-room-hint'}
+                                data-testid="recover-room-input"
                             />
-                        </DrawerHeader>
-                        <DrawerBody>
-                            <p id="forget-room-warning" className="text-sm leading-5 text-grey-1">
-                                {t('confirmForgetBody')}
+                            <p id="recover-room-hint" className="text-sm leading-5 text-grey-1">
+                                {t('recovery.hint')}
                             </p>
-                            {forgetError && (
-                                <p id="forget-room-error" role="alert" className="text-sm font-bold text-error">
-                                    {forgetError}
+                            {recoveryError && (
+                                <p id="recover-room-error" role="alert" className="text-sm font-bold text-error">
+                                    {recoveryError}
                                 </p>
                             )}
-                            <DrawerActions>
-                                <SlideToConfirm
-                                    autoFocus
-                                    label={t('slideForget')}
-                                    onConfirm={() => forget(forgetSubject)}
-                                    onCancel={closeForget}
-                                    aria-describedby={['forget-room-warning', forgetError ? 'forget-room-error' : null]
-                                        .filter(Boolean)
-                                        .join(' ')}
-                                    data-testid="confirm-forget-room"
-                                />
-                                <Button
-                                    variant="stroke"
-                                    className="justify-center"
-                                    onClick={closeForget}
-                                    data-testid="cancel-forget-room"
-                                >
-                                    {t('confirmForgetKeep')}
-                                </Button>
-                            </DrawerActions>
-                        </DrawerBody>
-                    </DrawerContent>
-                )}
-            </Drawer>
+                            <Button
+                                type="submit"
+                                variant="stroke"
+                                size="medium"
+                                loading={recovering}
+                                disabled={!pastedLink.trim() || recovering}
+                                className="justify-center"
+                                data-testid="recover-room-submit"
+                            >
+                                {t('recovery.submit')}
+                            </Button>
+                        </form>
+                    </details>
+                </section>
+            )}
+
+            {forgetSubject && (
+                <RemoveRoomSheet
+                    open={pendingForget !== null}
+                    roomName={forgetSubject.name}
+                    error={forgetError}
+                    onClose={closeForget}
+                    onConfirm={() => forget(forgetSubject)}
+                />
+            )}
 
             {notice && (
                 <p

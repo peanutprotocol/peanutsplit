@@ -8,6 +8,7 @@ import { DoodlePicker } from '@/components/room/DoodlePicker'
 import { PeopleSection } from '@/components/room/PeopleSection'
 import { RoomEmblem } from '@/components/room/RoomEmblem'
 import { RoomExport } from '@/components/room/RoomExport'
+import { RoomMembershipActions } from '@/components/room/RoomMembershipActions'
 import { ThemePicker } from '@/components/room/ThemePicker'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
@@ -370,6 +371,8 @@ export function SettingsSheet({
                             onClick={() => setFeedbackOpen(true)}
                             testId="feedback-report-row"
                         />
+
+                        <RoomMembershipActions state={state} identity={identity} me={me} />
 
                         {/* The one surviving statement of the link-is-the-credential
                         fact. It used to appear four times. Say it once, here. */}

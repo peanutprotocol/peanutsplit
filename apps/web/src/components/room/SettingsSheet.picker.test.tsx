@@ -14,6 +14,7 @@ vi.mock('@/components/room/RoomEmblem', () => ({
     RoomEmblem: ({ value }: { value: string | null }) => createElement('span', { 'data-room-emblem': value ?? 'auto' }),
 }))
 vi.mock('@/components/room/RoomExport', () => ({ RoomExport: () => null }))
+vi.mock('@/components/room/RoomMembershipActions', () => ({ RoomMembershipActions: () => null }))
 vi.mock('@/components/room/ThemePicker', () => ({ ThemePicker: () => null }))
 vi.mock('@/components/ui/BaseInput', () => ({
     BaseInput: (props: ComponentProps<'input'>) => createElement('input', props),

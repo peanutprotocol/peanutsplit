@@ -67,7 +67,7 @@ test('the title switcher exposes every retained non-current room', async ({ page
     await expect(settings).toHaveCount(expectedSlugs.length + 1)
     await expect(settings).toHaveText(Array(expectedSlugs.length + 1).fill('Settings'))
     await expect(manage).toHaveAttribute('href', '/app?manage=1')
-    await expect(manage).toContainText('Add or join a room')
+    await expect(manage).toContainText('Manage rooms')
     await expect(sheet.locator('a a, a button, button a, button button')).toHaveCount(0)
     expect(await recent.evaluateAll((tiles) => tiles.map((tile) => (tile as HTMLElement).dataset.slug))).toEqual(
         expectedSlugs
@@ -92,7 +92,7 @@ test('the full switcher scrolls to its final room without horizontal overflow', 
     await expect(recent).toHaveCount(CAP - 1)
     await manage.scrollIntoViewIfNeeded()
     await expect(manage).toBeInViewport()
-    await expect(manage).toContainText('Add or join a room')
+    await expect(manage).toContainText('Manage rooms')
 
     const overflow = await sheet.evaluate((element) => ({
         sheet: element.scrollWidth - element.clientWidth,

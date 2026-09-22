@@ -190,6 +190,7 @@ test('create → share → join → split → settle → undo', async ({ page, n
     await bea.getByTestId('open-add-expense').click()
     await bea.getByTestId('expense-amount').fill('60')
     await bea.getByTestId('expense-description').fill('Dinner')
+    await expect(bea.getByText('Category', { exact: true })).toBeVisible()
     // A deliberate category wins over description inference and survives edit.
     await bea.locator('[data-testid="expense-category-picker"] [data-category="transport"]').click()
     await bea.getByTestId('expense-payer-summary').click()
@@ -554,9 +555,9 @@ test('one person can add a payer and submit an expense on their behalf', async (
     await page.getByTestId('skip-post-aha-share').click()
     const dinnerRow = page.locator('[data-testid="expense-row"][data-description="Dinner Bea covered"]:not([disabled])')
     await expect(dinnerRow).toContainText('Bea paid', { timeout: 15_000 })
-    await expect(dinnerRow).not.toContainText('Filed by you')
+    await expect(dinnerRow).not.toContainText('Added by you')
     await dinnerRow.click()
-    await expect(page.getByTestId('expense-filing-meta')).toContainText('Filed by you')
+    await expect(page.getByTestId('expense-filing-meta')).toContainText('Added by you')
     await page.getByTestId('close-expense').click()
     // Ana filed an expense Bea paid, so Ana is −3000 — the pair card states it as Bea +3000.
     await expectBalance(page, 'Bea', '3000')
