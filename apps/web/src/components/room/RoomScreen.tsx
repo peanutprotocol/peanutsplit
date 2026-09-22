@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { Doodle } from '@/components/ui/Doodle'
 import { PullToRefresh } from '@/components/ui/PullToRefresh'
-import { InstallPrompt } from '@/components/pwa/InstallPrompt'
+import { RoomUpdatesPrompt } from '@/components/pwa/RoomUpdatesPrompt'
 import { isApiError, MEMBER_TOKEN_INVALID_EVENT } from '@/lib/api'
 import { installMeasureProps, roomProps, track, trackFirstSharedBalance, type ShareSurface } from '@/lib/analytics'
 import type { MemberIdentity } from '@/lib/identity'
@@ -615,7 +615,15 @@ export function RoomScreen({ slug }: { slug: string }) {
                                 )}
                             </AnimatePresence>
                             {!needsJoin && (
-                                <InstallPrompt
+                                <RoomUpdatesPrompt
+                                    key={slug}
+                                    roomName={state.room.name}
+                                    memberId={identity?.memberId}
+                                    notificationsEligible={
+                                        state.room.hasReachedSharedBalance === true &&
+                                        !settledUp &&
+                                        activeRoster.length > 1
+                                    }
                                     trigger={installTrigger}
                                     blocked={guidanceOwner !== 'install'}
                                     slug={slug}

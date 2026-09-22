@@ -97,6 +97,7 @@ export function writeIdentity(slug: string, identity: MemberIdentity): void {
 
 /** Forget who you are in this room (the "not me" escape hatch). */
 export function clearIdentity(slug: string): void {
+    claims.set(slug, identityGeneration(slug) + 1)
     const store = storage()
     if (!store) return
     try {

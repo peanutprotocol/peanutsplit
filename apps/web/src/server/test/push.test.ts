@@ -239,6 +239,26 @@ describe('subscribe endpoint', () => {
 })
 
 describe('unsubscribe endpoint', () => {
+    it('preserves a channel rebound to another member when the previous member finishes cleanup', async () => {
+        const fixture = await makeRoom()
+        const endpoint = FCM('rebound')
+        expect((await subscribe(fixture, fixture.owner, endpoint)).status).toBe(201)
+        expect((await subscribe(fixture, fixture.friend, endpoint)).status).toBe(201)
+
+        const previousMember = await unsubscribe(fixture, fixture.owner, endpoint)
+        expect(previousMember.status).toBe(200)
+        expect(previousMember.body).toEqual({ subscribed: false, endpointStillUsed: true })
+        expect(await prisma.pushSubscription.findMany()).toMatchObject([
+            { roomId: fixture.roomId, memberId: fixture.friend.id, endpoint },
+        ])
+        expect((await askStatus(fixture, fixture.friend, endpoint)).body).toEqual({ subscribed: true })
+
+        const currentMember = await unsubscribe(fixture, fixture.friend, endpoint)
+        expect(currentMember.status).toBe(200)
+        expect(currentMember.body).toEqual({ subscribed: false, endpointStillUsed: false })
+        expect(await prisma.pushSubscription.count()).toBe(0)
+    })
+
     /** The client revokes the browser subscription on this answer, and that
      *  endpoint is the whole device's — every other room's row points at it. */
     it('says the endpoint is still used while another room holds it', async () => {

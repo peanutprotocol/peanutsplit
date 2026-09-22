@@ -34,6 +34,10 @@ async function offerBrowserInstall(page: Page, outcome: 'accepted' | 'dismissed'
 
 async function modelAndroidBrowser(page: Page): Promise<void> {
     await page.addInitScript(() => {
+        // These cases exercise the install fallback. Notification-capable browsers have their
+        // connected setup journey covered in notification-flow.spec.ts.
+        Reflect.deleteProperty(window, 'Notification')
+        Reflect.deleteProperty(window, 'PushManager')
         Object.defineProperties(window.navigator, {
             userAgent: {
                 configurable: true,
@@ -529,7 +533,7 @@ test('the earned iOS offer withholds instructions on arm failure, then restores 
     await postAha.getByTestId('share-link').click()
     await postAha.getByTestId('finish-post-aha-share').click()
 
-    const prompt = page.getByTestId('install-prompt')
+    const prompt = page.getByTestId('room-updates-prompt')
     await expect(prompt).toBeVisible({ timeout: 6_000 })
     await expect(prompt.getByRole('button', { name: 'Show install steps' })).toBeVisible()
 
@@ -580,7 +584,7 @@ test('a delayed iOS arm cannot open instructions over a newer room drawer', asyn
     await postAha.getByTestId('share-link').click()
     await postAha.getByTestId('finish-post-aha-share').click()
 
-    const prompt = page.getByTestId('install-prompt')
+    const prompt = page.getByTestId('room-updates-prompt')
     await expect(prompt).toBeVisible({ timeout: 6_000 })
     let releasePrepare: (() => void) | undefined
     let sawPrepare: (() => void) | undefined

@@ -3,9 +3,9 @@
  * cookies once, but not localStorage, so a short-lived opaque server handoff is
  * the bridge for the room the person explicitly installed from.
  *
- * The secret cookie is HttpOnly and never appears here. This readable marker is
- * only a `1`: it lets `/app` avoid making a doomed request on every ordinary
- * launch. The server remains the authority for the opaque token and payload.
+ * The secret cookie is HttpOnly and never appears here. The readable marker
+ * lets `/app` skip ordinary launches and resume an explicitly requested
+ * notification setup. The server remains the authority for the token and payload.
  */
 
 import { api, isApiError, type InstallHandoffPayload } from './api'
@@ -13,6 +13,7 @@ import { track } from './analytics'
 import { clearIdentity, readIdentity, writeIdentity } from './identity'
 import { readRecentRooms, rememberRoom, roomSlugFromLink } from './recent-rooms'
 import { isStandaloneDisplay } from './push-status'
+import { readRoomUpdates, requestRoomUpdates } from './room-updates'
 
 export const INSTALL_HANDOFF_READY_COOKIE = '__Host-ps-install-handoff-ready'
 const INSTALL_HANDOFF_PREPARE_INTENT_KEY = 'ps:install-handoff-prepare-intent'
@@ -102,8 +103,10 @@ const cookieValue = (cookieHeader: string, name: string): string | null => {
     return null
 }
 
-export const hasPreparedInstallHandoff = (cookieHeader: string): boolean =>
-    cookieValue(cookieHeader, INSTALL_HANDOFF_READY_COOKIE) === '1'
+export const hasPreparedInstallHandoff = (cookieHeader: string): boolean => {
+    const marker = cookieValue(cookieHeader, INSTALL_HANDOFF_READY_COOKIE)
+    return marker === '1' || marker === 'notifications'
+}
 
 export function isStandaloneInstallLaunch(): boolean {
     if (typeof window === 'undefined' || typeof document === 'undefined') return false
@@ -121,7 +124,11 @@ export function isStandaloneInstallLaunch(): boolean {
  * wrong room. The handle lets a surface invalidate a successful response that
  * became stale while it was in flight.
  */
-export function prepareInstallHandoff(slug: string, token?: string | null): Promise<PreparedInstallHandoff | null> {
+export function prepareInstallHandoff(
+    slug: string,
+    token?: string | null,
+    options: { notifications?: boolean } = {}
+): Promise<PreparedInstallHandoff | null> {
     const intent = beginPrepareIntent()
     if (!intent) return Promise.resolve(null)
 
@@ -132,7 +139,13 @@ export function prepareInstallHandoff(slug: string, token?: string | null): Prom
                 result?.prepared === true &&
                 typeof document !== 'undefined' &&
                 hasPreparedInstallHandoff(document.cookie)
-            if (ready && isLatestPrepareIntent(intent)) return { intent }
+            if (ready && isLatestPrepareIntent(intent)) {
+                // WebKit copies cookies, not localStorage, into the installed app.
+                // This marker carries only UI intent; permission still needs a tap.
+                const marker = options.notifications === true ? 'notifications' : '1'
+                document.cookie = `${INSTALL_HANDOFF_READY_COOKIE}=${marker}; Path=/; Max-Age=86400; Secure; SameSite=Strict`
+                if (cookieValue(document.cookie, INSTALL_HANDOFF_READY_COOKIE) === marker) return { intent }
+            }
             clearPreparedReadyMarker()
             return null
         } catch {
@@ -259,6 +272,7 @@ export async function restorePreparedInstallHandoff(
     if (typeof document === 'undefined' || !isStandaloneInstallLaunch() || !hasPreparedInstallHandoff(document.cookie))
         return { status: 'not-needed' }
 
+    const notificationsRequested = cookieValue(document.cookie, INSTALL_HANDOFF_READY_COOKIE) === 'notifications'
     let payload: InstallHandoffPayload
     try {
         payload = await client.redeem(signal)
@@ -270,6 +284,13 @@ export async function restorePreparedInstallHandoff(
 
     const roomPath = persistInstallHandoff(payload)
     if (!roomPath) return { status: 'transient-failure' }
+    if (notificationsRequested) {
+        const updates = readRoomUpdates(payload.room.slug)
+        // A lost ACK can restore the same handoff again. Keep choices made in
+        // this app since the first restore, including an explicit opt-out.
+        if (updates.requestedAt === undefined && updates.subscribedAt === undefined && !updates.muted)
+            requestRoomUpdates(payload.room.slug)
+    }
 
     // Local restoration is already verified, so navigation must not sit behind a
     // second network deadline. ACK continues without the boot component's abort

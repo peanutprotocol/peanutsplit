@@ -84,6 +84,11 @@ const DISMISSED_AT_KEY = 'ps:pwa-dismissed-at'
 const SNOOZED_UNTIL_KEY = 'ps:pwa-snoozed-until'
 export const CANONICAL_LAUNCH_MARKER_KEY = 'ps:pwa-canonical-launch:v1'
 const REPAIR_NOTICE_DISMISSED_KEY = 'ps:pwa-repair-notice-dismissed:v1'
+export const INSTALL_SNOOZE_CHANGE_EVENT = 'ps:install-snooze-change'
+
+const announceSnoozeChange = (): void => {
+    if (typeof window !== 'undefined') window.dispatchEvent?.(new Event(INSTALL_SNOOZE_CHANGE_EVENT))
+}
 
 const HOUR = 60 * 60 * 1000
 const BASE_BACKOFF_MS = 24 * HOUR
@@ -115,6 +120,7 @@ export const noteInstallDismissed = (): number => {
         const next = readInt(DISMISS_COUNT_KEY) + 1
         window.localStorage.setItem(DISMISS_COUNT_KEY, String(next))
         window.localStorage.setItem(DISMISSED_AT_KEY, String(Date.now()))
+        announceSnoozeChange()
         return next
     } catch {
         return 1
@@ -143,6 +149,7 @@ const clearInstallSnooze = (): void => {
         window.localStorage.removeItem(DISMISS_COUNT_KEY)
         window.localStorage.removeItem(DISMISSED_AT_KEY)
         window.localStorage.removeItem(SNOOZED_UNTIL_KEY)
+        announceSnoozeChange()
     } catch {
         // Private mode. There was nothing to clear.
     }

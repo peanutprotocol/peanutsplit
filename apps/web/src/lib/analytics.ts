@@ -62,6 +62,9 @@ export type AnalyticsEvent =
     // Push opt-in. Same discipline as everything above: neither a room
     // identifier nor a member identity ever appears in a property bag.
     | 'push_optin_shown'
+    | 'push_optin_started'
+    | 'push_optin_dismissed'
+    | 'push_optin_failed'
     | 'push_optin_accepted'
     | 'push_optin_denied'
     // Bill scanning. A receipt is the most identifying thing anyone hands this

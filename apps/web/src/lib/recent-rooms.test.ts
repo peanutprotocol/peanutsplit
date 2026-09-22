@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { encodeRoomDrawing } from './room-drawing'
 import { memberStorageKey } from './identity'
 import { roomInstallStorageKey } from './install-funnel'
+import { roomUpdatesStorageKey } from './room-updates'
 import {
     forgetRoom,
     mostRecentRoomPath,
@@ -66,6 +67,7 @@ describe('recent-room persistence results', () => {
         expect(rememberRoom({ slug: SLUG, name: 'Lisbon weekend', lastSeenAt: 1 })).toBe(true)
         values.set(memberStorageKey(SLUG), JSON.stringify({ memberId: 'member-1', name: 'Ana', token: 'proof' }))
         values.set(roomInstallStorageKey(SLUG), JSON.stringify({ version: 1, origin: 'created_here' }))
+        values.set(roomUpdatesStorageKey(SLUG), JSON.stringify({ requestedAt: Date.now() }))
         expect(readRecentRooms()).toEqual([
             { slug: SLUG, name: 'Lisbon weekend', emoji: undefined, theme: undefined, lastSeenAt: 1 },
         ])
@@ -73,6 +75,7 @@ describe('recent-room persistence results', () => {
         expect(JSON.parse(values.get(RECENT_ROOMS_KEY) ?? '[]')).toEqual([])
         expect(values.has(memberStorageKey(SLUG))).toBe(false)
         expect(values.has(roomInstallStorageKey(SLUG))).toBe(false)
+        expect(values.has(roomUpdatesStorageKey(SLUG))).toBe(false)
     })
 
     it('bounds prompt journey records without silently forgetting an evicted room identity', () => {

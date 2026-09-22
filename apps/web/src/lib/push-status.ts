@@ -50,10 +50,11 @@ export interface PushEnvironment {
 }
 
 export function derivePushStatus(env: PushEnvironment): DerivedPushStatus {
-    if (!env.hasNotification || !env.hasServiceWorker || !env.hasPushManager || !env.hasVapidKey) return 'unsupported'
-    // Before the permission check, deliberately: iOS in a browser tab reports
-    // permission 'default', which reads as "just ask" and is a trap.
+    if (!env.hasServiceWorker || !env.hasVapidKey) return 'unsupported'
+    // iOS exposes the push APIs in the installed app, not necessarily in the
+    // browser that must explain how to install it.
     if (env.isIOS && !env.isStandalone) return 'ios-needs-pwa'
+    if (!env.hasNotification || !env.hasPushManager) return 'unsupported'
     if (env.permission === 'denied') return 'denied'
     // 'granted' without a row is normal — the browser drops subscriptions on
     // storage pressure, and this room may simply never have been turned on.

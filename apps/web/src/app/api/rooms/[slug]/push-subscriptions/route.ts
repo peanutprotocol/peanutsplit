@@ -127,7 +127,9 @@ export const DELETE = (request: Request, ctx: Ctx) =>
                 select: { id: true, memberId: true },
             })
             const removed = await tx.pushSubscription.deleteMany({
-                where: { roomId: room.id, endpoint: body.endpoint },
+                // A delayed cleanup from the previous person must preserve a
+                // channel this device has since bound to somebody else.
+                where: { roomId: room.id, endpoint: body.endpoint, memberId: body.memberId },
             })
             if (removed.count > 0 && existing) {
                 const member = lockedRoom.members.find(

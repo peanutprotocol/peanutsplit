@@ -1,24 +1,49 @@
-# PWA install and retention funnel
+# Notifications, PWA installation, and return visits
 
-Installation is not Peanut Split's activation event. A URL already delivers the
-product; adding it to a device only reduces the cost of coming back. Install is therefore
-always discoverable in Device settings and becomes the room's promoted fallback CTA only
-when no temporary product journey needs that space. iOS has its Home Screen steps,
-browsers without a live one-tap event move to Split's canonical, slug-free install page,
-and Chromium uses its native prompt as soon as that prompt is available.
+An active shared room offers notifications in its existing inline guidance slot.
+The offer uses the same room notification control and copy as Settings. Installation
+remains available in Device settings and becomes a later step when notifications
+are already enabled. Neither action blocks joining, sharing, or recording an expense.
+
+## Connected setup
+
+- After joining an active room or reaching its first shared balance, a proven member
+  can enable notifications in the room. Share and other active tasks retain priority.
+- Supported Android and desktop browsers request permission only when the person
+  taps the notification switch. Success requires a saved server subscription for
+  this room; browser permission or another room's subscription is not sufficient.
+- An iPhone or iPad browser offers the existing Home Screen instructions first,
+  including when that browser does not expose the push APIs. The temporary install
+  handoff carries only a non-secret notification-intent marker alongside its existing
+  credential cookies. After room and identity restoration, the installed app resumes
+  the notification control. A separate tap is still required to grant permission.
+- Starting installation from the notification control in Settings preserves the same
+  intent. Ordinary installation does not imply notification intent or consent.
+- Successful opt-in confirms the switch briefly, then retires the offer for that visit.
+  Installation can be offered on a later visit, at least 30 minutes after subscription.
+  A backgrounded app can resume after 30 minutes away without needing a reload.
+- Notification and install refusals share the existing exponential backoff across
+  surfaces and rooms. A browser denial does not lead to another automatic offer.
+  Manually disabling a room's notifications prevents further automatic offers there;
+  Settings remains available for a later explicit opt-in.
+- The inline control and Settings share pending mutation state and refresh their
+  server subscription status after changes. Only one control changes the device's
+  shared browser endpoint at a time.
+
+Progress stays on the device, scoped to the room. Pending notification intent expires
+after 24 hours. Forget removes it with the room's other local state. This introduces
+no account, cross-device profile, scheduled reminders, or new notification templates.
 
 ## One guidance slot
 
 The room chooses one optional guidance owner in this order: identity, recovery,
 post-activation Share, an active form or drawer, empty-room activation, latecomer review,
-a newly reached All settled moment, an achievement, then Install. Persistent utilities
+a newly reached All settled moment, an achievement, then notification/install setup. Persistent utilities
 such as Add expense, Settle up, header Share and Settings do not consume the slot.
 
-This protects activation directly without making a particular local history event a hard
-install prerequisite. A browser opening an already-useful room should not have to share
-again, contribute a second expense, or leave for 30 minutes merely to discover that Split
-can live on the device. Conversely, an empty room keeps its Share/Add actions and never
-replaces them with Install.
+An empty room keeps its Share/Add actions. An active room offers notifications first;
+an unsupported browser or an eligible later visit keeps the existing install path.
+Every offer waits for 1.5 seconds without typing or other active interaction.
 
 The promoted card is inline above the ledger rather than fixed over the primary room
 controls. A temporary owner hides it; after that owner closes and the interaction is quiet,
@@ -45,9 +70,9 @@ No server-side creator/invitee role is introduced. Roster members are ledger
 participants, not accounts, and install analytics never contain a member, room slug,
 name, amount, or currency.
 
-- A loaded room with a resolved active device identity promotes Install whenever the
-  guidance resolver reaches its fallback slot. A first visit to an existing room is enough;
-  there is no balance/share/contribution/return eligibility gate.
+- A loaded room with a resolved active device identity uses the fallback slot for
+  notifications when it has an active shared balance. Other eligible states retain
+  the existing install offer. Installation itself is never required to use a room.
 - Empty-room Share/Add, identity recovery, stale or pending writes, open sheets/forms,
   latecomer correction, achievements, and the fresh All settled transition take priority.
 - Reaching All settled suppresses Install for the rest of that mounted celebration. A later

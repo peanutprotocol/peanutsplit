@@ -8,7 +8,7 @@
  * a SINGLE PushSubscription per origin, which every room shares.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { writeIdentity } from './identity'
+import { clearIdentity, writeIdentity } from './identity'
 import { addRoomSubscription, dropRoomSubscription, roomSubscribed } from './use-push'
 
 const { subscribe, unsubscribe, status } = vi.hoisted(() => ({
@@ -80,6 +80,33 @@ afterEach(() => {
 })
 
 describe('addRoomSubscription', () => {
+    it('reuses granted browser permission while still registering the chosen room', async () => {
+        const requestPermission = vi.fn()
+        vi.stubGlobal('Notification', { permission: 'granted', requestPermission })
+        expect(await addRoomSubscription('ski-trip', 'm1', 't1')).toEqual({ status: 'subscribed' })
+        expect(requestPermission).not.toHaveBeenCalled()
+        expect(subscribe).toHaveBeenCalledWith('ski-trip', expect.objectContaining({ memberId: 'm1' }))
+    })
+
+    it.each(['switch', 'forget', 'another tab switches'])(
+        'does not subscribe a previous identity after %s during the permission prompt',
+        async (action) => {
+            let allow!: (permission: NotificationPermission) => void
+            const permission = new Promise<NotificationPermission>((resolve) => {
+                allow = resolve
+            })
+            vi.stubGlobal('Notification', { permission: 'default', requestPermission: () => permission })
+            const subscribing = addRoomSubscription('ski-trip', 'm1', 't1')
+            if (action === 'switch') writeIdentity('ski-trip', { memberId: 'm2', name: 'Bea', token: 't2' })
+            else if (action === 'forget') clearIdentity('ski-trip')
+            else readIdentity.mockReturnValue({ memberId: 'm2', name: 'Bea', token: 't2' })
+            allow('granted')
+            await expect(subscribing).rejects.toThrow('room identity changed')
+            expect(subscribe).not.toHaveBeenCalled()
+            expect(browser.subscription).toBeNull()
+        }
+    )
+
     it('registers this device against the room and keeps the channel', async () => {
         expect(await addRoomSubscription('ski-trip', 'm1', 't1')).toEqual({ status: 'subscribed' })
         expect(subscribe).toHaveBeenCalledWith('ski-trip', expect.objectContaining({ endpoint: ENDPOINT }))
@@ -92,12 +119,31 @@ describe('addRoomSubscription', () => {
         expect(subscribe).not.toHaveBeenCalled()
     })
 
-    it('takes back a channel it created when the server refuses the row', async () => {
+    it('keeps the shared browser channel after a failed room save without reporting success', async () => {
         subscribe.mockRejectedValue(new Error('MEMBER_TOKEN_INVALID'))
+        status.mockResolvedValue({ subscribed: false })
 
         await expect(addRoomSubscription('ski-trip', 'm1', 't1')).rejects.toThrow('MEMBER_TOKEN_INVALID')
-        // Nothing else can be delivering on it: this call is what made it.
-        expect(browser.subscription).toBeNull()
+        // Another tab can use this endpoint before the failed save returns.
+        expect(browser.subscription?.revoked).toBe(false)
+        expect(await roomSubscribed('ski-trip', fakeSubscription())).toBe(false)
+    })
+
+    it('removes a late server save after identity was forgotten without revoking another room’s channel', async () => {
+        let serverRow = false
+        subscribe.mockImplementation(async () => {
+            clearIdentity('ski-trip')
+            serverRow = true
+            return { subscribed: true }
+        })
+        unsubscribe.mockImplementation(async () => {
+            serverRow = false
+            return { subscribed: false, endpointStillUsed: true }
+        })
+        await expect(addRoomSubscription('ski-trip', 'm1', 't1')).rejects.toThrow('room identity changed')
+        expect(serverRow).toBe(false)
+        expect(unsubscribe).toHaveBeenCalledWith('ski-trip', { endpoint: ENDPOINT, memberId: 'm1', memberToken: 't1' })
+        expect(browser.subscription?.revoked).toBe(false)
     })
 
     /** The bug this pins: one device, notifications already on for the ski trip,

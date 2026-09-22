@@ -10,6 +10,7 @@
 
 import { memberStorageKey } from '@/lib/identity'
 import { roomInstallStorageKey } from '@/lib/install-funnel'
+import { roomUpdatesStorageKey } from '@/lib/room-updates'
 
 export const RECENT_ROOMS_KEY = 'ps:recent'
 export const RECENT_ROOMS_LIMIT = 12
@@ -215,13 +216,14 @@ export function rememberRoom(room: Omit<RecentRoom, 'lastSeenAt'> & { lastSeenAt
 export function forgetRoom(slug: string): boolean {
     const storage = browserStorage()
     if (!storage) return false
-    const keys = [RECENT_ROOMS_KEY, memberStorageKey(slug), roomInstallStorageKey(slug)]
+    const keys = [RECENT_ROOMS_KEY, memberStorageKey(slug), roomInstallStorageKey(slug), roomUpdatesStorageKey(slug)]
     let previous: Array<{ key: string; value: string | null }> = []
     try {
         previous = keys.map((key) => ({ key, value: storage.getItem(key) }))
         storage.setItem(RECENT_ROOMS_KEY, JSON.stringify(readRecentRooms().filter((r) => r.slug !== slug)))
         storage.removeItem(memberStorageKey(slug))
         storage.removeItem(roomInstallStorageKey(slug))
+        storage.removeItem(roomUpdatesStorageKey(slug))
         return true
     } catch {
         try {

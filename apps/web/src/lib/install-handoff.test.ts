@@ -10,6 +10,7 @@ import {
 } from './install-handoff'
 import { memberStorageKey, readIdentity } from './identity'
 import { readRecentRooms, RECENT_ROOMS_KEY } from './recent-rooms'
+import { completeRoomUpdates, muteRoomUpdates, readRoomUpdates } from './room-updates'
 
 const SLUG = 'installed-trip-R7LxQ3TBJV_uQ2PMhzc8rw'
 const STALE_SLUG = 'stale-trip-brave-otter-lamp'
@@ -45,7 +46,7 @@ function installBrowser({
     storage = new MemoryStorage(),
 }: {
     standalone?: boolean
-    marker?: boolean
+    marker?: boolean | 'notifications'
     storage?: Storage
 } = {}) {
     globalThis.window = {
@@ -54,8 +55,18 @@ function installBrowser({
         navigator: { standalone },
         matchMedia: () => ({ matches: standalone }),
     } as unknown as Window & typeof globalThis
+    const cookies = new Map([['ps-locale', 'en']])
+    if (marker) cookies.set(INSTALL_HANDOFF_READY_COOKIE, marker === 'notifications' ? marker : '1')
     globalThis.document = {
-        cookie: marker ? `${INSTALL_HANDOFF_READY_COOKIE}=1; ps-locale=en` : 'ps-locale=en',
+        get cookie() {
+            return [...cookies].map(([name, value]) => `${name}=${value}`).join('; ')
+        },
+        set cookie(header: string) {
+            const [pair, ...attributes] = header.split(';')
+            const [name, ...value] = pair.split('=')
+            if (attributes.some((attribute) => attribute.trim().toLowerCase() === 'max-age=0')) cookies.delete(name)
+            else cookies.set(name, value.join('='))
+        },
     } as unknown as Document
     return storage
 }
@@ -73,8 +84,10 @@ afterEach(() => {
 })
 
 describe('install handoff readiness', () => {
-    it('accepts only the exact non-secret marker', () => {
+    it('accepts only the exact non-secret markers', () => {
         expect(hasPreparedInstallHandoff(`${INSTALL_HANDOFF_READY_COOKIE}=1`)).toBe(true)
+        expect(hasPreparedInstallHandoff(`${INSTALL_HANDOFF_READY_COOKIE}=notifications`)).toBe(true)
+        expect(hasPreparedInstallHandoff(`${INSTALL_HANDOFF_READY_COOKIE}=notifications-other`)).toBe(false)
         expect(hasPreparedInstallHandoff(`${INSTALL_HANDOFF_READY_COOKIE}=0`)).toBe(false)
         expect(hasPreparedInstallHandoff(`x${INSTALL_HANDOFF_READY_COOKIE}=1`)).toBe(false)
         expect(hasPreparedInstallHandoff('')).toBe(false)
@@ -99,6 +112,70 @@ describe('install handoff readiness', () => {
 })
 
 describe('verified restore before ACK', () => {
+    it('resumes requested updates with only copied cookies and fresh installed-app storage', async () => {
+        const browserStorage = installBrowser({ standalone: false, marker: false })
+        vi.spyOn(api.installHandoff, 'prepare').mockImplementation(async () => {
+            document.cookie = `${INSTALL_HANDOFF_READY_COOKIE}=1`
+            return { prepared: true }
+        })
+        await expect(prepareInstallHandoff(SLUG, 'tok_1', { notifications: true })).resolves.toEqual({
+            intent: expect.any(String),
+        })
+        const copiedCookies = document.cookie
+        expect(copiedCookies).toContain(`${INSTALL_HANDOFF_READY_COOKIE}=notifications`)
+        expect(readRoomUpdates(SLUG)).toEqual({})
+
+        const installedStorage = installBrowser({ marker: false })
+        expect(installedStorage).not.toBe(browserStorage)
+        expect(installedStorage.length).toBe(0)
+        for (const cookie of copiedCookies.split('; ')) document.cookie = cookie
+        const client = {
+            redeem: vi.fn().mockResolvedValue(payload()),
+            acknowledge: vi.fn().mockImplementation(async () => {
+                document.cookie = `${INSTALL_HANDOFF_READY_COOKIE}=; Max-Age=0`
+            }),
+        }
+
+        await expect(restorePreparedInstallHandoff(undefined, client)).resolves.toEqual({
+            status: 'restored',
+            roomPath: `/r/${SLUG}`,
+        })
+        expect(readIdentity(SLUG)?.token).toBe('tok_1')
+        expect(readRoomUpdates(SLUG)).toEqual({ requestedAt: expect.any(Number) })
+        expect(readRoomUpdates(STALE_SLUG)).toEqual({})
+        expect(hasPreparedInstallHandoff(document.cookie)).toBe(false)
+    })
+
+    it('captures the requested next step before a response changes the ready cookie', async () => {
+        installBrowser({ marker: 'notifications' })
+        const client = {
+            redeem: vi.fn().mockImplementation(async () => {
+                document.cookie = `${INSTALL_HANDOFF_READY_COOKIE}=1`
+                return payload()
+            }),
+            acknowledge: vi.fn().mockResolvedValue(undefined),
+        }
+
+        await expect(restorePreparedInstallHandoff(undefined, client)).resolves.toMatchObject({ status: 'restored' })
+        expect(readRoomUpdates(SLUG)).toEqual({ requestedAt: expect.any(Number) })
+    })
+
+    it.each(['completed', 'muted'] as const)('does not reopen %s setup when an ACK is retried', async (choice) => {
+        installBrowser({ marker: 'notifications' })
+        const client = {
+            redeem: vi.fn().mockResolvedValue(payload()),
+            acknowledge: vi.fn().mockRejectedValue(new Error('response lost')),
+        }
+        await expect(restorePreparedInstallHandoff(undefined, client)).resolves.toMatchObject({ status: 'restored' })
+        if (choice === 'completed') completeRoomUpdates(SLUG)
+        else muteRoomUpdates(SLUG)
+        const progress = readRoomUpdates(SLUG)
+
+        await expect(restorePreparedInstallHandoff(undefined, client)).resolves.toMatchObject({ status: 'restored' })
+        expect(readRoomUpdates(SLUG)).toEqual(progress)
+        expect(readRoomUpdates(SLUG).requestedAt).toBeUndefined()
+    })
+
     it('makes the explicitly installed room current without erasing existing history', async () => {
         const storage = installBrowser()
         storage.setItem(
@@ -117,6 +194,7 @@ describe('verified restore before ACK', () => {
 
         expect(readRecentRooms().map((room) => room.slug)).toEqual([SLUG, STALE_SLUG])
         expect(readIdentity(SLUG)).toEqual({ memberId: 'm1', name: 'Ana', token: 'tok_1' })
+        expect(readRoomUpdates(SLUG)).toEqual({})
         expect(client.acknowledge).toHaveBeenCalledOnce()
     })
 
@@ -166,7 +244,7 @@ describe('verified restore before ACK', () => {
                 memory.setItem(key, value)
             },
         }
-        installBrowser({ storage })
+        installBrowser({ storage, marker: 'notifications' })
         const client = {
             redeem: vi.fn().mockResolvedValue(payload()),
             acknowledge: vi.fn().mockResolvedValue(undefined),
@@ -178,15 +256,17 @@ describe('verified restore before ACK', () => {
         expect(client.acknowledge).not.toHaveBeenCalled()
         expect(readRecentRooms()[0]?.slug).toBe(SLUG)
         expect(readIdentity(SLUG)).toBeNull()
+        expect(readRoomUpdates(SLUG)).toEqual({})
 
         blockIdentity = false
         await expect(restorePreparedInstallHandoff(undefined, client)).resolves.toMatchObject({ status: 'restored' })
         expect(readIdentity(SLUG)?.token).toBe('tok_1')
+        expect(readRoomUpdates(SLUG)).toEqual({ requestedAt: expect.any(Number) })
         expect(client.acknowledge).toHaveBeenCalledOnce()
     })
 
     it('does not ACK malformed server state or a transient redeem failure', async () => {
-        installBrowser()
+        installBrowser({ marker: 'notifications' })
         const malformed = {
             redeem: vi.fn().mockResolvedValue({ room: { slug: '../../new', name: 'Wrong', emoji: null, theme: null } }),
             acknowledge: vi.fn(),
@@ -195,6 +275,7 @@ describe('verified restore before ACK', () => {
             status: 'transient-failure',
         })
         expect(malformed.acknowledge).not.toHaveBeenCalled()
+        expect(readRoomUpdates(SLUG)).toEqual({})
         expect(persistInstallHandoff({ room: null })).toBeNull()
 
         const transient = { redeem: vi.fn().mockRejectedValue(new Error('offline')), acknowledge: vi.fn() }
@@ -202,6 +283,7 @@ describe('verified restore before ACK', () => {
             status: 'transient-failure',
         })
         expect(transient.acknowledge).not.toHaveBeenCalled()
+        expect(readRoomUpdates(SLUG)).toEqual({})
     })
 
     it('distinguishes a definitive consumed/expired token from a retryable failure', async () => {
@@ -244,7 +326,7 @@ describe('arming from the install surface', () => {
                 })
         )
 
-        const first = prepareInstallHandoff(SLUG, 'tok_1')
+        const first = prepareInstallHandoff(SLUG, 'tok_1', { notifications: true })
         await vi.waitFor(() => expect(calls).toHaveLength(1))
         const secondSlug = 'second-room-R7LxQ3TBJV_uQ2PMhzc8rw'
         const second = prepareInstallHandoff(secondSlug, 'tok_2')
@@ -259,6 +341,8 @@ describe('arming from the install surface', () => {
         document.cookie = `${INSTALL_HANDOFF_READY_COOKIE}=1`
         calls[1].resolve()
         await expect(second).resolves.toEqual({ intent: expect.any(String) })
+        expect(document.cookie).toContain(`${INSTALL_HANDOFF_READY_COOKIE}=1`)
+        expect(document.cookie).not.toContain('notifications')
     })
 
     it('leaves no ready marker when the newer queued intent fails', async () => {
@@ -297,6 +381,21 @@ describe('arming from the install surface', () => {
         expect(hasPreparedInstallHandoff(document.cookie)).toBe(false)
     })
 
+    it('does not open install steps if the requested next-step marker cannot be saved', async () => {
+        installBrowser({ standalone: false, marker: false })
+        const setCookie = Object.getOwnPropertyDescriptor(document, 'cookie')!.set!
+        vi.spyOn(document, 'cookie', 'set').mockImplementation((value) => {
+            if (!value.startsWith(`${INSTALL_HANDOFF_READY_COOKIE}=notifications`)) setCookie.call(document, value)
+        })
+        vi.spyOn(api.installHandoff, 'prepare').mockImplementation(async () => {
+            document.cookie = `${INSTALL_HANDOFF_READY_COOKIE}=1`
+            return { prepared: true }
+        })
+
+        await expect(prepareInstallHandoff(SLUG, 'tok_1', { notifications: true })).resolves.toBeNull()
+        expect(hasPreparedInstallHandoff(document.cookie)).toBe(false)
+    })
+
     it('cancels a prepared room when its initiating surface disappears', async () => {
         installBrowser({ standalone: false })
         vi.spyOn(api.installHandoff, 'prepare').mockImplementation(async () => {
@@ -305,13 +404,14 @@ describe('arming from the install surface', () => {
         })
         const acknowledge = vi.spyOn(api.installHandoff, 'acknowledge').mockResolvedValue(undefined)
 
-        const prepared = await prepareInstallHandoff(SLUG, 'tok_1')
+        const prepared = await prepareInstallHandoff(SLUG, 'tok_1', { notifications: true })
         expect(prepared).not.toBeNull()
         expect(hasPreparedInstallHandoff(document.cookie)).toBe(true)
 
         await cancelPreparedInstallHandoff(prepared!)
 
         expect(hasPreparedInstallHandoff(document.cookie)).toBe(false)
+        expect(readRoomUpdates(SLUG)).toEqual({})
         expect(acknowledge).toHaveBeenCalledOnce()
     })
 
@@ -324,13 +424,14 @@ describe('arming from the install surface', () => {
         const acknowledge = vi.spyOn(api.installHandoff, 'acknowledge').mockResolvedValue(undefined)
 
         const older = await prepareInstallHandoff(SLUG, 'tok_1')
-        const newer = await prepareInstallHandoff('newer-room-R7LxQ3TBJV_uQ2PMhzc8rw', 'tok_2')
+        const newer = await prepareInstallHandoff('newer-room-R7LxQ3TBJV_uQ2PMhzc8rw', 'tok_2', { notifications: true })
         expect(older).not.toBeNull()
         expect(newer).not.toBeNull()
 
         await cancelPreparedInstallHandoff(older!)
         expect(acknowledge).not.toHaveBeenCalled()
         expect(hasPreparedInstallHandoff(document.cookie)).toBe(true)
+        expect(document.cookie).toContain(`${INSTALL_HANDOFF_READY_COOKIE}=notifications`)
 
         await cancelPreparedInstallHandoff(newer!)
         expect(acknowledge).toHaveBeenCalledOnce()

@@ -44,6 +44,12 @@ describe('derivePushStatus', () => {
         expect(status({ isIOS: true, isStandalone: false })).toBe('ios-needs-pwa')
     })
 
+    it('offers iOS installation even when only the installed app exposes push APIs', () => {
+        expect(status({ isIOS: true, hasNotification: false, hasPushManager: false })).toBe('ios-needs-pwa')
+        expect(status({ isIOS: true, hasNotification: false, hasVapidKey: false })).toBe('unsupported')
+        expect(status({ isIOS: true, isStandalone: true, hasNotification: false })).toBe('unsupported')
+    })
+
     it('treats an installed iOS app as a normal device', () => {
         expect(status({ isIOS: true, isStandalone: true })).toBe('default')
     })

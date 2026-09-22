@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import { SettingToggle } from '@/components/ui/SettingToggle'
+import Loading from '@/components/ui/Loading'
 import { StateRow } from '@/components/ui/StateRow'
 import { roomProps, track } from '@/lib/analytics'
 import { useErrorMessage } from '@/lib/error-messages'
@@ -11,6 +12,7 @@ import type { MemberIdentity } from '@/lib/identity'
 import { cancelPreparedInstallHandoff, prepareInstallHandoff } from '@/lib/install-handoff'
 import { openInstallSurface } from '@/lib/install-surface'
 import type { SettledPushStatus } from '@/lib/push-status'
+import { requestRoomUpdates } from '@/lib/room-updates'
 import { TOAST_MS } from '@/lib/toasts'
 import { useFeedback } from '@/lib/use-settings'
 import { usePush } from '@/lib/use-push'
@@ -93,7 +95,7 @@ export function PushOptIn({ active = true, slug, roomName, identity, onSwitchPer
         installArmingRef.current = true
         setInstallArming(true)
         const generation = inactiveGeneration.current
-        const prepared = await prepareInstallHandoff(slug, identity?.token)
+        const prepared = await prepareInstallHandoff(slug, identity?.token, { notifications: true })
         if (!mountedRef.current) {
             if (prepared) void cancelPreparedInstallHandoff(prepared)
             return
@@ -109,11 +111,24 @@ export function PushOptIn({ active = true, slug, roomName, identity, onSwitchPer
             toast.error(tInstall('ios.prepareFailed'), { duration: TOAST_MS.actionable })
             return
         }
+        requestRoomUpdates(slug)
         openInstallSurface('settings')
     }
 
     // A browser with no push at all gets no row, no explanation and no apology.
-    if (displayed === null || displayed === 'unsupported') return null
+    if (displayed === null)
+        return (
+            <div
+                className="flex min-h-11 items-center justify-between gap-3 rounded-sm border border-n-1 bg-white p-3"
+                data-testid="push-pending"
+                aria-busy="true"
+                role="status"
+            >
+                <span className="text-h8">{t('notifyMe', { room: roomName })}</span>
+                <Loading />
+            </div>
+        )
+    if (displayed === 'unsupported') return null
 
     if (displayed === 'ios-needs-pwa') {
         return (
