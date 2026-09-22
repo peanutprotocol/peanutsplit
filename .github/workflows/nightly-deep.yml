@@ -40,7 +40,7 @@ jobs:
       E2E_SKIP_GLOBAL_SETUP: '1'
       E2E_WORKERS: 1
       SPLIT_FX_MODE: static
-      NEXT_PUBLIC_BASE_URL: https://localhost:8777
+      NEXT_PUBLIC_BASE_URL: https://peanutsplit.com
       NEXT_PUBLIC_VAPID_PUBLIC_KEY: aGkh
     services:
       postgres:
