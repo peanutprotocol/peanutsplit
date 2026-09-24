@@ -1,12 +1,16 @@
 import { expect } from '@playwright/test'
+import en from '../src/i18n/messages/en.json'
+import es from '../src/i18n/messages/es-419.json'
+import pt from '../src/i18n/messages/pt-br.json'
+import uk from '../src/i18n/messages/uk.json'
 import { test } from './fixtures'
 
 const cases = [
-    { cookie: 'en', locale: 'en', lang: 'en', headline: 'LINK. SPLIT. DONE.' },
+    { cookie: 'en', locale: 'en', lang: 'en', headline: en.marketing.hero.titleAccessible },
     // Values written by the previous production locale set. The first request must preserve the
     // user's choice, then the client provider rewrites the canonical value.
-    { cookie: 'es', locale: 'es-419', lang: 'es-419', headline: 'LINK. DIVIDÍ. LISTO.' },
-    { cookie: 'pt-BR', locale: 'pt-br', lang: 'pt-BR', headline: 'LINK. DIVIDE. PRONTO.' },
+    { cookie: 'es', locale: 'es-419', lang: 'es-419', headline: es.marketing.hero.titleAccessible },
+    { cookie: 'pt-BR', locale: 'pt-br', lang: 'pt-BR', headline: pt.marketing.hero.titleAccessible },
 ] as const
 
 test('native catalogs own the document and migrate existing locale choices', async ({ page }) => {
@@ -21,7 +25,7 @@ test('native catalogs own the document and migrate existing locale choices', asy
         await expect(page.locator('head > meta[name="google"]')).toHaveAttribute('content', 'notranslate')
         await expect(page.locator('.notranslate')).toHaveCount(0)
         await expect(page.locator('body [translate="no"]')).toHaveCount(0)
-        await expect(page.getByTestId('pass-link-headline')).toHaveText(entry.headline)
+        await expect(page.getByTestId('pass-link-headline')).toHaveText(entry.headline.replace(/<\/?highlight>/g, ''))
         await expect(page.getByTestId(`locale-${entry.locale}`)).toHaveAttribute('aria-pressed', 'true')
 
         await expect
@@ -40,7 +44,9 @@ test('a Ukrainian browser gets Ukrainian on its first paint', async ({ browser }
         await page.goto('/')
 
         await expect(page.locator('html')).toHaveAttribute('lang', 'uk')
-        await expect(page.getByTestId('pass-link-headline')).toHaveText('ХТО КОМУ СКІЛЬКИ? SPLIT ПОРАХУЄ.')
+        await expect(page.getByTestId('pass-link-headline')).toHaveText(
+            uk.marketing.hero.titleAccessible.replace(/<\/?highlight>/g, '')
+        )
         await expect(page.getByTestId('locale-uk')).toHaveAttribute('aria-pressed', 'true')
     } finally {
         await context.close()
