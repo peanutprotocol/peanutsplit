@@ -144,9 +144,14 @@ MUST HOLD
   title and in at least one rendered heading (the <Hero title> or a #/##/### line).
 - Text inside <Quote> stays in English, byte for byte. A competitor's words are evidence.
 - Every <FAQItem question="…"> in the body matches a faqs question in frontmatter exactly.
+- Every rendered FAQ answer matches its frontmatter answer. Recheck yes/no against the localized
+  question: using Split without registration is possible; registration is not required. Do not
+  reuse an English yes/no if the localized question reverses its meaning.
 - No bare { or } anywhere — MDX reads a brace as an expression and silently drops the line.
   Escape it as \\{ if the prose needs one.
 - Component tags, their attribute names, and any <Cast name="…"> stay as they are.
+- Preserve each room-creation CTA's position, including an early CTA before the walkthrough.
+  Keep /new links on the existing components so the renderer supplies campaign and locale.
 - Internal links use exactly these targets:
 ${links || '  (none)'}
 - At most one exclamation mark in the whole body, and none in the title, the description, a
