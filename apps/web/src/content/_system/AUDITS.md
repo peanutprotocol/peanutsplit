@@ -70,3 +70,17 @@ The live sitemap comparison found 14 blog translations whose `draft: true` field
 had been lost in the rewrite. Restore those fields from the base commit. Check all
 60 native documents against that commit for publication and release metadata, and
 require a sitemap comparison in stylebook §11 before future copy deployments.
+
+### 2026-09-24 — No-signup landing action and FAQ polarity
+
+The no-signup landing placed its first room-creation action below the walkthrough.
+Its Spanish registration question also retained “Sí” from a differently worded English
+question. The authored English, Spanish and Portuguese pages now place an existing CTA
+after the H1; the rendered short answer still comes before the button. The Spanish answer
+states that registration is not required in both visible copy and FAQ metadata. The
+Portuguese answer now directly explains its registration question.
+
+Stylebook §2 preserves this page's early action. Stylebook §9, both locale rulebooks and
+the translation brief require answers to match the localized question's polarity. These
+are native authored inputs; the MDX renderer builds HTML and FAQ schema from them. The
+separate generated `/guides/` mirror is outside this change.

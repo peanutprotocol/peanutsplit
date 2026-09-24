@@ -92,6 +92,12 @@ Same pattern for every regular -ar/-er/-ir verb.
 
 ### Grammar notes
 
+When a localized FAQ asks whether registration is required, answer **“No”** and explain
+that the reader creates a room or opens its link without an account. Do not carry “Yes”
+from an English question about using Split _without_ registration. For example:
+“¿Hay que registrarse para dividir gastos online?” → “No. Puedes crear una sala y
+compartir el enlace sin registrarte.” Check the rendered FAQ and frontmatter together.
+
 Carried from mono `localization.es-419.md` §2:
 
 - Subjunctive is natural, use it ("para que nadie tenga que mandar ese mensaje").

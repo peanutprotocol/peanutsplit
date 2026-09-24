@@ -2,6 +2,7 @@
 title: 'Split a bill with no sign-up or download'
 description: 'Share a room link, enter a name and add expenses in your browser. Split calculates who owes whom without asking anyone to create an account.'
 date: 2026-07-30
+updated: 2026-09-24
 type: capture
 headTerm: split bill no sign up
 intent: split bill app no sign up
@@ -25,6 +26,8 @@ faqs:
 ---
 
 # Split a bill with no sign-up or download
+
+<CTA text="Start a split" />
 
 Peanut Split lets you share expenses through a web link. Create a room, send the link and enter a name. Everyone can add what they paid without an email address, password or download.
 

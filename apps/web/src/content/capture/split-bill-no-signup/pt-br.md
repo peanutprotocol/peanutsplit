@@ -2,7 +2,7 @@
 title: 'Dividir despesas sem cadastro nem download'
 description: 'Compartilhe o link de uma sala, digite seu nome e adicione despesas pelo navegador. O Split calcula quem deve a quem sem pedir cadastro.'
 date: 2026-07-30
-updated: 2026-09-01
+updated: 2026-09-24
 type: capture
 headTerm: 'dividir despesas'
 intent: app para dividir despesas com amigos
@@ -20,12 +20,14 @@ faqs:
     - question: 'Preciso de um app para dividir despesas?'
       answer: 'Você pode dividir despesas no Split sem cadastro. Crie uma sala e compartilhe o link. Cada pessoa digita o nome, sem precisar de e-mail ou senha.'
     - question: 'Dá para dividir despesas em grupo sem cadastro?'
-      answer: 'Sim. O Split funciona no navegador. Você pode adicioná-lo à tela inicial, mas isso é opcional.'
+      answer: 'Sim. Crie uma sala e compartilhe o link sem fazer cadastro. Cada pessoa digita o nome para adicionar despesas, sem e-mail nem senha.'
     - question: 'Dá para mandar o link do split no WhatsApp?'
       answer: 'Sim. Envie o link pelo WhatsApp ou por outro grupo de conversa. Deixe-o fixado e lembre que qualquer pessoa com o link pode entrar.'
 ---
 
 # Dividir despesas sem cadastro nem download
+
+<CTA text="Criar um split" />
 
 O Peanut Split permite dividir despesas por um link. Crie uma sala, envie o link e digite seu nome. Todos podem adicionar o que pagaram sem e-mail, senha ou download.
 
@@ -52,7 +54,7 @@ Paguem em dinheiro, por transferência ou pelo meio que combinarem e registrem o
 
 <FAQ>
 <FAQItem question="Preciso de um app para dividir despesas?">Você pode dividir despesas no Split sem cadastro. Crie uma sala e compartilhe o link. Cada pessoa digita o nome, sem precisar de e-mail ou senha.</FAQItem>
-<FAQItem question="Dá para dividir despesas em grupo sem cadastro?">Sim. O Split funciona no navegador. Você pode adicioná-lo à tela inicial, mas isso é opcional.</FAQItem>
+<FAQItem question="Dá para dividir despesas em grupo sem cadastro?">Sim. Crie uma sala e compartilhe o link sem fazer cadastro. Cada pessoa digita o nome para adicionar despesas, sem e-mail nem senha.</FAQItem>
 <FAQItem question="Dá para mandar o link do split no WhatsApp?">Sim. Envie o link pelo WhatsApp ou por outro grupo de conversa. Deixe-o fixado e lembre que qualquer pessoa com o link pode entrar.</FAQItem>
 </FAQ>
 

@@ -30,6 +30,11 @@ when its questions help readers; its frontmatter and rendered answers must agree
 The first FAQ answer also appears beneath the page heading without its question.
 Make its opening sentence stand alone and name the subject it explains.
 
+On `capture/split-bill-no-signup`, place a room-creation `<CTA>` immediately after
+the H1. The renderer inserts the first FAQ answer between that heading and the button.
+Keep the explanation and closing CTA below it, so readers can start before the walkthrough.
+Use the existing CTA component to preserve the page campaign and locale handoff.
+
 ## §3 Voice
 
 Write as a helpful person explaining the app. Warmth can come from consideration
@@ -131,6 +136,11 @@ Read [localization.es-419.md](localization.es-419.md) for LATAM Spanish and
 Use natural local phrasing, singular tú or você, and British English for English pages.
 Preserve accents, currency notation and locale vocabulary. Do not translate an
 English metaphor or joke: explain the same useful fact naturally.
+
+Recheck each FAQ answer against its localized question. A question can change polarity
+during transcreation: “Can I use it without registration?” and “Is registration required?”
+need opposite yes/no answers. State the product fact explicitly and keep the frontmatter
+answer identical to the rendered FAQ answer.
 
 Keep existing English slugs in every locale. English uses the bare root; localized
 URLs use `/es-419/` and `/pt-br/`. Canonical URLs point to the same locale. Only link

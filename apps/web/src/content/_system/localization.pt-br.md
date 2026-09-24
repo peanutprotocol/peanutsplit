@@ -84,6 +84,11 @@ Carried verbatim from mono `localization.pt-br.md` §2:
 
 ### Grammar notes
 
+Answer the localized FAQ question, including its yes/no polarity. “Dá para dividir
+despesas em grupo sem cadastro?” takes **“Sim”**; “Preciso me cadastrar?” takes **“Não”**.
+Explain that a room can be created or opened by its link without an account. Keep the
+rendered FAQ answer identical to its frontmatter answer.
+
 Carried from mono `localization.pt-br.md` §2:
 
 - Brazilian Portuguese drops subject pronouns freely — _"Pode mandar o link"_ is natural.
