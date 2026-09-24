@@ -12,6 +12,7 @@ import { SITE_DESCRIPTION, siteSchema } from '@/lib/seo'
 import { siteUrl } from '@/lib/site'
 import { appleStartupImages } from '@/lib/splash'
 import '../../styles/globals.css'
+import '../../styles/desktop-frame.css'
 
 export const metadata: Metadata = {
     title: 'Peanut Split — split expenses, no signup',

@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export default async function NewRoomPage({ searchParams }: { searchParams: Promise<Query> }) {
     return (
         <>
-            <main className="mx-auto min-h-dvh w-full max-w-xl bg-background">
+            <main className="split-app-frame mx-auto min-h-dvh w-full max-w-xl bg-background">
                 <CreateRoomForm prefill={readPrefill(await searchParams)} />
             </main>
             {/* The other page a room is created from. It is noindex and no ad points at it, but

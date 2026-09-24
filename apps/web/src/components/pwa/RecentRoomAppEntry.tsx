@@ -63,7 +63,7 @@ export function RecentRoomAppEntry({ children }: { children: ReactNode }) {
         <main
             data-testid="app-boot"
             aria-busy="true"
-            className="mx-auto flex min-h-dvh w-full max-w-xl items-center justify-center bg-background px-5"
+            className="split-app-frame mx-auto flex min-h-dvh w-full max-w-xl items-center justify-center bg-background px-5"
         >
             <div
                 role="status"

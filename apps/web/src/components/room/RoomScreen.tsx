@@ -478,7 +478,7 @@ export function RoomScreen({ slug }: { slug: string }) {
         <main
             style={themeVars(state?.room.theme) as React.CSSProperties}
             data-theme={state?.room.theme ?? 'classic'}
-            className="relative mx-auto flex min-h-dvh w-full max-w-xl flex-col bg-background"
+            className="split-app-frame relative mx-auto flex min-h-dvh w-full max-w-xl flex-col bg-background"
         >
             <PullToRefresh
                 enabled={!!state && !drawerOpen && !needsJoin}

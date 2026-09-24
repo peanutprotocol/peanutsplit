@@ -36,7 +36,7 @@ export default async function AppHomePage({
     ])
 
     const fallback = (
-        <main data-testid="app-home" className="mx-auto min-h-dvh w-full max-w-xl bg-background">
+        <main data-testid="app-home" className="split-app-frame mx-auto min-h-dvh w-full max-w-xl bg-background">
             <header className="flex items-center justify-between gap-3 border-b border-n-1 bg-primary-1 px-5 pb-5 pt-[max(1.5rem,env(safe-area-inset-top))]">
                 <h1 className="text-h4">{tRooms('title')}</h1>
                 <LandingLink />
@@ -88,7 +88,10 @@ export default async function AppHomePage({
         return (
             <>
                 {!repairing && <CanonicalAppLaunchMarker />}
-                <main data-testid="app-install" className="mx-auto min-h-dvh w-full max-w-xl bg-background">
+                <main
+                    data-testid="app-install"
+                    className="split-app-frame mx-auto min-h-dvh w-full max-w-xl bg-background"
+                >
                     <header className="border-b border-n-1 bg-primary-1 px-5 pb-5 pt-[max(1.5rem,env(safe-area-inset-top))]">
                         <h1 className="text-h4">Split</h1>
                     </header>

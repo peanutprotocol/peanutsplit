@@ -1,0 +1,20 @@
+@media screen and (min-width: 768px) {
+    body:has(.split-app-frame) {
+        background-color: #fff4cc;
+        background-image: radial-gradient(rgb(33 28 23 / 12%) 1px, transparent 1px);
+        background-size: 24px 24px;
+    }
+
+    .split-app-frame {
+        /* Paint outside the existing column so content and fixed controls stay aligned. */
+        background-color: #faf4f0;
+        outline: 1.5px solid var(--split-ink);
+        box-shadow: 8px 8px 0 var(--split-ink);
+    }
+
+    body:has(.split-app-frame) [data-vaul-drawer] {
+        /* Include both existing 1.5px borders without narrowing the 36rem content. */
+        width: calc(36rem + 3px);
+        margin-inline: auto;
+    }
+}

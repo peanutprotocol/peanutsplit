@@ -88,7 +88,7 @@ export function ShareTarget({ enabled }: { enabled: boolean }) {
 
     return (
         <PageContainer>
-            <main className="mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-6 p-4">
+            <main className="split-app-frame mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-6 p-4">
                 <Icon name="receipt" size={28} />
                 {phase === 'pick' ? (
                     <>

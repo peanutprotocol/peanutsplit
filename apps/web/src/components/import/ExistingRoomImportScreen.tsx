@@ -23,7 +23,7 @@ export function ExistingRoomImportScreen({ slug }: { slug: string }) {
 
     if (error && !state) {
         return (
-            <main className="mx-auto flex min-h-dvh w-full max-w-xl flex-col bg-background px-4 py-8">
+            <main className="split-app-frame mx-auto flex min-h-dvh w-full max-w-xl flex-col bg-background px-4 py-8">
                 <p className="text-h5">{t('loadFailed')}</p>
                 <div className="mt-5 flex flex-col gap-3">
                     <Button variant="primary" shadowSize="4" className="justify-center" onClick={() => void refetch()}>
@@ -43,7 +43,7 @@ export function ExistingRoomImportScreen({ slug }: { slug: string }) {
     if (isPending || !state) {
         return (
             <main
-                className="mx-auto flex min-h-dvh w-full max-w-xl animate-pulse flex-col gap-5 bg-background px-4 py-8"
+                className="split-app-frame mx-auto flex min-h-dvh w-full max-w-xl animate-pulse flex-col gap-5 bg-background px-4 py-8"
                 aria-hidden="true"
                 data-testid="import-room-skeleton"
             >
@@ -58,7 +58,7 @@ export function ExistingRoomImportScreen({ slug }: { slug: string }) {
         <main
             style={themeVars(state.room.theme) as React.CSSProperties}
             data-theme={state.room.theme ?? 'classic'}
-            className="mx-auto flex min-h-dvh w-full max-w-xl flex-col bg-background px-4 py-8"
+            className="split-app-frame mx-auto flex min-h-dvh w-full max-w-xl flex-col bg-background px-4 py-8"
         >
             <Link
                 href={importedRoomPath(slug)}

@@ -57,7 +57,7 @@ export default async function RecapPage({ params }: { params: Promise<{ slug: st
     const overflow = recap.members.length - faces.length
 
     return (
-        <main className="mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-6 bg-background px-4 py-8">
+        <main className="split-app-frame mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-6 bg-background px-4 py-8">
             <RecapViewed slug={slug} settled={recap.settled} />
 
             <div className="flex items-center gap-3">
