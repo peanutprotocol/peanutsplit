@@ -1764,7 +1764,7 @@ describe('expense edit revisions', () => {
         })
     }
 
-    it('accepts only the first of two queued edits with the same baseline and rejects a stale retry', async () => {
+    it('accepts only the first of two queued edits with the same baseline and treats a stale retry as a no-op', async () => {
         const { created, slug, input, expense, edit } = await setupExpense()
         const blocker = await holdRoomWriteLock(created.room.id)
         const amountEdit = { ...input, amountMinor: '4000', expectedRevision: expense.revision }
@@ -1781,7 +1781,10 @@ describe('expense edit revisions', () => {
         const accepted = await first
         expect(accepted.status).toBe(200)
         expectEditConflict(await second!)
-        expectEditConflict(await edit(amountEdit))
+        const retried = await edit(amountEdit)
+        expect(retried.status).toBe(200)
+        expect((retried.body as RoomState).expenses[0]).toEqual((accepted.body as RoomState).expenses[0])
+        expectEditConflict(await edit({ ...amountEdit, amountMinor: '4500' }))
 
         const current = await call<RoomState>(getRoom as Handler, {
             path: `/api/rooms/${slug}`,

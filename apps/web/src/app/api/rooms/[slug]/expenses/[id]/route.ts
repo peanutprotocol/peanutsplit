@@ -8,7 +8,7 @@ import {
     latchFirstSharedBalance,
 } from '@/server/expenses'
 import { getRateTable } from '@/server/fx'
-import { badRequest, conflict, memberTokenOf, notFound, readJson, respond } from '@/server/http'
+import { ApiError, badRequest, conflict, memberTokenOf, notFound, readJson, respond } from '@/server/http'
 import {
     actorFromToken,
     appendRoomAuditEvent,
@@ -123,16 +123,15 @@ export const PATCH = (request: Request, ctx: Ctx) =>
             const previous = room.expenses.find((expense) => expense.id === id)
             if (!previous) throw conflict('restore this expense before editing it', 'EXPENSE_DELETED')
             // Pre-revision bundles send no baseline and keep editing until they reload.
-            if (body.expectedRevision !== undefined && body.expectedRevision !== expenseRevision(previous)) {
-                throw conflict(
-                    'This expense just changed. Reopen it to see the latest version.',
-                    'EXPENSE_EDIT_CONFLICT'
-                )
-            }
+            const staleRevision =
+                body.expectedRevision !== undefined && body.expectedRevision !== expenseRevision(previous)
+            const editConflict = () =>
+                conflict('This expense just changed. Reopen it to see the latest version.', 'EXPENSE_EDIT_CONFLICT')
             const weightedExisting = existing.splitMode === 'PERCENTAGE' || existing.splitMode === 'SHARES'
             if (
-                (weightedExisting && body.expectedSplitMode !== existing.splitMode) ||
-                (body.expectedSplitMode !== undefined && body.expectedSplitMode !== existing.splitMode)
+                !staleRevision &&
+                ((weightedExisting && body.expectedSplitMode !== existing.splitMode) ||
+                    (body.expectedSplitMode !== undefined && body.expectedSplitMode !== existing.splitMode))
             ) {
                 throw conflict('the split type changed — reopen the expense and try again', 'SPLIT_MODE_CONFLICT')
             }
@@ -147,7 +146,9 @@ export const PATCH = (request: Request, ctx: Ctx) =>
                 { ...editBody, description: editBody.description ?? existing.description },
                 { ...existing, shares: previous.shares },
                 rateTable
-            )
+            ).catch((error) => {
+                throw staleRevision && error instanceof ApiError ? editConflict() : error
+            })
             const after = expenseAuditSnapshot({
                 id,
                 roomId: room.id,
@@ -167,7 +168,9 @@ export const PATCH = (request: Request, ctx: Ctx) =>
                 reactions: previous.reactions,
             })
             const changed = JSON.stringify(expenseAuditValues(previous)) !== JSON.stringify(expenseAuditValues(after))
+            // A stale request that matches the stored expense is a retry after a lost response.
             if (!changed) return { changed: false, state: toRoomState(room) }
+            if (staleRevision) throw editConflict()
             // Shares are rebuilt wholesale: an edit must behave exactly like a
             // fresh write, or EQUAL splits keep stale per-member amounts.
             await tx.expenseShare.deleteMany({ where: { expenseId: id } })
