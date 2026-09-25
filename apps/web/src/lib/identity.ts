@@ -60,11 +60,9 @@ export function readIdentity(slug: string): MemberIdentity | null {
 /**
  * How many times this tab has claimed an identity in a room.
  *
- * It exists so a request that started before a claim can tell that it is now
- * stale — see `dropRoomSubscription`, where a late browser-level unsubscribe
- * would otherwise revoke a channel the NEW identity had just created. In memory
- * and per tab is all it has to be: both ends of that comparison happen inside one
- * page life, and a reload has no in-flight request left to guard.
+ * It lets notification setup detect a claim made while the permission prompt
+ * or server save was pending. Both ends of the comparison happen within one
+ * page; a reload has no in-flight request left to guard.
  *
  * Counted rather than compared against the stored identity on purpose. The same
  * person re-claiming the same member gets the same memberId and the same token

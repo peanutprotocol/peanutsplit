@@ -17,7 +17,6 @@
  * every send returns `disabled`. That is the local-dev and self-hoster default.
  */
 import { Prisma, type PushSubscription as PushSubscriptionRow } from '@prisma/client'
-import { HttpsProxyAgent } from 'https-proxy-agent'
 import webpush, { type RequestOptions, WebPushError } from 'web-push'
 import { prisma } from '@/server/db'
 import type { PushRoomWriteEvent } from '@/server/history'
@@ -90,7 +89,9 @@ function requestOptions(): RequestOptions {
     return {
         TTL: TTL_SECONDS,
         urgency: 'normal',
-        ...(proxyUrl ? { agent: new HttpsProxyAgent(proxyUrl) } : {}),
+        // web-push rejects HttpsProxyAgent as an `agent` because it extends
+        // http.Agent. Its proxy option constructs a compatible transport.
+        ...(proxyUrl ? { proxy: proxyUrl } : {}),
     }
 }
 

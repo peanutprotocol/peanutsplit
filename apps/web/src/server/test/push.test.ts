@@ -1,11 +1,13 @@
 /**
  * Push tests: the real route handlers and the real send pipeline against the
- * real test database. The ONLY thing stubbed is `webpush.sendNotification` —
- * the network boundary. Mocking Prisma here would mean testing the mock, and
- * every rule this file exists to protect (the dedupe claim, the daily cap, dead
- * endpoint pruning) is a database rule.
+ * real test database. Most tests stub `webpush.sendNotification`; the transport
+ * regression uses real web-push and stubs only the HTTPS request. Prisma stays
+ * real so dedupe claims, daily caps, and endpoint pruning exercise database rules.
  */
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { EventEmitter } from 'node:events'
+import type { ClientRequest, IncomingMessage } from 'node:http'
+import https from 'node:https'
 import { prisma, truncateAll } from '@/server/test/db'
 import { resetRateLimits } from '@/server/rateLimit'
 import { claimSend, isAllSettled, resetPushConfig, sendRoomEvent, utcDayKey } from '@/server/push'
@@ -462,6 +464,59 @@ describe('send pipeline', () => {
         await expenseEvent(fixture, 'expense-1')
         expect(await expenseEvent(fixture, 'expense-1')).toEqual({ status: 'skipped', reason: 'already-sent' })
         expect(sendNotification).toHaveBeenCalledTimes(1)
+    })
+
+    it('passes the configured proxy through the real web-push transport', async () => {
+        const actual = await vi.importActual<{ default: typeof import('web-push') }>('web-push')
+        const fixture = await makeRoom()
+        await prisma.pushSubscription.create({
+            data: {
+                roomId: fixture.roomId,
+                memberId: fixture.friend.id,
+                endpoint: FCM('proxied-phone'),
+                p256dh: actual.default.generateVAPIDKeys().publicKey,
+                auth: Buffer.alloc(16, 1).toString('base64url'),
+            },
+        })
+
+        // Stub only the HTTPS request so web-push must validate our options and
+        // construct its own transport. No push gateway receives this test.
+        let transportOptions: https.RequestOptions | undefined
+        const request = vi.spyOn(https, 'request').mockImplementation(((
+            options: https.RequestOptions,
+            onResponse: (response: IncomingMessage) => void
+        ) => {
+            transportOptions = options
+            return Object.assign(new EventEmitter(), {
+                write: vi.fn(),
+                end: () => {
+                    queueMicrotask(() => {
+                        const response = Object.assign(new EventEmitter(), { statusCode: 201, headers: {} })
+                        onResponse(response as IncomingMessage)
+                        response.emit('end')
+                    })
+                },
+            }) as unknown as ClientRequest
+        }) as typeof https.request)
+        const previousProxy = process.env.SPLIT_PUSH_PROXY_URL
+        process.env.SPLIT_PUSH_PROXY_URL = 'http://127.0.0.1:19999'
+        sendNotification.mockImplementation(actual.default.sendNotification)
+
+        try {
+            expect(await expenseEvent(fixture, 'proxied-expense')).toEqual({
+                status: 'sent',
+                delivered: 1,
+                pruned: 0,
+            })
+            expect(request).toHaveBeenCalledOnce()
+            expect(transportOptions?.agent).toMatchObject({
+                proxy: { hostname: '127.0.0.1', port: '19999' },
+            })
+        } finally {
+            request.mockRestore()
+            if (previousProxy === undefined) delete process.env.SPLIT_PUSH_PROXY_URL
+            else process.env.SPLIT_PUSH_PROXY_URL = previousProxy
+        }
     })
 
     it('caps expense_added at three per room per day', async () => {

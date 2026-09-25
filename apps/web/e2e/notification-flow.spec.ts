@@ -304,6 +304,60 @@ test('a subscription belongs to its room and disabling one preserves another roo
     await expect(page.getByTestId('room-updates-prompt')).toHaveCount(0)
 })
 
+test('a delayed opt-out cannot revoke another room enabled in a second tab', async ({ page, request }) => {
+    const endpoint = await modelNotificationBrowser(page)
+    const first = await createMatureRoom(request, `Leaving updates ${Date.now()}`)
+    const second = await createMatureRoom(request, `Keeping updates ${Date.now()}`)
+    await joinMatureRoom(page, first)
+    await openCurrentRoomSettings(page)
+    await page.getByTestId('push-enable').click()
+    await expect(page.getByTestId('push-disable')).toHaveAttribute('aria-checked', 'true')
+
+    const secondTab = await page.context().newPage()
+    await modelNotificationBrowser(secondTab, { endpoint })
+    await joinMatureRoom(secondTab, second)
+    await openCurrentRoomSettings(secondTab)
+    await expect(secondTab.getByTestId('push-enable')).toHaveAttribute('aria-checked', 'false')
+
+    let releaseDelete: (() => void) | undefined
+    let deletedOnServer: (() => void) | undefined
+    const responseGate = new Promise<void>((resolve) => {
+        releaseDelete = resolve
+    })
+    const deletion = new Promise<void>((resolve) => {
+        deletedOnServer = resolve
+    })
+    await page.route(`**/api/rooms/${first.slug}/push-subscriptions`, async (route) => {
+        if (route.request().method() !== 'DELETE') return route.continue()
+        const response = await route.fetch()
+        expect(response.ok()).toBe(true)
+        expect(await response.json()).toMatchObject({ endpointStillUsed: false })
+        deletedOnServer?.()
+        await responseGate
+        await route.fulfill({ response })
+    })
+
+    try {
+        await page.getByTestId('push-disable').click()
+        await deletion
+        // The server saw no other room; a second tab subscribes before the response reaches this one.
+        await secondTab.getByTestId('push-enable').click()
+        await expect(secondTab.getByTestId('push-disable')).toHaveAttribute('aria-checked', 'true')
+        expect(await subscriptionStatus(secondTab, second.slug, endpoint)).toBe(true)
+        releaseDelete?.()
+        await expect(page.getByTestId('push-enable')).toHaveAttribute('aria-checked', 'false')
+        expect(await subscriptionStatus(page, first.slug, endpoint)).toBe(false)
+        expect(await page.evaluate(() => localStorage.getItem('__qa-push-revocations'))).toBeNull()
+        expect(await secondTab.evaluate(() => localStorage.getItem('__qa-push-subscribed'))).toBe('1')
+        await secondTab.goto(`/r/${second.slug}`)
+        await openCurrentRoomSettings(secondTab)
+        await expect(secondTab.getByTestId('push-disable')).toHaveAttribute('aria-checked', 'true')
+    } finally {
+        releaseDelete?.()
+        await secondTab.close()
+    }
+})
+
 test('a failed server save stays off and can be retried without losing the notification offer', async ({
     page,
     request,

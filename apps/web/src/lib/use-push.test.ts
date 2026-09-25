@@ -21,9 +21,8 @@ vi.mock('./api', () => ({ api: { push: { subscribe, unsubscribe, status } } }))
 
 const { readIdentity } = vi.hoisted(() => ({ readIdentity: vi.fn() }))
 
-/** Only the storage read is faked. `identityGeneration` and `writeIdentity` stay
- *  real, because the guard below is exactly the coupling between them — a stub
- *  counter would only prove the stub. */
+/** Keep the claim counter real so the permission-prompt tests exercise the
+ *  identity invalidation that the hook uses. */
 vi.mock('./identity', async (importOriginal) => ({
     ...((await importOriginal()) as typeof import('./identity')),
     readIdentity,
@@ -171,21 +170,37 @@ describe('dropRoomSubscription', () => {
         expect(live.revoked).toBe(false)
     })
 
-    it('gives the channel back once no room wants it', async () => {
+    it('keeps the shared channel after the last room opts out', async () => {
         const live = new FakeSubscription(ENDPOINT)
         browser.subscription = live
 
         await dropRoomSubscription('ski-trip', 'm1', 't1')
-        expect(live.revoked).toBe(true)
+        expect(unsubscribe).toHaveBeenCalledWith('ski-trip', { endpoint: ENDPOINT, memberId: 'm1', memberToken: 't1' })
+        expect(live.revoked).toBe(false)
     })
 
-    /**
-     * The window `forget()` opens: it starts this drop and does not wait for it,
-     * so the answer can arrive after the phone has changed hands. Here the new
-     * person claims the room and turns notifications on inside that round trip —
-     * `endpointStillUsed` was false when the server counted, and revoking on it
-     * now would take away a channel the NEW identity just created.
-     */
+    it('does not silence a different room registered before an old delete response arrives', async () => {
+        const live = new FakeSubscription(ENDPOINT)
+        browser.subscription = live
+        let releaseDelete!: () => void
+        unsubscribe.mockImplementation(
+            () =>
+                new Promise((resolve) => {
+                    releaseDelete = () => resolve({ subscribed: false, endpointStillUsed: false })
+                })
+        )
+
+        const dropping = dropRoomSubscription('ski-trip', 'm1', 't1')
+        await vi.waitFor(() => expect(unsubscribe).toHaveBeenCalledOnce())
+        await addRoomSubscription('flat-share', 'm1', 't1')
+        releaseDelete()
+        await dropping
+
+        expect(subscribe).toHaveBeenCalledWith('flat-share', expect.objectContaining({ endpoint: ENDPOINT }))
+        expect(browser.subscription).toBe(live)
+        expect(live.revoked).toBe(false)
+    })
+
     it('leaves a channel alone that a new identity claimed while the drop was in flight', async () => {
         const live = new FakeSubscription(ENDPOINT)
         browser.subscription = live

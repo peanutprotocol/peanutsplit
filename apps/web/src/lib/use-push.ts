@@ -221,48 +221,24 @@ export async function addRoomSubscription(slug: string, memberId: string, member
 }
 
 /**
- * Drop this device's channel for one room.
+ * Remove this device's subscription for one room.
  *
  * Exported for `forget()` in `use-identity.ts`, which has to do this before it
  * deletes the token that authorises it. Throws when the server refuses, so the
- * browser subscription is only ever touched after the row is really gone.
- *
- * `forget()` starts this and does not wait for it, so the last step can land
- * after the phone has changed hands. Revoking the device's channel is therefore
- * conditional on nobody having claimed an identity in this room since the drop
- * started — see `identityGeneration`.
+ * UI only reports the room as off after its row is gone.
  */
 export async function dropRoomSubscription(slug: string, memberId: string, memberToken: string): Promise<void> {
-    // Captured before the first await. Everything below decides whether to revoke
-    // a channel that belongs to whoever this device was when the drop began.
-    const generation = identityGeneration(slug)
-    const stillOurs = () => identityGeneration(slug) === generation
-
     const subscription = await currentSubscription()
     if (!subscription) return
 
     const keys = readKeys(subscription)
-    if (!keys) {
-        // A keyless subscription can never have reached the server (subscribe
-        // rolls it back), and there is no endpoint to name in a delete. Only the
-        // local half exists, so only the local half goes.
-        if (stillOurs()) await subscription.unsubscribe().catch(() => {})
-        return
-    }
+    if (!keys) return
 
-    // Server first, then the browser: the reverse order can drop the endpoint we
-    // would have needed to name in the delete, leaving a row that keeps being
-    // sent to until the push service 410s it.
-    const { endpointStillUsed } = await api.push.unsubscribe(slug, { endpoint: keys.endpoint, memberId, memberToken })
-    // The endpoint is the device's, not the room's. Revoking it while another
-    // room's row still points at it takes that room dark with nothing to show
-    // for it — its toggle would keep reading "on" and never deliver again.
-    //
-    // Or while THIS room has a new person on it: the phone was handed over and
-    // the next member turned notifications on inside this round trip, so the
-    // endpoint the server counted is not the one that exists now. Answering the
-    // question we asked before would revoke a channel we did not create.
-    if (!endpointStillUsed && stillOurs()) await subscription.unsubscribe()
+    await api.push.unsubscribe(slug, { endpoint: keys.endpoint, memberId, memberToken })
+    // Keep the origin-wide channel. Another tab can register a room after the
+    // server counted its users but before this response arrives. Revoking the
+    // channel here would silently disable that room too; deleting this room's
+    // row already stops its notifications.
     announceSubscriptionChange()
 }
 
