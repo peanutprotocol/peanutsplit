@@ -456,7 +456,7 @@ describe('PATCH /api/rooms/:slug/expenses/:id catch-up command', () => {
                 path: `/api/rooms/${slug}/expenses/${expense.id}`,
                 method: 'PATCH',
                 params: { slug, id: expense.id },
-                body: editBody,
+                body: { ...editBody, expectedRevision: expense.revision },
             })
             await waitForAdvisoryWaiters(1)
             const catchUpAttempt = catchUp(slug, expense.id, input)
