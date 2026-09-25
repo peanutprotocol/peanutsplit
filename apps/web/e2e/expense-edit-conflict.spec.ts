@@ -123,7 +123,7 @@ test('a stale edit cannot undo another device after its room state refreshes', a
     await expect(bea.getByTestId('expense-row')).toHaveAttribute('data-description', 'Dinner with friends')
 })
 
-test('an older client without an expense revision is asked to reopen the expense', async ({ request }) => {
+test('an older client without an expense revision can still save an edit', async ({ request }) => {
     const { slug, expense } = await createExpense(request)
     const response = await request.patch(`/api/rooms/${slug}/expenses/${expense.id}`, {
         data: {
@@ -136,8 +136,7 @@ test('an older client without an expense revision is asked to reopen the expense
             expectedSplitMode: 'EQUAL',
         },
     })
-    expect(response.status()).toBe(409)
-    expect(await response.json()).toEqual({ error: { code: 'EXPENSE_EDIT_CONFLICT', message: conflictMessage } })
+    expect(response.status()).toBe(200)
     const state = (await (await request.get(`/api/rooms/${slug}`)).json()) as RoomState
-    expect(state.expenses.find((row) => row.id === expense.id)).toEqual(expense)
+    expect(state.expenses.find((row) => row.id === expense.id)).toMatchObject({ description: 'Old cached edit' })
 })

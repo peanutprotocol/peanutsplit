@@ -244,7 +244,7 @@ export interface ExpenseInput {
 
 /** PATCH /api/rooms/:slug/expenses/:id. Send the revision captured when editing began. */
 export interface ExpenseUpdateInput extends ExpenseInput {
-    /** Missing or stale baselines receive an EXPENSE_EDIT_CONFLICT response. */
+    /** A stale baseline receives EXPENSE_EDIT_CONFLICT; omitting it is the legacy path. */
     expectedRevision?: string
     expectedSplitMode?: SplitMode
 }

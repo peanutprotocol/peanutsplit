@@ -206,7 +206,7 @@ export const expenseUpdateSchema = z
     .object({
         ...expenseFields,
         description: expenseName.optional(),
-        /** Missing revisions reach the route's refresh conflict for old clients. */
+        /** Optional so pre-revision clients keep editing; the route rejects a stale one. */
         expectedRevision: z.string().min(1).max(128).optional(),
         /** The PATCH route also guards compatibility with weighted split editors. */
         expectedSplitMode: splitMode.optional(),

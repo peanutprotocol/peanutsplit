@@ -122,7 +122,8 @@ export const PATCH = (request: Request, ctx: Ctx) =>
             if (existing.deletedAt) throw conflict('restore this expense before editing it', 'EXPENSE_DELETED')
             const previous = room.expenses.find((expense) => expense.id === id)
             if (!previous) throw conflict('restore this expense before editing it', 'EXPENSE_DELETED')
-            if (body.expectedRevision !== expenseRevision(previous)) {
+            // Pre-revision bundles send no baseline and keep editing until they reload.
+            if (body.expectedRevision !== undefined && body.expectedRevision !== expenseRevision(previous)) {
                 throw conflict(
                     'This expense just changed. Reopen it to see the latest version.',
                     'EXPENSE_EDIT_CONFLICT'

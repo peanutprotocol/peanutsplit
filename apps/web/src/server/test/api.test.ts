@@ -1795,17 +1795,17 @@ describe('expense edit revisions', () => {
         )
     })
 
-    it('rejects an older client without a baseline before changing the expense', async () => {
+    it('lets an older client without a baseline keep editing', async () => {
         const { input, expense, edit } = await setupExpense()
-        expectEditConflict(await edit({ ...input, amountMinor: '9999' }))
+        expect((await edit({ ...input, amountMinor: '9999' })).status).toBe(200)
         const stored = await prisma.expense.findUniqueOrThrow({ where: { id: expense.id } })
-        expect(stored.amountMinor).toBe(3000n)
+        expect(stored.amountMinor).toBe(9999n)
         expect(await prisma.roomAuditEvent.count({ where: { subjectId: expense.id, action: 'expense_edited' } })).toBe(
-            0
+            1
         )
     })
 
-    it('uses the refresh conflict when the split mode changed or an older weighted editor has no revision', async () => {
+    it('uses the refresh conflict when the split mode changed and the split guard for older weighted editors', async () => {
         const { created, input, expense, edit } = await setupExpense()
         const weightedInput = {
             description: input.description,
@@ -1818,7 +1818,9 @@ describe('expense edit revisions', () => {
         const updated = await edit({ ...weightedInput, expectedRevision: expense.revision })
         expect(updated.status).toBe(200)
         expectEditConflict(await edit({ ...input, expectedSplitMode: 'EQUAL', expectedRevision: expense.revision }))
-        expectEditConflict(await edit({ ...weightedInput, expectedSplitMode: 'SHARES' }))
+        const legacy = await edit({ ...input, expectedSplitMode: 'EQUAL' })
+        expect(legacy.status).toBe(409)
+        expect((legacy.body as ApiError).error.code).toBe('SPLIT_MODE_CONFLICT')
     })
 
     it('rejects an open editor after catch-up changes only the shares', async () => {
