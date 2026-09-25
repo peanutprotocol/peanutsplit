@@ -123,7 +123,7 @@ test('a stale edit cannot undo another device after its room state refreshes', a
     await expect(bea.getByTestId('expense-row')).toHaveAttribute('data-description', 'Dinner with friends')
 })
 
-test('an older client without an expense revision is asked to refresh', async ({ request }) => {
+test('an older client without an expense revision is asked to reopen the expense', async ({ request }) => {
     const { slug, expense } = await createExpense(request)
     const response = await request.patch(`/api/rooms/${slug}/expenses/${expense.id}`, {
         data: {
