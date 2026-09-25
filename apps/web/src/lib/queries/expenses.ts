@@ -199,9 +199,13 @@ export function useUpdateExpense(slug: string, token?: string | null) {
             api.updateExpense(slug, id, input, token),
         onSuccess: (state) => seedRoomState(queryClient, slug, state),
         // Reopening the drawer seeds from this cache, so it must hold the newer copy.
+        // Cap the wait so a slow refetch finishes in the background after the alert shows.
         onError: async (error) => {
             if (isApiError(error, 'EXPENSE_EDIT_CONFLICT')) {
-                await queryClient.invalidateQueries({ queryKey: roomKey(slug) })
+                await Promise.race([
+                    queryClient.invalidateQueries({ queryKey: roomKey(slug) }),
+                    new Promise((resolve) => setTimeout(resolve, 3000)),
+                ])
             }
         },
     })
