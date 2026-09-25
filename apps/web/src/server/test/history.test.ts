@@ -219,17 +219,18 @@ describe('room history', () => {
         const expenseId = withExpense.expenses[0].id
 
         const editBody = { ...expenseBody, description: 'Late dinner', expectedSplitMode: 'EQUAL' }
-        const editExpense = () =>
+        const editExpense = (expectedRevision: string | undefined) =>
             call<RoomState>(patchExpense as Handler, {
                 path: `${roomPath}/expenses/${expenseId}`,
                 method: 'PATCH',
                 params: { slug, id: expenseId },
                 token: created.memberToken,
                 device,
-                body: editBody,
+                body: { ...editBody, expectedRevision },
             })
-        await editExpense()
-        await editExpense()
+        const editedExpense = await editExpense(withExpense.expenses[0].revision)
+        expect(editedExpense.status).toBe(200)
+        expect((await editExpense(editedExpense.body.expenses[0].revision)).status).toBe(200)
 
         const reactionBody = { emoji: '🔥', memberId: beaId, memberToken: bea.memberToken }
         const react = (handler: Handler, method: 'POST' | 'DELETE') =>

@@ -77,6 +77,7 @@ const state = (
             memberId,
             amountMinor,
             enteredAmountMinor: entered ?? null,
+            splitWeight: null,
         })),
         ...(expense.deletedAt ? { deletedAt: expense.deletedAt } : {}),
     })) as ApiExpense[],
@@ -157,6 +158,7 @@ function randomRoom(rng: () => number, seed: number) {
                 memberId: member.id,
                 amountMinor: parts[position],
                 enteredAmountMinor: rng() < 0.5 ? parts[position] : null,
+                splitWeight: null,
             })),
             // Loaded through the expense by `roomArgs`, so the fixture carries the
             // relation even though no balance has ever depended on a reaction.
