@@ -2,7 +2,7 @@ import { expect, type APIRequestContext, type Page } from '@playwright/test'
 import type { RoomState } from '../src/lib/api-types'
 import { test } from './fixtures'
 
-const conflictMessage = 'Someone just edited the expense. Refresh to edit'
+const conflictMessage = 'This expense just changed. Reopen it to see the latest version.'
 
 async function createExpense(request: APIRequestContext) {
     const created = await request.post('/api/rooms', {
@@ -101,7 +101,9 @@ test('a stale edit cannot undo another device after its room state refreshes', a
     const afterConflict = (await (await request.get(roomPath)).json()) as RoomState
     expect(afterConflict.expenses.find((row) => row.id === expense.id)).toEqual(updated)
 
-    await bea.reload()
+    await bea.keyboard.press('Escape')
+    await expect(bea.getByTestId('expense-drawer')).toHaveCount(0)
+    await bea.getByTestId('expense-row').click()
     await expect(bea.getByTestId('expense-amount')).toHaveValue('40.00')
     await expect(bea.getByTestId('expense-description')).toHaveValue('Dinner')
     await bea.getByTestId('expense-description').fill('Dinner with friends')

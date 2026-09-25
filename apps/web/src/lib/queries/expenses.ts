@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQueryClient, type QueryClient, type UseMutationOptions } from '@tanstack/react-query'
-import { api, expensesPath, isCatchUpReviewChange } from '../api'
+import { api, expensesPath, isApiError, isCatchUpReviewChange } from '../api'
 import type {
     CatchUpExpenseInput,
     ExpenseCreateResult,
@@ -198,6 +198,12 @@ export function useUpdateExpense(slug: string, token?: string | null) {
         mutationFn: ({ id, input }: { id: string; input: ExpenseUpdateInput }) =>
             api.updateExpense(slug, id, input, token),
         onSuccess: (state) => seedRoomState(queryClient, slug, state),
+        // Reopening the drawer seeds from this cache, so it must hold the newer copy.
+        onError: async (error) => {
+            if (isApiError(error, 'EXPENSE_EDIT_CONFLICT')) {
+                await queryClient.invalidateQueries({ queryKey: roomKey(slug) })
+            }
+        },
     })
 }
 

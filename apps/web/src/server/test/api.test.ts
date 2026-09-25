@@ -9,11 +9,11 @@ import { STATIC_USD_PER_UNIT } from '@/server/money'
 import { resetRateLimits } from '@/server/rateLimit'
 import { encodeRoomDrawing } from '@/lib/room-drawing'
 import { catchUpExpenseInput } from '@/lib/latecomer'
-import { POST as addReaction } from '@/app/api/expenses/[id]/reactions/route'
+import { POST as addReaction, DELETE as removeReaction } from '@/app/api/expenses/[id]/reactions/route'
 import { GET as getCurrencies } from '@/app/api/currencies/route'
 import { GET as getRate } from '@/app/api/rate/route'
 import { POST as postRoom } from '@/app/api/rooms/route'
-import { GET as getRoom } from '@/app/api/rooms/[slug]/route'
+import { GET as getRoom, PATCH as patchRoom } from '@/app/api/rooms/[slug]/route'
 import { POST as postMember } from '@/app/api/rooms/[slug]/members/route'
 import { POST as claimMember } from '@/app/api/rooms/[slug]/members/[memberId]/claim/route'
 import { DELETE as deleteMember, PATCH as patchMember } from '@/app/api/rooms/[slug]/members/[memberId]/route'
@@ -1760,7 +1760,7 @@ describe('expense edit revisions', () => {
         expect(result.status).toBe(409)
         expect((result.body as ApiError).error).toEqual({
             code: 'EXPENSE_EDIT_CONFLICT',
-            message: 'Someone just edited the expense. Refresh to edit',
+            message: 'This expense just changed. Reopen it to see the latest version.',
         })
     }
 
@@ -1864,6 +1864,55 @@ describe('expense edit revisions', () => {
         const updated = (edited.body as RoomState).expenses.find((row) => row.id === expense.id)!
         expect(updated.description).toBe('Dinner renamed')
         expect(updated.reactions).toEqual([{ emoji: '🔥', memberId: created.memberId }])
+    })
+
+    it('keeps the revision through reaction removal, settlements, member changes and room settings', async () => {
+        const { created, slug, input, expense, edit } = await setupExpense()
+        const reaction = {
+            path: `/api/expenses/${expense.id}/reactions`,
+            params: { id: expense.id },
+            body: { emoji: '🔥', memberId: created.memberId, memberToken: created.memberToken },
+        }
+        expect((await call<RoomState>(addReaction as Handler, { ...reaction, method: 'POST' })).status).toBe(200)
+        expect((await call<RoomState>(removeReaction as Handler, { ...reaction, method: 'DELETE' })).status).toBe(200)
+        const bea = (await join(slug, 'Bea')).body
+        const debt = await call<RoomState>(postExpense as Handler, {
+            path: `/api/rooms/${slug}/expenses`,
+            method: 'POST',
+            params: { slug },
+            body: {
+                ...input,
+                description: 'Taxi',
+                amountMinor: '1000',
+                participantIds: [created.memberId, bea.memberId],
+            },
+        })
+        expect(debt.status).toBe(201)
+        const settled = await call<RoomState>(postSettlement as Handler, {
+            path: `/api/rooms/${slug}/settlements`,
+            method: 'POST',
+            params: { slug },
+            body: { fromId: bea.memberId, toId: created.memberId, amountMinor: '500' },
+        })
+        expect(settled.status).toBe(201)
+        const repainted = await call<RoomState>(patchMember as Handler, {
+            path: `/api/rooms/${slug}/members/${created.memberId}`,
+            method: 'PATCH',
+            params: { slug, memberId: created.memberId },
+            body: { avatar: 'tea-dragon' },
+        })
+        expect(repainted.status).toBe(200)
+        const renamed = await call<RoomState>(patchRoom as Handler, {
+            path: `/api/rooms/${slug}`,
+            method: 'PATCH',
+            params: { slug },
+            body: { name: 'Ski Trip 2027' },
+        })
+        expect(renamed.status).toBe(200)
+        expect(renamed.body.expenses.find((row) => row.id === expense.id)?.revision).toBe(expense.revision)
+        expect(
+            (await edit({ ...input, description: 'Dinner renamed', expectedRevision: expense.revision })).status
+        ).toBe(200)
     })
 
     it('keeps the baseline valid after a no-op save', async () => {

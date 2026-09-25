@@ -123,7 +123,10 @@ export const PATCH = (request: Request, ctx: Ctx) =>
             const previous = room.expenses.find((expense) => expense.id === id)
             if (!previous) throw conflict('restore this expense before editing it', 'EXPENSE_DELETED')
             if (body.expectedRevision !== expenseRevision(previous)) {
-                throw conflict('Someone just edited the expense. Refresh to edit', 'EXPENSE_EDIT_CONFLICT')
+                throw conflict(
+                    'This expense just changed. Reopen it to see the latest version.',
+                    'EXPENSE_EDIT_CONFLICT'
+                )
             }
             const weightedExisting = existing.splitMode === 'PERCENTAGE' || existing.splitMode === 'SHARES'
             if (

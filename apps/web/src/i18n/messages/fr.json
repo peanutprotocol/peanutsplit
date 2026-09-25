@@ -1171,7 +1171,7 @@
         "LAST_ACTIVE_MEMBER": "La dernière personne active ne peut pas partir. Réactive d’abord quelqu’un d’autre.",
         "MEMBER_FORMER": "Cette personne est inactive. Réactive-la avant de l’ajouter à un nouveau partage.",
         "EXPENSE_DELETED": "Cette dépense a été supprimée. Annule d’abord sa suppression, puis modifie-la.",
-        "EXPENSE_EDIT_CONFLICT": "Quelqu’un vient de modifier la dépense. Actualise la page pour la modifier",
+        "EXPENSE_EDIT_CONFLICT": "Cette dépense vient de changer. Rouvre-la pour voir la dernière version.",
         "NEW_PAYER_ON_EDIT": "Choisis une personne existante lors d’une modification. Ajoute un nouveau payeur avec une nouvelle dépense.",
         "CATCH_UP_REVIEW_CONFLICT": "Cette dépense a changé après la vérification — rouvre-la et réessaie.",
         "HISTORY_CURSOR_INVALID": "Ce point de l’historique du groupe n’est plus disponible — rouvre l’historique.",
