@@ -106,7 +106,7 @@ describe('official-host Peanut reference budget', () => {
         expect(placements).toEqual([])
     })
 
-    it('keeps catalog references inside the user-initiated settlement control only', () => {
+    it('keeps catalog references inside the settlement control and the footer operator line', () => {
         const placements = filesBelow(path.join(root, 'i18n', 'messages'), new Set(['.json']))
             .flatMap((file) => {
                 const locale = path.basename(file, '.json')
@@ -118,7 +118,13 @@ describe('official-host Peanut reference budget', () => {
         const locales = ['de', 'en', 'es-419', 'fr', 'pl', 'pt-br', 'uk']
 
         expect(placements).toEqual(
-            locales.flatMap((locale) => [`${locale}:room.settle.peanut`, `${locale}:room.settle.peanutNote`]).sort()
+            locales
+                .flatMap((locale) => [
+                    `${locale}:marketing.footer.operatedBy`,
+                    `${locale}:room.settle.peanut`,
+                    `${locale}:room.settle.peanutNote`,
+                ])
+                .sort()
         )
     })
 

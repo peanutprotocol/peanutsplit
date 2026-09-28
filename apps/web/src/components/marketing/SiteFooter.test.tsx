@@ -40,6 +40,7 @@ describe('SiteFooter source receipt', () => {
 
         expect(html).toContain('href="https://peanut.me/en/terms"')
         expect(html).toContain('href="/privacy"')
+        expect(html).toContain('operatedBy')
         expect(html).not.toContain('utm_')
         expect(html).not.toContain('peanut-logo')
     })

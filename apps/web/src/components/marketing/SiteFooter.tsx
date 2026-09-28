@@ -25,7 +25,7 @@ const LEGAL_LINKS = [
  * The site's foot: every public Split page, plus one internal source-and-stewardship receipt.
  *
  * The footer deliberately contains no Peanut logo, referral URL or promotional Peanut link — the
- * Terms and Privacy notices in the bottom bar are the one, legally required exception. The
+ * Terms and Privacy notices and the plain-text operator line in the bottom bar are the exceptions. The
  * dedicated internal page explains Squirrel Labs' stewardship and the official host's bounded,
  * contextual Peanut references without turning every page into a promotion surface.
  *
@@ -171,6 +171,9 @@ export function SiteFooter({ showLocaleSwitcher = true }: { showLocaleSwitcher?:
                     </ul>
                     {showLocaleSwitcher && <LocaleSwitcher label={tLocale('label')} compact />}
                 </div>
+                {/* Names the legal operator and its link to Peanut on every page, so a reader or an ad
+                    reviewer can see one company runs both brands. Plain text, not a link. */}
+                <p className="mx-auto w-full max-w-xl px-5 pb-4 text-xs leading-5 text-white/70">{t('operatedBy')}</p>
             </div>
         </footer>
     )
