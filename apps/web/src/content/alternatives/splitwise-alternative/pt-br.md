@@ -1,5 +1,5 @@
 ---
-title: 'Alternativa ao Splitwise grátis e sem conta'
+title: 'Alternativa grátis ao Splitwise, sem cadastro'
 description: 'Use o Peanut Split sem cadastro nem limite diário de despesas. Compare a conversão de moedas e compartilhe uma sala com o grupo.'
 publicSourceTitle: Alternativa ao Splitwise de código aberto
 publicSourceDescription: 'Consulte o código AGPL ou hospede sua cópia. A Squirrel Labs mantém o Peanut Split, e o serviço oficial é grátis.'
@@ -45,7 +45,7 @@ Sources and claim IDs are recorded in ../_system/competitor-claims.md. */}
 
 <Hero
   eyebrow="Comparativo"
-  title="Alternativa ao Splitwise grátis e sem conta"
+  title="Alternativa grátis ao Splitwise, sem cadastro"
   subtitle="O Peanut Split é grátis. Compartilhe o link de uma sala, digite seu nome e adicione despesas sem limite diário."
   cta="Criar um split"
   ctaHint="Sem cadastro nem download." />
