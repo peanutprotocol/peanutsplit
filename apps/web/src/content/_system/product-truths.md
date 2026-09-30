@@ -182,19 +182,19 @@ limited, non-intrusive, never-spammy or forced Peanut references.
 
 ## public-source-and-self-hosting
 
-**claim:** After the public-release gate, released Peanut Split source is distributed under
-`AGPL-3.0-or-later` and may be inspected, run, modified, shared, and self-hosted under that license.
+**claim:** Peanut Split is open source. The source is public at github.com/peanutprotocol/peanutsplit
+under `AGPL-3.0-or-later` and may be inspected, run, modified, shared, and self-hosted under that license.
 The repository documents its schema, migrations, HTTP surface, deployment topology, and operator
 responsibilities. These freedoms belong to released software; they do not promise that the official
 host stays online or free, or that every future release has identical scope.
 
-**safe after the release gate:** "free and open-source software" · "FOSS" · "licensed under
+**status:** public since September 2026; Konrad confirmed the claim for ads and copy on 30 Sep 2026.
+
+**safe:** "open source" · "free and open-source software" · "FOSS" · "licensed under
 AGPL-3.0-or-later" · "self-hostable" · "released versions keep their license rights"
 
-**unsafe:** any positive open-source, FOSS, AGPL, public-repository, or self-hosting-availability
-claim before the root license, a publicly readable repository, a build-commit source link,
-rights/notice review, security gates, and custom-origin smoke test all pass · "the hosted service is
-FOSS" · "open source means free of charge" · "all future versions will be open source"
+**unsafe:** "the hosted service is FOSS" · "open source means free of charge" · "all future versions
+will be open source"
 
 **source after release:** the exact immutable public source release and receipt, rooted at the
 deployed commit, plus `LICENSE`, `docs/current/DATA-MODEL.md`, `docs/current/API.md`, and
