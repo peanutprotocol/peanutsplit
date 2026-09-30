@@ -48,7 +48,7 @@ Sources and claim IDs are recorded in ../_system/competitor-claims.md. */}
 <Hero
   eyebrow="Comparison"
   title="Splitwise alternative, free with no signup"
-  subtitle="Peanut Split is free to use. Share a room link, enter a name and add expenses without a daily cap. You can also import an existing Splitwise group."
+  subtitle="Peanut Split is free to use. Share a room link, enter a name and add expenses. There is no daily limit on expenses, and you can also import an existing Splitwise group."
   cta="Start a split"
   ctaHint="No account or download required." />
 
@@ -78,7 +78,7 @@ Add as many expenses as you need without hitting a limit (free users can add up 
 
 | Feature              | Peanut Split                                | Splitwise                                                |
 | -------------------- | ------------------------------------------- | -------------------------------------------------------- |
-| Adding expenses      | No daily cap                                | Free accounts have a daily cap; Pro removes it           |
+| Adding expenses      | No daily limit on expenses                  | Free accounts have a daily limit; Pro removes it         |
 | Currency conversion  | 156 currencies at the day's indicative rate | Listed as a Pro feature                                  |
 | Cost                 | Free to use, no paid tier                   | Free version and paid Pro subscription                   |
 | Joining a Split room | Open a link and enter a name                | Splitwise uses accounts for people accessing their group |
