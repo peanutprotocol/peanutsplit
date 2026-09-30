@@ -15,7 +15,8 @@ import {
 import { api } from '../api'
 import { readIdentity } from '../identity'
 import { rememberExpenseCurrency } from '../expense-currencies'
-import { roomKey, seedRoomState } from './core'
+import { roomKey, roomStateResult, seedRoomState } from './core'
+import { trackExpenseSaved } from '../analytics'
 
 /**
  * Which rooms lost queued records in another tab.
@@ -39,13 +40,14 @@ export function removedQueueSlugs(event: Pick<StorageEvent, 'key' | 'oldValue' |
     return [...new Set(removed.map((item) => item.slug))]
 }
 
-/** A queued draft becomes a recent currency only once its server write succeeds. */
+/** Record a queued expense only after its server write succeeds. */
 export async function replayQueuedExpense(item: QueuedWrite) {
     const identity = readIdentity(item.slug)
     const memberId = identity && (identity.token ?? null) === item.token ? identity.memberId : undefined
     const state = await api.replayWrite(item)
+    await trackExpenseSaved(item.slug, { ...item.body, clientKey: item.clientKey }, state)
     rememberExpenseCurrency(item.slug, memberId, item.body.currency)
-    return state
+    return roomStateResult(state)
 }
 
 /** Configure and drain the device-local offline write queue. */

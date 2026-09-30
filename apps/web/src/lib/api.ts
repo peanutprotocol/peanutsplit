@@ -370,7 +370,7 @@ export const api = {
         body: ExpenseInput
         token?: string | null
     }) =>
-        request<RoomState>(write.endpoint, {
+        request<ExpenseCreateResult>(write.endpoint, {
             method: write.method,
             // Old queue records kept the stable key outside the body. Injecting
             // it here upgrades those records at replay time too.

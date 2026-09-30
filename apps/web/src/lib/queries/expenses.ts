@@ -19,6 +19,7 @@ import {
 } from '../offline-queue'
 import { roomKey, roomStateResult, seedRoomState } from './core'
 import { activeMembers } from '../members'
+import { trackExpenseSaved } from '../analytics'
 
 interface AddExpenseContext {
     previous?: RoomState
@@ -123,7 +124,9 @@ export function addExpenseMutationOptions(
             const frozen = request.equalParticipantIds
             const equalParticipantSnapshot = isImplicitEqualRoster(input) && frozen?.length ? frozen : null
             try {
-                return { ...(await api.addExpense(slug, requestInput, token)), queuedLocally: false }
+                const result = await api.addExpense(slug, requestInput, token)
+                await trackExpenseSaved(slug, requestInput, result)
+                return { ...result, queuedLocally: false }
             } catch (error) {
                 // A staged payer has no server-issued member id for an honest
                 // pending row, so only ordinary expenses can enter the queue.

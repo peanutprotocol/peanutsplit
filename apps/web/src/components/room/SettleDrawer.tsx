@@ -236,7 +236,10 @@ export function SettleDrawer({
         // is still mounted when we ask it to leave.
         setFrozen(state.suggestedTransfers)
         // Opened inside the click handler so Safari does not treat it as a popup.
-        if (method === 'peanut') window.open(PEANUT_URL, '_blank', 'noopener,noreferrer')
+        if (method === 'peanut') {
+            track('peanut_link_clicked', roomProps(slug))
+            window.open(PEANUT_URL, '_blank', 'noopener,noreferrer')
+        }
         // The ids the room already held, so the one that comes back can be told
         // apart from them — the POST answers with the whole room, not the row.
         const before = new Set(state.settlements.map((settlement) => settlement.id))

@@ -8,7 +8,7 @@ import { Doodle } from '@/components/ui/Doodle'
 import { PullToRefresh } from '@/components/ui/PullToRefresh'
 import { RoomUpdatesPrompt } from '@/components/pwa/RoomUpdatesPrompt'
 import { isApiError, MEMBER_TOKEN_INVALID_EVENT } from '@/lib/api'
-import { installMeasureProps, roomProps, track, trackFirstSharedBalance, type ShareSurface } from '@/lib/analytics'
+import { installMeasureProps, track, type ShareSurface } from '@/lib/analytics'
 import type { MemberIdentity } from '@/lib/identity'
 import { isLatecomerReviewDismissed, latecomerReview } from '@/lib/latecomer'
 import {
@@ -128,7 +128,6 @@ export function RoomScreen({ slug }: { slug: string }) {
         [setParams]
     )
     const motionAllowed = useMotionAllowed()
-    const celebrated = useRef(false)
     /**
      * Moment #6 fires once per *arrival* at zero, not on every render of a
      * settled room: walking back into a room that was already settled last week
@@ -145,7 +144,6 @@ export function RoomScreen({ slug }: { slug: string }) {
     const noteLatecomerFirstSharedBalance = useCallback(() => {
         if (latecomerFirstSharedBalancePending.current) return
         latecomerFirstSharedBalancePending.current = true
-        trackFirstSharedBalance()
     }, [])
 
     const deferCompetingGuidance = useCallback(() => {
@@ -383,14 +381,6 @@ export function RoomScreen({ slug }: { slug: string }) {
             setCelebrate(true)
         }
     }, [settledUp, state, drawerOpen])
-
-    useEffect(() => {
-        if (settledUp && !celebrated.current) {
-            celebrated.current = true
-            track('all_settled', roomProps(slug))
-        }
-        if (!settledUp) celebrated.current = false
-    }, [settledUp, slug])
 
     const editing = useMemo(
         () => (params.expense ? (state?.expenses.find((expense) => expense.id === params.expense) ?? null) : null),

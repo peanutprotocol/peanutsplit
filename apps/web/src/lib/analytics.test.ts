@@ -27,6 +27,19 @@ afterAll(() => {
 })
 
 describe('privacy-safe analytics', () => {
+    it('keeps analytics initialization failures out of successful product actions', async () => {
+        posthog.init.mockImplementationOnce(() => {
+            throw new Error('analytics unavailable')
+        })
+        const { initAnalytics, track } = await import('./analytics')
+        expect(() => initAnalytics()).not.toThrow()
+        posthog.init.mockImplementationOnce(() => {
+            throw new Error('analytics unavailable')
+        })
+        expect(() => track('expense_added')).not.toThrow()
+        expect(posthog.capture).not.toHaveBeenCalled()
+    })
+
     it('disables automatic page events and strips browser page context before sending', async () => {
         const { initAnalytics } = await import('./analytics')
         initAnalytics()
@@ -126,16 +139,6 @@ describe('landing analytics', () => {
             expect(properties).not.toHaveProperty('currency')
             expect(properties).not.toHaveProperty('description')
         }
-    })
-})
-
-describe('first shared balance analytics', () => {
-    it('emits the activation milestone without ledger properties', async () => {
-        const { trackFirstSharedBalance } = await import('./analytics')
-
-        trackFirstSharedBalance()
-
-        expect(posthog.capture).toHaveBeenCalledWith('first_shared_balance', {})
     })
 })
 

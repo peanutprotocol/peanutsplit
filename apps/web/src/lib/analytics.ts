@@ -7,7 +7,8 @@
  */
 
 import posthog from 'posthog-js'
-import type { CaptureResult } from 'posthog-js'
+import type { CaptureOptions, CaptureResult } from 'posthog-js'
+import type { ExpenseCreateResult, ExpenseInput } from './api-types'
 import { ACHIEVEMENT_TYPES } from './achievements-contract'
 import type { AchievementType } from './achievements-contract'
 import type { LandingVariant } from './flags'
@@ -29,7 +30,6 @@ export type AnalyticsEvent =
     | LandingEvent
     | 'room_created'
     | 'expense_added'
-    | 'first_shared_balance'
     | 'expense_edited'
     | 'expense_deleted'
     | 'expense_restored'
@@ -39,7 +39,6 @@ export type AnalyticsEvent =
     | 'share_package_presented'
     | 'share_completed'
     | 'link_copied'
-    | 'all_settled'
     | 'pwa_prompt_shown'
     | 'pwa_prompt_dismissed'
     | 'pwa_installed'
@@ -59,6 +58,7 @@ export type AnalyticsEvent =
     | 'share_target_opened'
     | 'peanut_option_shown'
     | 'peanut_option_clicked'
+    | 'peanut_link_clicked'
     // Push opt-in. Same discipline as everything above: neither a room
     // identifier nor a member identity ever appears in a property bag.
     | 'push_optin_shown'
@@ -173,34 +173,43 @@ export function initAnalytics(): void {
     if (ready || typeof window === 'undefined') return
     const key = process.env.NEXT_PUBLIC_POSTHOG_KEY
     if (!key) return
-    posthog.init(key, {
-        api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com',
-        capture_pageview: false,
-        capture_pageleave: false,
-        disable_session_recording: true,
-        persistence: 'localStorage',
-        save_referrer: false,
-        // Paved expands `nl` to the newsletter that served the ad. PostHog only reads its own
-        // campaign keys, so without this the per-publisher read is silently lost. It names the
-        // publisher, never the reader.
-        custom_campaign_params: ['nl'],
-        // Room slugs are credentials; never let automatic capture lift one out
-        // of a URL, title, referrer or DOM interaction.
-        mask_all_text: true,
-        autocapture: false,
-        before_send: stripAutomaticPageContext,
-    })
-    ready = true
+    try {
+        posthog.init(key, {
+            api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com',
+            capture_pageview: false,
+            capture_pageleave: false,
+            disable_session_recording: true,
+            persistence: 'localStorage',
+            save_referrer: false,
+            // Paved expands `nl` to the newsletter that served the ad. PostHog only reads its own
+            // campaign keys, so without this the per-publisher read is silently lost. It names the
+            // publisher, never the reader.
+            custom_campaign_params: ['nl'],
+            // Room slugs are credentials; never let automatic capture lift one out
+            // of a URL, title, referrer or DOM interaction.
+            mask_all_text: true,
+            autocapture: false,
+            before_send: stripAutomaticPageContext,
+        })
+        ready = true
+    } catch {
+        // Analytics must never prevent the app from mounting.
+    }
 }
 
-export function track(event: AnalyticsEvent, properties: Record<string, unknown> = {}): void {
+export function track(
+    event: AnalyticsEvent,
+    properties: Record<string, unknown> = {},
+    options?: Pick<CaptureOptions, 'uuid' | 'timestamp'>
+): void {
     // Child effects run before the provider's effect on first paint. Initialising
     // lazily keeps `landing_hero_exposed` from disappearing on that first pass;
     // the provider's later call is idempotent.
-    if (!ready) initAnalytics()
-    if (!ready) return
     try {
-        posthog.capture(event, properties)
+        if (!ready) initAnalytics()
+        if (!ready) return
+        if (options) posthog.capture(event, properties, options)
+        else posthog.capture(event, properties)
     } catch {
         // Analytics must never break a flow.
     }
@@ -213,17 +222,6 @@ export function track(event: AnalyticsEvent, properties: Record<string, unknown>
  */
 export function trackLanding(event: LandingEvent, variant: LandingVariant): void {
     track(event, { variant })
-}
-
-/**
- * The room's first actionable debt, deliberately carrying no properties.
- *
- * The event is enough to measure activation in the current anonymous session.
- * A room id, person, amount, currency, description, or roster size would make it
- * easier to correlate a private ledger and buys nothing for this funnel.
- */
-export function trackFirstSharedBalance(): void {
-    track('first_shared_balance')
 }
 
 export const SHARE_PACKAGE_METHODS = ['native', 'clipboard'] as const
@@ -391,4 +389,30 @@ export function rememberRoomKey(slug: string, analyticsKey: string | undefined):
 export const roomProps = (slug: string, extra: Record<string, unknown> = {}) => {
     const room = roomKeys.get(slug)
     return room ? { room, ...extra } : { ...extra }
+}
+
+/** Retries share a UUID and server timestamp so PostHog can deduplicate the same saved expense. */
+export async function trackExpenseSaved(slug: string, input: ExpenseInput, result: ExpenseCreateResult): Promise<void> {
+    try {
+        const expense = result.expenses.find((row) => row.id === input.clientKey)
+        // An old queued write can refer to an expense that has since been deleted.
+        if (!expense) return
+        const timestamp = new Date(expense.createdAt)
+        if (!Number.isFinite(timestamp.getTime())) return
+        // Legacy keys are not UUIDs. Hash every key into the same canonical UUID format.
+        const digest = new Uint8Array(
+            await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`expense_added:${expense.id}`))
+        )
+        digest[6] = (digest[6] & 0x0f) | 0x80
+        digest[8] = (digest[8] & 0x3f) | 0x80
+        const hex = Array.from(digest.slice(0, 16), (byte) => byte.toString(16).padStart(2, '0')).join('')
+        const uuid = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+        track(
+            'expense_added',
+            roomProps(slug, { splitMode: expense.splitMode, foreign: expense.currency !== result.room.currency }),
+            { uuid, timestamp }
+        )
+    } catch {
+        // Analytics failure must not turn an acknowledged write into a failed save.
+    }
 }

@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { CurrencySelect } from '@/components/room/CurrencySelect'
 import { LinkMoment } from '@/components/room/LinkMoment'
-import { track, trackFirstSharedBalance } from '@/lib/analytics'
+import { roomProps, track } from '@/lib/analytics'
 import { isApiError } from '@/lib/api'
 import type { ImportedExpenseInput, ImportIntoRoomResult, RoomState, RoomStateWithMember } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
@@ -432,7 +432,6 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
                 })
                 const createdFirstSharedBalance = !roomWasMature && result.room.hasReachedSharedBalance === true
                 if (createdFirstSharedBalance) {
-                    trackFirstSharedBalance()
                     // This success page owns the post-aha share moment. Arm the
                     // same short refusal window as the room drawer up front so
                     // browser Back, a reload, or either footer action cannot
@@ -440,12 +439,14 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
                     // share completion clears the deferral below.
                     deferRoomInstallAfterCompetingGuidance(targetRoom.state.room.slug)
                 }
-                track('import_completed', {
-                    expenses: result.addedExpenses,
-                    members: result.addedMembers,
-                    target: 'existing',
-                    alreadyImported: result.alreadyImported,
-                })
+                if (!result.alreadyImported) {
+                    track('import_completed', {
+                        expenses: result.addedExpenses,
+                        members: result.addedMembers,
+                        target: 'existing',
+                        alreadyImported: result.alreadyImported,
+                    })
+                }
                 feedback('pop')
                 setAppendCreatedFirstSharedBalance(createdFirstSharedBalance)
                 setAppended(result)
@@ -492,6 +493,7 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
             })
             markRoomCreatedHere(state.room.slug)
             rememberRoom({ slug: state.room.slug, name: state.room.name, emoji: state.room.emoji ?? undefined })
+            track('room_created', roomProps(state.room.slug))
             track('import_completed', { expenses: expenses.length, members: names.length })
             feedback('pop')
             setCreated(state)

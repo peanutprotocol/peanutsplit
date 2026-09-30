@@ -145,7 +145,7 @@ describe('official-host Peanut reference budget', () => {
 
         expect(source).toContain("useState<SettlementMethod>('cash')")
         expect(source.match(/\{ id: 'peanut'/g)).toHaveLength(1)
-        expect(source).toContain("if (method === 'peanut') window.open(PEANUT_URL")
+        expect(source).toMatch(/if \(method === 'peanut'\) \{[^}]*window\.open\(PEANUT_URL/)
         expect(source).not.toMatch(/useState<SettlementMethod>\('peanut'\)/)
     })
 

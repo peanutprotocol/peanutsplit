@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '../api'
-import type { RoomState } from '../api-types'
+import type { ExpenseCreateResult } from '../api-types'
 import { readExpenseCurrencies } from '../expense-currencies'
 import { memberStorageKey } from '../identity'
 import type { QueuedWrite } from '../offline-queue'
@@ -14,6 +14,25 @@ const item: QueuedWrite = {
     clientKey: 'expense-key',
     addedAt: 1,
     body: { currency: 'GBP', amountMinor: '100', paidById: 'bea', splitMode: 'EQUAL' },
+}
+
+const saved: ExpenseCreateResult = {
+    room: {
+        id: 'room-id',
+        slug: 'trip',
+        name: 'Trip',
+        emoji: null,
+        currency: 'EUR',
+        coverUrl: null,
+        theme: null,
+        createdAt: '2026-09-01T00:00:00.000Z',
+    },
+    members: [],
+    expenses: [],
+    settlements: [],
+    balances: {},
+    suggestedTransfers: [],
+    createdFirstSharedBalance: false,
 }
 
 describe('offline currency recency', () => {
@@ -37,7 +56,7 @@ describe('offline currency recency', () => {
     it('records only after server acknowledgement, under the author rather than the payer', async () => {
         vi.spyOn(api, 'replayWrite').mockImplementation(async () => {
             expect(readExpenseCurrencies('trip', 'ana')).toEqual([])
-            return {} as RoomState
+            return saved
         })
         await replayQueuedExpense(item)
         expect(readExpenseCurrencies('trip', 'ana')).toEqual(['GBP'])
@@ -52,7 +71,7 @@ describe('offline currency recency', () => {
 
     it('does not attribute an old identity’s queued expense to the newly claimed member', async () => {
         storage.set(memberStorageKey('trip'), JSON.stringify({ memberId: 'bea', name: 'Bea', token: 'bea-token' }))
-        vi.spyOn(api, 'replayWrite').mockResolvedValue({} as RoomState)
+        vi.spyOn(api, 'replayWrite').mockResolvedValue(saved)
         await replayQueuedExpense(item)
         expect(readExpenseCurrencies('trip', 'bea')).toEqual([])
     })
@@ -60,7 +79,7 @@ describe('offline currency recency', () => {
     it('keeps the submitting identity if a different member is claimed during replay', async () => {
         vi.spyOn(api, 'replayWrite').mockImplementation(async () => {
             storage.set(memberStorageKey('trip'), JSON.stringify({ memberId: 'bea', name: 'Bea', token: 'bea-token' }))
-            return {} as RoomState
+            return saved
         })
         await replayQueuedExpense(item)
         expect(readExpenseCurrencies('trip', 'ana')).toEqual(['GBP'])

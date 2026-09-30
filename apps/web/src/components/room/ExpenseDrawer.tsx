@@ -14,7 +14,7 @@ import { useRovingRadioGroup } from '@/components/ui/use-roving-radio-group'
 import { isApiError } from '@/lib/api'
 import { cn } from '@/lib/cn'
 import type { ApiExpense, CurrencyInfo, ExpenseUpdateInput, RoomState, SplitMode } from '@/lib/api-types'
-import { roomProps, track, trackFirstSharedBalance } from '@/lib/analytics'
+import { roomProps, track } from '@/lib/analytics'
 import { canPrice } from '@/lib/currency-rules'
 import { dayLabel, fromDateInputValue, toDateInputValue } from '@/lib/dates'
 import {
@@ -897,7 +897,6 @@ export function ExpenseDrawer({
                     roomProps(slug, { splitMode: body.splitMode, foreign: body.currency !== state.room.currency })
                 )
                 if (!roomWasMature && updated.room.hasReachedSharedBalance === true) {
-                    trackFirstSharedBalance()
                     if (onFirstSharedBalance) {
                         feedback('tick', { haptic: 'confirm' })
                         onFirstSharedBalance()
@@ -910,11 +909,6 @@ export function ExpenseDrawer({
                 const roomWasMature = state.room.hasReachedSharedBalance === true
                 const { createdFirstSharedBalance, queuedLocally } = await addExpense.mutateAsync(body)
                 if (!queuedLocally) rememberExpenseCurrency(slug, meId, body.currency)
-                track(
-                    'expense_added',
-                    roomProps(slug, { splitMode: body.splitMode, foreign: body.currency !== state.room.currency })
-                )
-                if (createdFirstSharedBalance) trackFirstSharedBalance()
                 onMatureContribution?.({ roomWasMature, queuedLocally, createdFirstSharedBalance })
 
                 // Save succeeded and the room has reached its first actionable
