@@ -12,6 +12,18 @@
         box-shadow: 8px 8px 0 var(--split-ink);
     }
 
+    /* A self-contained screen with no fixed controls reads as a card resting on the canvas:
+       a gap above and below so the outline and offset shadow close on all four sides instead
+       of running off the viewport. Screens with fixed bars keep the full-height column. */
+    .split-app-frame[data-frame='card'] {
+        margin-block: 2rem;
+        min-height: calc(100dvh - 4rem);
+    }
+
+    .split-app-frame[data-frame='card'] > form {
+        min-height: calc(100dvh - 4rem);
+    }
+
     body:has(.split-app-frame) [data-vaul-drawer] {
         /* Include both existing 1.5px borders without narrowing the 36rem content. */
         width: calc(36rem + 3px);
