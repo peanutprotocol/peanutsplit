@@ -1,0 +1,90 @@
+# Trusted event bridge. It never checks out PR code or forwards PR text.
+#
+# This file only works from the DEFAULT branch. Since 2025-11 GitHub always
+# resolves a pull_request_target workflow from the default branch, whatever
+# the pull request's base branch is, so one copy on main covers both main and
+# dev; the branches filter below chooses which bases get reviewed. A copy on
+# dev does nothing.
+#
+# The job filter is a cheap ABUSE GUARD, not the trust boundary. peanut-ui is
+# public with forks, so without it every drive-by PR would open an SSH session
+# to the box. The review job requires the PR head to live in this repository,
+# which only somebody with push access can arrange -- it covers every teammate
+# with no list to maintain, and excludes fork PRs.
+#
+# Do NOT filter on author_association. It reports MEMBER only when the person
+# made their org membership PUBLIC, so it read CONTRIBUTOR for an org admin
+# with private membership and silently skipped their reviews (verified live,
+# 2026-08-27). issue_comment carries no head-repo field, so the manual job
+# matches the command only and leans entirely on the server-side check.
+#
+# The real gate is server side: the dispatcher re-checks live repository write
+# permission before Codex reads anything.
+#
+# Only pull_request_target and issue_comment may live here. Both resolve their
+# workflow file from a branch a PR author cannot write. pull_request_review
+# does NOT -- GitHub ran it from the PR head (peanut-api-ts run 33065896144),
+# so any branch could execute its own workflow with CHIP_PR_REVIEW_SSH_KEY in
+# scope, and CodeRabbit raises that event on every PR. Do not add
+# pull_request_review, workflow_run, or any other trigger without confirming
+# which ref supplies the file.
+name: Chip PR review
+
+on:
+    pull_request_target:
+        branches: [main, dev]
+        types: [opened, reopened, synchronize, ready_for_review]
+    issue_comment:
+        types: [created]
+
+permissions: {}
+
+jobs:
+    review:
+        if: >-
+            github.event_name == 'pull_request_target' &&
+            github.event.pull_request.head.repo.full_name == github.repository
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        steps:
+            - name: Dispatch trusted PR head
+              env:
+                  SSH_KEY: ${{ secrets.CHIP_PR_REVIEW_SSH_KEY }}
+                  KNOWN_HOSTS: ${{ secrets.CHIP_PR_REVIEW_KNOWN_HOSTS }}
+                  REPOSITORY: ${{ github.event.repository.name }}
+                  PULL_REQUEST: ${{ github.event.pull_request.number }}
+                  ACTION: ${{ github.event.action }}
+                  SOURCE_ID: ${{ github.run_id }}
+              run: |
+                  umask 077
+                  printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/chip-pr-review"
+                  printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/known_hosts"
+                  ssh -i "$RUNNER_TEMP/chip-pr-review" \
+                    -o IdentitiesOnly=yes -o UserKnownHostsFile="$RUNNER_TEMP/known_hosts" \
+                    chip@195.201.2.135 "review $REPOSITORY $PULL_REQUEST $ACTION $SOURCE_ID"
+
+    manual:
+        if: >-
+            github.event_name == 'issue_comment' &&
+            github.event.issue.pull_request &&
+            contains(fromJSON('["OWNER","MEMBER","COLLABORATOR","CONTRIBUTOR"]'), github.event.comment.author_association) &&
+            (contains(github.event.comment.body, '/chip review') || contains(github.event.comment.body, '@chip-peanut-bot review')
+            || contains(github.event.comment.body, '/chip quiet') || contains(github.event.comment.body, '/chip loud'))
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        steps:
+            - name: Dispatch trusted manual review
+              env:
+                  SSH_KEY: ${{ secrets.CHIP_PR_REVIEW_SSH_KEY }}
+                  KNOWN_HOSTS: ${{ secrets.CHIP_PR_REVIEW_KNOWN_HOSTS }}
+                  REPOSITORY: ${{ github.event.repository.name }}
+                  PULL_REQUEST: ${{ github.event.issue.number }}
+                  COMMENT_ID: ${{ github.event.comment.id }}
+                  SOURCE_ID: ${{ github.run_id }}
+              run: |
+                  umask 077
+                  printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/chip-pr-review"
+                  printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/known_hosts"
+                  ssh -i "$RUNNER_TEMP/chip-pr-review" \
+                    -o IdentitiesOnly=yes -o UserKnownHostsFile="$RUNNER_TEMP/known_hosts" \
+                    chip@195.201.2.135 "manual $REPOSITORY $PULL_REQUEST $COMMENT_ID $SOURCE_ID"
