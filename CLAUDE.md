@@ -38,6 +38,10 @@ two is the remaining merge.
 - **Push straight to `main`.** No PR, no review gate, no waiting. `main` is unprotected on purpose.
 - **A push to `main` deploys to production within ~5 minutes.** There is no CI gate in front of it. Run the checks below yourself.
 - Open a PR only when you actually want a second opinion, not as ceremony.
+- **The steward (the box-resident Claude supervisor) never pushes to `main`.** Konrad and Hugo still may. Every steward change goes: branch → PR → chip's review → the steward's own QA → the steward merges it. No human approval is needed.
+- **chip reviews every non-draft PR automatically** (advisory: a comment review, never request-changes). It reads this file and checks against mono `split-content/product/truths.md`. It takes about 5–10 minutes; comment `/chip review` on the PR to ask again.
+- **Before merging, the steward reads chip's review** (`gh api repos/peanutprotocol/peanutsplit/pulls/<n>/reviews` and `/pulls/<n>/comments`). For each finding, fix it or reply on the thread saying why not. Never merge with an unanswered blocking or major finding.
+- `.github/workflows/chip-pr-review.yml` is the review bridge. It must stay byte-identical to mono `ops/schedulers/pr-review/chip-pr-review.yml`; change it in mono, never here.
 - Commit messages explain _why_. No AI co-author lines.
 
 ## What still holds
