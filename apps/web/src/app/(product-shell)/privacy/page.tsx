@@ -4,6 +4,7 @@ import { JsonLd } from '@/components/marketing/JsonLd'
 import { SiteFooter } from '@/components/marketing/SiteFooter'
 import { FEEDBACK_RETENTION_DAYS } from '@/lib/feedback-contract'
 import { GOOGLE_ADS_ID } from '@/lib/google-ads'
+import { X_ROOM_CREATED_PIXEL } from '@/lib/x-ads'
 import { breadcrumbSchema, pageMetadata, pageTitle } from '@/lib/seo'
 
 /**
@@ -18,22 +19,22 @@ import { breadcrumbSchema, pageMetadata, pageTitle } from '@/lib/seo'
  * describes the advertising tag is the one page that does not load it.
  *
  * Written from what the code does, not from a template. Every claim below has a file behind it:
- * the tag in `lib/google-ads.ts`, the analytics boundary in `lib/analytics.ts`, error reporting in
- * `instrumentation-client.ts`, the receipt path in `server/model.ts`, and the stored shapes in
- * `prisma/schema.prisma`. Change one of those and change this page in the same push.
+ * the tags in `lib/google-ads.ts` and `lib/x-ads.ts`, the analytics boundary in `lib/analytics.ts`,
+ * error reporting in `instrumentation-client.ts`, the receipt path in `server/model.ts`, and the
+ * stored shapes in `prisma/schema.prisma`. Change one of those and change this page in the same push.
  *
  * English only. `/es-419/privacy` and `/pt-br/privacy` are not routes — the same rule the rest of
  * the untranslated surface follows.
  */
 
 const PATH = '/privacy'
-const EFFECTIVE_DATE = '1 September 2026'
+const EFFECTIVE_DATE = '30 September 2026'
 
 export function generateMetadata(): Metadata {
     return pageMetadata({
         title: pageTitle('Privacy'),
         description:
-            'What Peanut Split stores, what it measures, what its advertising tag does, and how to contact Squirrel Labs Ltd about it.',
+            'What Peanut Split stores, what it measures, what its advertising tags do, and how to contact Squirrel Labs Ltd about it.',
         path: PATH,
         type: 'website',
     })
@@ -224,10 +225,38 @@ export default function PrivacyPage() {
                             covers that half. You can block the cookie in your browser; the product works exactly the
                             same without it.
                         </p>
-                        {/* TODO(konrad): consent. The tag loads on first paint with no cookie banner. That is a
+                        <p>
+                            Since 30 September 2026, the same pages also carry an X (formerly Twitter) conversion tag (
+                            <code className="text-sm">{X_ROOM_CREATED_PIXEL}</code>), with the same single job for
+                            adverts on X. It runs on the same pages, and never on a room page.
+                        </p>
+                        <p>
+                            When you arrive from an X advert, the link carries a click identifier (
+                            <code className="text-sm">twclid</code>). Split keeps it in your browser&rsquo;s session
+                            storage for as long as the tab stays open, so that a room created a page or two later can be
+                            matched back to that click. It is not sent to us.
+                        </p>
+                        <p>
+                            Your browser fetches the X tag from X&rsquo;s servers when the page loads, but the tag
+                            reports nothing until a room is created. It then reports one event, with no value and
+                            nothing about the room, together with the click identifier if there is one. It is told to
+                            leave out the page address and the referring page, so X never receives a room link or the
+                            room name a template link put in the address. At that moment X&rsquo;s tag also writes its
+                            own cookies on this site: <code className="text-sm">_twclid</code> for the click identifier,
+                            and <code className="text-sm">_twpid</code> and <code className="text-sm">_twsid</code>,
+                            which identify the browser and the visit to X.
+                        </p>
+                        <p>
+                            X is an independent controller of what it receives.{' '}
+                            <a className={externalLink} href="https://x.com/en/privacy">
+                                X&rsquo;s privacy policy
+                            </a>{' '}
+                            covers that half. Blocking these cookies or the tag changes nothing about how Split works.
+                        </p>
+                        {/* TODO(konrad): consent. The tags load on first paint with no cookie banner. That is a
                             deliberate open question, not an oversight: PECR/EU consent for an advertising cookie is a
-                            legal call, not an engineering one. Either rule that the current behaviour stands and this
-                            paragraph is the notice, or say so and the tag gets gated behind a consent control before
+                            legal call, not an engineering one. Either rule that the current behaviour stands and these
+                            paragraphs are the notice, or say so and the tags get gated behind a consent control before
                             the flight runs. */}
                     </div>
                 </section>
@@ -255,6 +284,7 @@ export default function PrivacyPage() {
                     </p>
                     <ul className="mt-4 grid gap-2 text-base leading-6">
                         <li>Google Ads &mdash; conversion measurement, as described above;</li>
+                        <li>X Ads &mdash; conversion measurement, as described above;</li>
                         <li>PostHog &mdash; product analytics;</li>
                         <li>Sentry &mdash; error reports;</li>
                         <li>

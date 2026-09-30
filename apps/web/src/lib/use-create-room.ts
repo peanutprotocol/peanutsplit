@@ -10,6 +10,7 @@ import { useCreateRoom } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
 import { normalizePersonName } from '@/lib/person-name'
 import { useFeedback } from '@/lib/use-settings'
+import { trackXRoomCreatedConversion } from '@/lib/x-ads'
 
 export interface CreateRoomFields {
     name: string
@@ -68,9 +69,10 @@ export function useCreateRoomFlow(fallbackMessage: string) {
                     ...(fields.template ? { template: fields.template } : {}),
                 })
             )
-            // The campaign's conversion, from the one place both surfaces create a room. It
-            // carries nothing about the room, and is silent anywhere the tag is not mounted.
+            // The campaigns' conversion, from the one place both surfaces create a room. It
+            // carries nothing about the room, and is silent anywhere the tags are not mounted.
             trackRoomCreatedConversion()
+            trackXRoomCreatedConversion()
             // A room came into being — the cork, not the pencil.
             feedback('pop')
             return state

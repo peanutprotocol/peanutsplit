@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { GoogleAdsTag } from '@/components/analytics/GoogleAdsTag'
+import { XAdsTag } from '@/components/analytics/XAdsTag'
 import { CreateRoomForm } from '@/components/room/CreateRoomForm'
 import { readPrefill } from '@/lib/room-prefill'
 import type { Query } from '@/lib/utm'
@@ -26,8 +27,9 @@ export default async function NewRoomPage({ searchParams }: { searchParams: Prom
                 <CreateRoomForm prefill={readPrefill(await searchParams)} />
             </main>
             {/* The other page a room is created from. It is noindex and no ad points at it, but
-                the conversion fires here, and gtag has to be loaded to receive it. */}
+                the conversion fires here, and each tag has to be loaded to receive it. */}
             <GoogleAdsTag />
+            <XAdsTag />
         </>
     )
 }
