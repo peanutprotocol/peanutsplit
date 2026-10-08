@@ -61,7 +61,9 @@ describe('Split guide article schema', () => {
             '@type': 'Organization',
             '@id': SQUIRREL_LABS_ORGANIZATION_ID,
             name: 'Squirrel Labs',
+            legalName: 'Squirrel Labs Ltd',
             url: 'https://squirrellabs.dev/',
+            sameAs: ['https://peanut.me/'],
         })
         expect(article.publisher).toMatchObject({ '@id': ORGANIZATION_ID, name: 'Squirrel Labs' })
         expect(article.image).toBe(`${CANONICAL_ORIGIN}/og-default.png`)

@@ -15,7 +15,11 @@ import type { Doc, Faq } from '@/lib/content'
 
 const SITE_NAME = 'Peanut Split'
 const STEWARD_NAME = 'Squirrel Labs'
+const STEWARD_LEGAL_NAME = 'Squirrel Labs Ltd'
 const STEWARD_URL = 'https://squirrellabs.dev/'
+/** The other brand the same company runs. Google Ads limited ad serving on 28 Sep 2026 for an
+ *  "unclear brand relationship"; naming it here keeps the shared operator machine-readable. */
+const PEANUT_URL = 'https://peanut.me/'
 
 /**
  * The site's one-line description. Lives here rather than inline in the root layout because two
@@ -56,7 +60,9 @@ export const ORGANIZATION_NODE = {
     '@type': 'Organization' as const,
     '@id': ORGANIZATION_ID,
     name: STEWARD_NAME,
+    legalName: STEWARD_LEGAL_NAME,
     url: STEWARD_URL,
+    sameAs: [PEANUT_URL],
 }
 
 /**

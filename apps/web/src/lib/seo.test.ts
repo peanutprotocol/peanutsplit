@@ -133,6 +133,13 @@ describe('structured data', () => {
         expect(website.url).toBe(CANONICAL_ORIGIN)
     })
 
+    /** Ties Split to Peanut for Google: the legal name matches the footer, sameAs names peanut.me. */
+    it('names the legal entity and links it to peanut.me', () => {
+        const org = siteSchema()['@graph'].find((node) => node['@type'] === 'Organization') as Record<string, unknown>
+        expect(org.legalName).toBe('Squirrel Labs Ltd')
+        expect(org.sameAs).toEqual(['https://peanut.me/'])
+    })
+
     /** Google reads name/description/applicationCategory/offers off this node; a missing one is
      *  not an error it reports, it is a rich result that quietly never appears. */
     it('describes the app with everything a SoftwareApplication result needs', () => {

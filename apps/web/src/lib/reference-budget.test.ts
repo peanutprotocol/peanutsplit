@@ -93,6 +93,7 @@ describe('official-host Peanut reference budget', () => {
                 { file: 'lib/domains.ts', value: 'split.peanut.me' },
                 { file: 'lib/recent-rooms.ts', value: 'split.peanut.me' },
                 { file: 'lib/recent-rooms.ts', value: 'www.split.peanut.me' },
+                { file: 'lib/seo.ts', value: 'https://peanut.me/' },
                 { file: 'server/fx.ts', value: 'https://api.peanut.me/fx/rates' },
             ].sort((left, right) => `${left.file}\0${left.value}`.localeCompare(`${right.file}\0${right.value}`))
         )
