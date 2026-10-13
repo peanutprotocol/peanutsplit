@@ -45,6 +45,7 @@ export default app.register(async (webhooks) => {
 					200: Type.Object({ ok: Type.Boolean() }),
 					400: Type.Object({ message: Type.String() }),
 					401: Type.Object({ message: Type.String() }),
+					415: Type.Object({ message: Type.String() }),
 					503: Type.Object({ message: Type.String() }),
 				},
 			},

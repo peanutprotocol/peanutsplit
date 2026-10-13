@@ -207,8 +207,8 @@ inherits the **preference**, not the ban:
 
 ## 5. Numbers, currency, dates
 
-- **Numbers** — carried verbatim, mono `localization.es-419.md` §5: *"use period for thousands
-  separator, comma for decimal (e.g., 1.000.000 merchants, $50,00) — this is the LATAM convention"*.
+- **Numbers** — carried verbatim, mono `localization.es-419.md` §5: _"use period for thousands
+  separator, comma for decimal (e.g., 1.000.000 merchants, $50,00) — this is the LATAM convention"_.
   So: `1.000.000`, `$50,00`, `12,5 %`.
 - **Currency** — carried: `$` for a local amount, `USD` or `dólares` spelled out for dollars. Split
   adds: a worked example on a Split page needs a currency the whole page shares. Use the currency of

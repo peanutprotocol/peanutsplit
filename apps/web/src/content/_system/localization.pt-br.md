@@ -171,8 +171,8 @@ sit alongside these.
 
 ## 5. Numbers, currency, dates
 
-- **Numbers** — carried verbatim, mono `localization.pt-br.md` §5: *"use period for thousands
-  separator, comma for decimal (e.g., 150.000.000 usuários, R$ 50,00) — Brazilian convention"*. So:
+- **Numbers** — carried verbatim, mono `localization.pt-br.md` §5: _"use period for thousands
+  separator, comma for decimal (e.g., 150.000.000 usuários, R$ 50,00) — Brazilian convention"_. So:
   `1.000.000`, `R$ 50,00`, `12,5 %`.
 - **Currency** — carried: `R$` for BRL, `USD` or `dólares` spelled out for dollars. Split adds: a
   worked example needs a currency the whole page shares. Name it once; never mix `R$` and `$` on one

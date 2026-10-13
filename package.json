@@ -26,7 +26,13 @@
     "verify": "pnpm typecheck && pnpm i18n:audit && pnpm marketing-copy:audit && pnpm ui-icons:audit && pnpm test && pnpm --filter @peanut-split/api test:integration && pnpm --filter @peanut-split/api verify:settle"
   },
   "devDependencies": {
-    "prettier": "^3.3.3",
-    "typescript": "^5.9.2"
+    "prettier": "^3.9.9",
+    "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "effect@<3.20.0": "^3.22.2",
+      "deepmerge-ts@<8.0.0": "^8.0.2"
+    }
   }
 }

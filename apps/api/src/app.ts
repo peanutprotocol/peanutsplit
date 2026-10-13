@@ -12,4 +12,7 @@ export const app = Fastify({
 
 await app.register(cors, {
 	origin: (process.env.CORS_ORIGINS ?? '*').split(',').map((o) => o.trim()),
+	// @fastify/cors 10 narrowed the default to GET,HEAD,POST; the room API also
+	// takes PATCH and DELETE, so keep the methods it allowed before.
+	methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 })

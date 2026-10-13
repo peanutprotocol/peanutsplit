@@ -90,7 +90,7 @@ export type WebhookPayment = {
 
 export class WebhookError extends Error {
 	constructor(
-		public readonly status: number,
+		public readonly status: 400 | 401 | 503,
 		message: string
 	) {
 		super(message)
