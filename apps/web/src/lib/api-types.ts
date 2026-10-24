@@ -334,8 +334,19 @@ export interface ReceiptItem {
     quantity: number | null
 }
 
+/** A discount, tip, tax or service charge read off the receipt. Nobody "had" it;
+ *  the scan review spreads it over the people who had items. */
+export interface ReceiptAdjustment {
+    kind: 'discount' | 'tip' | 'tax' | 'service'
+    label: string | null
+    /** Positive minor units of `ParsedReceipt.currency`; a discount's sign comes
+     *  from its kind. */
+    amountMinor: string
+}
+
 export interface ParsedReceipt {
     items: ReceiptItem[]
+    adjustments: ReceiptAdjustment[]
     /** The server's own sum of `items` — never the model's arithmetic. */
     suggestedTotalMinor: string
     /** The total printed on the receipt, when one was read. Kept beside the sum

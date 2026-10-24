@@ -362,6 +362,20 @@ export const receiptItemSchema = z.object({
     quantity: z.coerce.number().int().min(1).max(999).nullish().catch(null),
 })
 
+/** One bill adjustment as the model claims it: a discount, tip, tax or service
+ *  charge printed on the receipt. The amount is always positive; the kind
+ *  carries the sign. Parsed one at a time, like items, and a zero is dropped. */
+export const receiptAdjustmentSchema = z.object({
+    kind: z.enum(['discount', 'tip', 'tax', 'service']),
+    label: z
+        .string()
+        .trim()
+        .transform((s) => s.slice(0, 80) || null)
+        .nullish()
+        .catch(null),
+    amountMinor: modelAmountMinor.refine((s) => BigInt(s) > 0n, { message: 'an adjustment needs an amount' }),
+})
+
 /**
  * The envelope, kept deliberately loose: `items` and `total` come in as unknown
  * and are narrowed one at a time in `server/receipt.ts`. A strict array schema
@@ -374,6 +388,7 @@ export const receiptItemSchema = z.object({
  */
 export const receiptModelSchema = z.object({
     items: z.array(z.unknown()).nullish().catch(null),
+    adjustments: z.array(z.unknown()).nullish().catch(null),
     total: z.unknown(),
     currency: z.string().max(16).nullish().catch(null),
     merchant: z.string().max(200).nullish().catch(null),

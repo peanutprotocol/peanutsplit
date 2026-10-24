@@ -949,7 +949,24 @@
                 "unreadable": "Не вдалося відкрити цей файл як зображення.",
                 "generic": "Не вдалося прочитати чек.",
                 "hint": "Сфотографуй прямо, помісти весь чек у кадр і додай світла."
-            }
+            },
+            "adjustmentsTitle": "Чайові, податок або знижка",
+            "addAdjustment": "Додати чайові, податок або знижку",
+            "kindDiscount": "Знижка",
+            "kindTip": "Чайові",
+            "kindTax": "Податок",
+            "kindService": "Обслуговування",
+            "adjustmentKindGroup": "Тип коригування",
+            "adjustmentUnitGroup": "Відсоток або сума",
+            "adjustmentSpreadGroup": "Як розділити: {kind}",
+            "adjustmentValueFor": "Значення: {kind}",
+            "removeAdjustmentFor": "Прибрати: {kind}",
+            "spreadProportional": "За тим, що мав кожен",
+            "spreadEqual": "Порівну",
+            "adjustmentInvalid": "Введіть правильну суму. Відсоток — не більше 100.",
+            "discountTooLarge": "Знижка більша, ніж те, що мав хтось. Зменште її або розділіть за тим, що мав кожен.",
+            "billTotal": "Сума рахунку",
+            "suggestDiscount": "Відняти {amount} як знижку"
         },
         "theme": {
             "title": "Тема",

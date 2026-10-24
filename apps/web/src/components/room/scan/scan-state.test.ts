@@ -11,9 +11,14 @@ import { describe, expect, it } from 'vitest'
 import { emptyExpenseForm } from '@/lib/expense-form'
 import { addMinor } from '@/lib/money'
 import {
+    adjustmentMinor,
+    assignedItemsMinor,
     assignedTotalMinor,
+    billTotalMinor,
     initScanState,
+    invalidAdjustments,
     invalidAmountItems,
+    membersBelowZero,
     itemsTotalMinor,
     memberTotals,
     mintItemId,
@@ -21,6 +26,8 @@ import {
     toExpenseFormValues,
     unassignedItems,
     totalMismatchMinor,
+    type AdjustmentKind,
+    type ScanAdjustment,
     type ScanItem,
     type ScanState,
 } from './scan-state'
@@ -36,6 +43,7 @@ const item = (label: string, amountInput: string): ScanItem => ({
 
 const stateOf = (items: ScanItem[], assignments: Record<string, string[]> = {}): ScanState => ({
     items,
+    adjustments: [],
     assignments,
     receiptTotalMinor: null,
     currency: 'EUR',
@@ -354,6 +362,197 @@ describe('toExpenseFormValues — the handoff', () => {
     })
 })
 
+const adjustment = (
+    kind: AdjustmentKind,
+    valueInput: string,
+    unit: ScanAdjustment['unit'] = 'percent',
+    spread: ScanAdjustment['spread'] = kind === 'tip' ? 'equal' : 'proportional'
+): ScanAdjustment => ({ id: mintItemId(), kind, label: null, unit, valueInput, spread })
+
+const withAdjustments = (state: ScanState, adjustments: ScanAdjustment[]): ScanState => ({ ...state, adjustments })
+
+describe('adjustments — the 10%-off dinner', () => {
+    // Ana had the steak; Ben the salad; Caro the pasta; all three the wine;
+    // Ben and Caro the dessert. 120.00 of items, and the receipt took 10% off.
+    const steak = item('Steak', '55.00')
+    const salad = item('Salad', '12.00')
+    const pasta = item('Pasta', '18.00')
+    const wine = item('Wine', '24.00')
+    const dessert = item('Dessert', '11.00')
+    const dinner = stateOf([steak, salad, pasta, wine, dessert], {
+        [steak.id]: ['ana'],
+        [salad.id]: ['ben'],
+        [pasta.id]: ['caro'],
+        [wine.id]: ['ana', 'ben', 'caro'],
+        [dessert.id]: ['ben', 'caro'],
+    })
+
+    it('takes 10% off each person’s own order, to the cent', () => {
+        const state = withAdjustments(dinner, [adjustment('discount', '10')])
+        expect(memberTotals(state, CENTS)).toEqual({ ana: '5670', ben: '2295', caro: '2835' })
+        expect(assignedTotalMinor(state, CENTS)).toBe('10800')
+    })
+
+    it('shares a fixed tip equally between the people who had items', () => {
+        const state = withAdjustments(dinner, [adjustment('tip', '10.00', 'amount')])
+        // 10.00 three ways: the odd cent goes to the first person, as items do.
+        expect(memberTotals(state, CENTS)).toEqual({ ana: '6634', ben: '2883', caro: '3483' })
+        expect(assignedTotalMinor(state, CENTS)).toBe('13000')
+    })
+
+    it('combines a discount and a tip on the same bill', () => {
+        const state = withAdjustments(dinner, [adjustment('discount', '10'), adjustment('tip', '9.00', 'amount')])
+        expect(assignedTotalMinor(state, CENTS)).toBe('11700')
+        expect(addMinor(Object.values(memberTotals(state, CENTS)))).toBe('11700')
+    })
+
+    it('reconciles with the printed total once the discount is in', () => {
+        const printed = { ...dinner, receiptTotalMinor: '10800' }
+        expect(totalMismatchMinor(printed, CENTS)).toBe('-1200')
+        expect(totalMismatchMinor(withAdjustments(printed, [adjustment('discount', '10')]), CENTS)).toBe('0')
+        expect(billTotalMinor(withAdjustments(printed, [adjustment('discount', '12.00', 'amount')]), CENTS)).toBe(
+            '10800'
+        )
+    })
+})
+
+describe('adjustments — amounts and edge cases', () => {
+    const a = item('A', '10.00')
+    const b = item('B', '0.01')
+    const base = stateOf([a, b], { [a.id]: ['ana'], [b.id]: ['bo'] })
+
+    it('rounds a percentage half-up to the minor unit and reads a comma decimal', () => {
+        expect(adjustmentMinor(adjustment('tip', '12,5'), '999', CENTS, 'pt-BR')).toBe('125')
+        expect(adjustmentMinor(adjustment('tax', '0.5'), '100', CENTS)).toBe('1')
+        expect(adjustmentMinor(adjustment('discount', '10'), '1000', CENTS)).toBe('-100')
+    })
+
+    it('treats a blank value as zero and an unreadable one as blocking', () => {
+        const state = withAdjustments(base, [
+            adjustment('tip', ''),
+            adjustment('tax', 'abc'),
+            adjustment('discount', '101'),
+            adjustment('service', '1.005', 'amount'),
+        ])
+        // Interactive input carries a locale, which refuses digits the currency cannot hold.
+        expect(invalidAdjustments(state, CENTS, 'en').map((x) => x.kind)).toEqual(['tax', 'discount', 'service'])
+        expect(adjustmentMinor(state.adjustments[0], '1001', CENTS)).toBe('0')
+    })
+
+    it('spreads only over people who had items, never over the rest of the room', () => {
+        const state = withAdjustments(stateOf([a], { [a.id]: ['ana'] }), [adjustment('tip', '2.00', 'amount')])
+        expect(memberTotals(state, CENTS)).toEqual({ ana: '1200' })
+    })
+
+    it('does nothing to anyone until someone has items', () => {
+        const state = withAdjustments(stateOf([a]), [adjustment('tip', '2.00', 'amount')])
+        expect(memberTotals(state, CENTS)).toEqual({})
+        expect(assignedTotalMinor(state, CENTS)).toBe('0')
+    })
+
+    it('flags a person an equal discount would push below zero', () => {
+        const state = withAdjustments(base, [adjustment('discount', '1.00', 'amount', 'equal')])
+        expect(membersBelowZero(state, CENTS)).toEqual(['bo'])
+        // Shared by what each had instead, nobody goes below zero.
+        const fair = withAdjustments(base, [adjustment('discount', '1.00', 'amount', 'proportional')])
+        expect(membersBelowZero(fair, CENTS)).toEqual([])
+    })
+
+    it('hands the adjusted totals to the form, reconciled', () => {
+        const state = withAdjustments(base, [adjustment('discount', '10')])
+        const values = toExpenseFormValues(state, {
+            base: emptyExpenseForm({
+                currency: 'EUR',
+                members: ['ana', 'bo'].map((id) => ({ id, name: id, avatar: null, createdAt: '' })),
+                paidById: 'ana',
+            }),
+            decimals: CENTS,
+            fallbackDescription: 'Scanned bill',
+        })
+        expect(values.amountInput).toBe('9.01')
+        expect(values.exactInputs).toEqual({ ana: '9.00', bo: '0.01' })
+    })
+})
+
+describe('scanReducer — adjustments', () => {
+    it('adds an adjustment with its kind’s default spread', () => {
+        const state = scanReducer(stateOf([]), { type: 'add-adjustment', kind: 'tip' })
+        expect(state.adjustments).toEqual([
+            expect.objectContaining({ kind: 'tip', unit: 'percent', valueInput: '', spread: 'equal', label: null }),
+        ])
+        const discount = scanReducer(state, {
+            type: 'add-adjustment',
+            kind: 'discount',
+            unit: 'amount',
+            valueInput: '12.00',
+        })
+        expect(discount.adjustments[1]).toEqual(
+            expect.objectContaining({ kind: 'discount', unit: 'amount', valueInput: '12.00', spread: 'proportional' })
+        )
+    })
+
+    it('switches to the new kind’s default spread and drops the printed label on a kind change', () => {
+        const printed: ScanAdjustment = { ...adjustment('tip', '5.00', 'amount'), label: 'Propina' }
+        const state = withAdjustments(stateOf([]), [printed])
+        const next = scanReducer(state, { type: 'edit-adjustment', adjustmentId: printed.id, patch: { kind: 'tax' } })
+        expect(next.adjustments[0]).toEqual(
+            expect.objectContaining({ kind: 'tax', spread: 'proportional', label: null })
+        )
+        const kept = scanReducer(next, {
+            type: 'edit-adjustment',
+            adjustmentId: printed.id,
+            patch: { spread: 'equal', valueInput: '7.00' },
+        })
+        expect(kept.adjustments[0]).toEqual(
+            expect.objectContaining({ kind: 'tax', spread: 'equal', valueInput: '7.00' })
+        )
+    })
+
+    it('removes an adjustment', () => {
+        const one = adjustment('tip', '10')
+        const state = withAdjustments(stateOf([]), [one])
+        expect(scanReducer(state, { type: 'remove-adjustment', adjustmentId: one.id }).adjustments).toEqual([])
+    })
+})
+
+describe('initScanState — adjustments', () => {
+    it('loads printed adjustments as amounts with their default spread', () => {
+        const state = initScanState(
+            {
+                items: [{ label: 'Steak', amountMinor: '5500', quantity: null }],
+                adjustments: [
+                    { kind: 'discount', label: '10% off', amountMinor: '550' },
+                    { kind: 'tip', label: null, amountMinor: '500' },
+                ],
+                receiptTotalMinor: '5450',
+                currency: 'EUR',
+                merchant: null,
+                date: null,
+            },
+            { fallbackCurrency: 'EUR', toInput: (minor) => (Number(minor) / 100).toFixed(2) }
+        )
+        expect(state.adjustments).toEqual([
+            expect.objectContaining({
+                kind: 'discount',
+                label: '10% off',
+                unit: 'amount',
+                valueInput: '5.50',
+                spread: 'proportional',
+            }),
+            expect.objectContaining({ kind: 'tip', label: null, unit: 'amount', valueInput: '5.00', spread: 'equal' }),
+        ])
+        expect(totalMismatchMinor(state, CENTS)).toBe('0')
+    })
+
+    it('still loads a parse that has no adjustments field', () => {
+        const state = initScanState(
+            { items: [], receiptTotalMinor: null, currency: null, merchant: null, date: null },
+            { fallbackCurrency: 'EUR', toInput: (minor) => minor }
+        )
+        expect(state.adjustments).toEqual([])
+    })
+})
+
 describe('the invariant: cents neither appear nor vanish', () => {
     /** A tiny deterministic PRNG — a seeded run reproduces exactly, which a
      *  failure in CI is worthless without. */
@@ -367,7 +566,7 @@ describe('the invariant: cents neither appear nor vanish', () => {
 
     const MEMBERS = ['ana', 'bo', 'cy', 'di', 'ed']
 
-    it('holds over 500 random receipts and assignments', () => {
+    it('holds over 500 random receipts, assignments and adjustments', () => {
         for (let seed = 1; seed <= 500; seed++) {
             const random = rng(seed)
             const decimals = random() < 0.2 ? 0 : 2
@@ -385,9 +584,44 @@ describe('the invariant: cents neither appear nor vanish', () => {
                 if (assignees.length > 0) assignments[next.id] = assignees
             }
 
-            const state = stateOf(items, assignments)
+            // Adjustments that cannot drive anyone negative: proportional
+            // discounts up to 100%, and any surcharge spread either way.
+            const adjustments: ScanAdjustment[] = []
+            if (random() < 0.6) {
+                const kind = (['discount', 'tip', 'tax', 'service'] as const)[Math.floor(random() * 4)]
+                const percent = String(Math.floor(random() * 10_000) / 100)
+                adjustments.push(
+                    adjustment(
+                        kind,
+                        percent,
+                        'percent',
+                        kind === 'discount' || random() < 0.5 ? 'proportional' : 'equal'
+                    )
+                )
+            }
+            if (random() < 0.4) {
+                const surcharge = Math.floor(random() * 5_000)
+                adjustments.push(
+                    adjustment(
+                        'tip',
+                        decimals === 0 ? String(surcharge) : (surcharge / 100).toFixed(2),
+                        'amount',
+                        random() < 0.5 ? 'equal' : 'proportional'
+                    )
+                )
+            }
+
+            const state = withAdjustments(stateOf(items, assignments), adjustments)
             const totals = memberTotals(state, decimals)
             expect(addMinor(Object.values(totals))).toBe(assignedTotalMinor(state, decimals))
+            expect(membersBelowZero(state, decimals)).toEqual([])
+            // Every adjustment lands in full once anyone has items: nothing is
+            // lost to rounding between the bill and the people.
+            const items_ = assignedItemsMinor(state, decimals)
+            if (Object.keys(totals).length > 0) {
+                const adjustmentsTotal = addMinor(adjustments.map((x) => adjustmentMinor(x, items_, decimals)))
+                expect(assignedTotalMinor(state, decimals)).toBe((BigInt(items_) + BigInt(adjustmentsTotal)).toString())
+            }
 
             // …and the form it hands over satisfies the same equality, which is
             // exactly what `validateExpenseForm` will demand of it.

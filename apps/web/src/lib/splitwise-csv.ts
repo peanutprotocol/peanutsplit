@@ -26,7 +26,7 @@
  */
 
 import { CURRENCY_CATALOG } from '@/lib/currency-catalog'
-import { currencyInfo, parseExportAmountToMinor } from '@/lib/money'
+import { allocateProportionally, currencyInfo, parseExportAmountToMinor } from '@/lib/money'
 
 // ─── shape ──────────────────────────────────────────────────────────────────
 
@@ -383,31 +383,13 @@ export function parseSignedMinor(cell: string, decimals: number): bigint | null 
     return accountingNegative || sign === '-' ? -value : value
 }
 
+// Re-exported for the importer's existing callers and tests; it lives in money.ts
+// because the receipt scan spreads bill adjustments with the same rule.
+export { allocateProportionally }
+
 /** Keep every known catalog currency. Priceability depends on the chosen room currency: an unrated
  * code such as BGN is still valid in a BGN room, so dropping it before a target exists loses data. */
 const SUPPORTED_CURRENCIES = new Set(CURRENCY_CATALOG.map((currency) => currency.code))
-
-/**
- * Spread `total` across `weights` so the parts are whole minor units and sum to `total` exactly.
- * Floor first, then hand the remainder to the largest fractional parts — the standard
- * largest-remainder apportionment, and the reason a multi-payer row never loses a cent.
- */
-export function allocateProportionally(total: bigint, weights: readonly bigint[]): bigint[] {
-    const totalWeight = weights.reduce((a, w) => a + w, 0n)
-    if (totalWeight <= 0n) return weights.map(() => 0n)
-
-    const parts = weights.map((w) => (total * w) / totalWeight)
-    const remainders = weights.map((w, i) => ({ i, rest: total * w - parts[i] * totalWeight }))
-    let left = total - parts.reduce((a, p) => a + p, 0n)
-
-    remainders.sort((a, b) => (a.rest === b.rest ? a.i - b.i : a.rest > b.rest ? -1 : 1))
-    for (const { i } of remainders) {
-        if (left <= 0n) break
-        parts[i] += 1n
-        left -= 1n
-    }
-    return parts
-}
 
 /**
  * Exact 2D rounding by the northwest-corner rule.

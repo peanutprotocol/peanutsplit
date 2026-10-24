@@ -9,7 +9,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import { ApiError } from '@/server/http'
-import { MAX_ITEMS, normalizeReceipt } from '@/server/receipt'
+import { MAX_ADJUSTMENTS, MAX_ITEMS, normalizeReceipt } from '@/server/receipt'
 
 const answer = (payload: unknown) => JSON.stringify(payload)
 
@@ -218,5 +218,48 @@ describe('normalizeReceipt — the optional fields', () => {
         expect(one({ merchant: ' Nino\n  Via Roma 12\n Milano ' }).merchant).toBe('Nino Via Roma 12 Milano')
         expect(one({ merchant: 'x'.repeat(200) }).merchant).toHaveLength(80)
         expect(one({ merchant: '   ' }).merchant).toBeNull()
+    })
+})
+
+describe('normalizeReceipt — adjustments', () => {
+    const withAdjustments = (adjustments: unknown) =>
+        normalizeReceipt(answer({ items: [item('Steak', '5500')], adjustments }), 'EUR')
+
+    it('reads a discount, a tip, tax and service as positive amounts with their kind', () => {
+        const parsed = withAdjustments([
+            { kind: 'discount', label: '10% off', amountMinor: '550' },
+            { kind: 'tip', label: 'Propina', amountMinor: 500 },
+            { kind: 'tax', amountMinor: '440' },
+            { kind: 'service', label: '  Cover  ', amountMinor: '007' },
+        ])
+        expect(parsed.adjustments).toEqual([
+            { kind: 'discount', label: '10% off', amountMinor: '550' },
+            { kind: 'tip', label: 'Propina', amountMinor: '500' },
+            { kind: 'tax', label: null, amountMinor: '440' },
+            { kind: 'service', label: 'Cover', amountMinor: '7' },
+        ])
+        // Our sum of the items does not quietly absorb the adjustments.
+        expect(parsed.suggestedTotalMinor).toBe('5500')
+    })
+
+    it('defaults to none when the model omits the field or sends nonsense', () => {
+        expect(normalizeReceipt(answer({ items: [item('Beer', '500')] }), 'EUR').adjustments).toEqual([])
+        expect(withAdjustments('ten percent off').adjustments).toEqual([])
+    })
+
+    it('drops an adjustment with an unknown kind, a zero, a negative or no amount', () => {
+        const parsed = withAdjustments([
+            { kind: 'voucher', amountMinor: '100' },
+            { kind: 'discount', amountMinor: '0' },
+            { kind: 'discount', amountMinor: '-550' },
+            { kind: 'tip' },
+            { kind: 'tip', amountMinor: '300' },
+        ])
+        expect(parsed.adjustments).toEqual([{ kind: 'tip', label: null, amountMinor: '300' }])
+    })
+
+    it('keeps at most MAX_ADJUSTMENTS', () => {
+        const many = Array.from({ length: MAX_ADJUSTMENTS + 3 }, () => ({ kind: 'tax', amountMinor: '100' }))
+        expect(withAdjustments(many).adjustments).toHaveLength(MAX_ADJUSTMENTS)
     })
 })

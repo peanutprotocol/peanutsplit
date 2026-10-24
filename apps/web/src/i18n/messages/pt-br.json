@@ -949,7 +949,24 @@
                 "unreadable": "Não deu para abrir esse arquivo como imagem.",
                 "generic": "Não deu para ler essa conta.",
                 "hint": "Tire a foto de frente, com a conta inteira no quadro e boa luz."
-            }
+            },
+            "adjustmentsTitle": "Gorjeta, imposto ou desconto",
+            "addAdjustment": "Adicionar gorjeta, imposto ou desconto",
+            "kindDiscount": "Desconto",
+            "kindTip": "Gorjeta",
+            "kindTax": "Imposto",
+            "kindService": "Serviço",
+            "adjustmentKindGroup": "Tipo de ajuste",
+            "adjustmentUnitGroup": "Porcentagem ou valor",
+            "adjustmentSpreadGroup": "Como dividir: {kind}",
+            "adjustmentValueFor": "Valor: {kind}",
+            "removeAdjustmentFor": "Remover: {kind}",
+            "spreadProportional": "Pelo que cada um consumiu",
+            "spreadEqual": "Igualmente",
+            "adjustmentInvalid": "Digite um valor válido. Porcentagens vão até 100.",
+            "discountTooLarge": "O desconto é maior do que o que alguém consumiu. Diminua ou divida pelo que cada um consumiu.",
+            "billTotal": "Total da conta",
+            "suggestDiscount": "Descontar {amount}"
         },
         "theme": {
             "title": "Tema",

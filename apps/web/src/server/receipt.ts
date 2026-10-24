@@ -29,7 +29,12 @@ import { ApiError } from '@/server/http'
 import { MAX_PREPARED_RECEIPT_BYTES } from '@/lib/shared-receipt'
 import { callModel, coerceCurrency, coerceDate, modelConfig, unfence } from '@/server/model'
 import { enforceRateLimitOn, type Limit } from '@/server/rateLimit'
-import { receiptItemSchema, receiptModelSchema, type ReceiptParseBody } from '@/server/validation'
+import {
+    receiptAdjustmentSchema,
+    receiptItemSchema,
+    receiptModelSchema,
+    type ReceiptParseBody,
+} from '@/server/validation'
 
 /** A downscaled phone photo lands around 200-500KB. Four MiB leaves ample room
  *  for a noisy 1600px JPEG while keeping the parsed and re-serialized request
@@ -43,6 +48,10 @@ export const MAX_IMAGE_BASE64_CHARS = Math.ceil(MAX_IMAGE_BYTES / 3) * 4
  *  make for the review screen. */
 export const MAX_ITEMS = 60
 
+/** A bill rarely carries more than a discount, a tax, a service charge and a
+ *  tip. Anything past this is the model reading the same line twice. */
+export const MAX_ADJUSTMENTS = 6
+
 /** Generous: a long bill is a long answer, and a truncated one is unparseable
  *  JSON — a cheap ceiling here costs the whole scan. */
 const MAX_ANSWER_TOKENS = 4096
@@ -55,8 +64,19 @@ export interface ReceiptItem {
     quantity: number | null
 }
 
+/** A discount, tip, tax or service charge printed on the receipt. Kept apart
+ *  from the items because nobody "had" it: the review spreads it over everyone
+ *  who had items. */
+export interface ReceiptAdjustment {
+    kind: 'discount' | 'tip' | 'tax' | 'service'
+    label: string | null
+    /** Positive minor units; a discount's sign comes from its kind. */
+    amountMinor: string
+}
+
 export interface ParsedReceipt {
     items: ReceiptItem[]
+    adjustments: ReceiptAdjustment[]
     /**
      * OUR sum of `items`, recomputed here. This is the number that prefills the
      * expense amount, because an EXACT split is only valid when the shares add
@@ -85,10 +105,12 @@ export interface ParsedReceipt {
  * - minor units as an integer string, because "12.34" from a model that decided
  *   to be helpful about locales is how a bill becomes 1,234;
  * - the LINE total, not the unit price, because "3 × beer 4.00" is 12.00 owed;
- * - tax and service as their own items, because the table owes them too and
- *   dropping them makes every scan under-collect;
- * - no subtotals and no discounts, because a subtotal double-counts and a
- *   negative line has no representation in a schema that refuses negatives.
+ * - discounts, tips, added tax and service charges as adjustments, not items,
+ *   because nobody ordered them: the review spreads them over the people who
+ *   had items, and a discount needs a sign an item amount cannot carry;
+ * - tax already included in the prices is not an adjustment, because adding it
+ *   again would charge it twice;
+ * - no subtotals, because a subtotal double-counts.
  *
  * The JSON-mode switch each transport sets — `responseMimeType` on Gemini,
  * `response_format` on OpenRouter — is what actually stops the markdown fence;
@@ -101,15 +123,17 @@ const PROMPT = `You are reading a photograph of a receipt or a bill.
 
 Return ONLY a JSON object. No prose, no explanation, no markdown fence. Shape:
 
-{"items":[{"label":"string","amountMinor":"string","quantity":1}],"total":{"amountMinor":"string"},"currency":"XXX","merchant":"string","date":"YYYY-MM-DD"}
+{"items":[{"label":"string","amountMinor":"string","quantity":1}],"adjustments":[{"kind":"discount","label":"string","amountMinor":"string"}],"total":{"amountMinor":"string"},"currency":"XXX","merchant":"string","date":"YYYY-MM-DD"}
 
 Rules:
 - amountMinor is an INTEGER STRING of the currency's MINOR units: 12.34 is "1234". For a currency with no minor unit (JPY, COP) use the whole number: 500 yen is "500".
 - One entry per printed line item. amountMinor is the LINE TOTAL for that row (unit price x quantity), never the unit price.
 - label is the printed name, trimmed, at most 80 characters, in the language printed on the receipt. Do not translate it.
 - quantity is the printed quantity, or 1 when none is printed.
-- Include tax, service charge and tip as their own items, labelled as printed — the table owes those too.
-- Do NOT include subtotal lines, discounts, loyalty deductions, change, or payment-method lines.
+- Put discounts, promotions and loyalty deductions in "adjustments" with kind "discount". Put a tip, gratuity or "propina" with kind "tip", a service charge or cover charge with kind "service", and tax ADDED on top of the item prices with kind "tax". Never put these in "items".
+- An adjustment's amountMinor is always a POSITIVE integer string, even for a discount. label is the text as printed.
+- Do NOT add tax that is already included in the prices (VAT or IVA included, "impuestos incluidos"): it is part of the items already.
+- Do NOT include subtotal lines, change, or payment-method lines anywhere. Omit "adjustments" when there are none.
 - total is the grand total printed on the receipt. Omit the field entirely if no total is printed.
 - currency is the ISO-4217 code you infer from the symbols or text. Omit if you cannot tell.
 - merchant is the business name. date is the receipt date as YYYY-MM-DD. Omit either if not printed.
@@ -178,8 +202,21 @@ export function normalizeReceipt(rawText: string, roomCurrency: string): ParsedR
 
     if (items.length === 0) throw new ApiError(422, 'SCAN_NO_ITEMS', 'no line items found on that image')
 
+    const adjustments: ReceiptAdjustment[] = []
+    for (const candidate of envelope.data.adjustments ?? []) {
+        if (adjustments.length >= MAX_ADJUSTMENTS) break
+        const adjustment = receiptAdjustmentSchema.safeParse(candidate)
+        if (!adjustment.success) continue
+        adjustments.push({
+            kind: adjustment.data.kind,
+            label: adjustment.data.label ?? null,
+            amountMinor: String(BigInt(adjustment.data.amountMinor)),
+        })
+    }
+
     return {
         items,
+        adjustments,
         suggestedTotalMinor: items.reduce((sum, item) => sum + BigInt(item.amountMinor), 0n).toString(),
         receiptTotalMinor: coerceTotal(envelope.data.total),
         currency: coerceCurrency(envelope.data.currency, roomCurrency),

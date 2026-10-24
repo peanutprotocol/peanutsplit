@@ -949,7 +949,24 @@
                 "unreadable": "Nie udało się otworzyć tego pliku jako obrazu.",
                 "generic": "Nie udało się odczytać rachunku.",
                 "hint": "Zrób zdjęcie na wprost, obejmij cały rachunek i zadbaj o dobre oświetlenie."
-            }
+            },
+            "adjustmentsTitle": "Napiwek, podatek lub rabat",
+            "addAdjustment": "Dodaj napiwek, podatek lub rabat",
+            "kindDiscount": "Rabat",
+            "kindTip": "Napiwek",
+            "kindTax": "Podatek",
+            "kindService": "Serwis",
+            "adjustmentKindGroup": "Rodzaj korekty",
+            "adjustmentUnitGroup": "Procent lub kwota",
+            "adjustmentSpreadGroup": "Podział: {kind}",
+            "adjustmentValueFor": "Wartość: {kind}",
+            "removeAdjustmentFor": "Usuń: {kind}",
+            "spreadProportional": "Według tego, co kto miał",
+            "spreadEqual": "Po równo",
+            "adjustmentInvalid": "Wpisz poprawną kwotę. Procent może wynosić najwyżej 100.",
+            "discountTooLarge": "Rabat jest większy niż to, co ktoś miał. Zmniejsz go albo podziel według tego, co kto miał.",
+            "billTotal": "Suma rachunku",
+            "suggestDiscount": "Odejmij {amount} jako rabat"
         },
         "theme": {
             "title": "Motyw",
