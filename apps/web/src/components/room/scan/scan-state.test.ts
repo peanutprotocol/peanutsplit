@@ -444,6 +444,14 @@ describe('adjustments — amounts and edge cases', () => {
         expect(memberTotals(state, CENTS)).toEqual({ ana: '1200' })
     })
 
+    it('shares an equal tip with someone whose part of a tiny shared item rounded to zero', () => {
+        const penny = item('Mint', '0.01')
+        const state = withAdjustments(stateOf([penny], { [penny.id]: ['ana', 'bo'] }), [
+            adjustment('tip', '10.00', 'amount', 'equal'),
+        ])
+        expect(memberTotals(state, CENTS)).toEqual({ ana: '501', bo: '500' })
+    })
+
     it('does nothing to anyone until someone has items', () => {
         const state = withAdjustments(stateOf([a]), [adjustment('tip', '2.00', 'amount')])
         expect(memberTotals(state, CENTS)).toEqual({})

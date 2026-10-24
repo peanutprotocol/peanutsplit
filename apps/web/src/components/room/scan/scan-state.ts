@@ -230,6 +230,18 @@ export const unassignedItems = (state: ScanState, decimals: number, locale?: str
             (state.assignments[item.id] ?? []).length === 0
     )
 
+/** Everyone assigned to an item that carries money, in first-seen order. These
+ *  are the people adjustments are spread over — including someone whose share
+ *  of a tiny shared item rounded down to zero, because they still had it. */
+function peopleWithItems(state: ScanState, decimals: number, locale?: string): string[] {
+    const people = new Set<string>()
+    for (const item of state.items) {
+        if (BigInt(parseAmountToMinor(item.amountInput, decimals, locale) ?? '0') <= 0n) continue
+        for (const memberId of state.assignments[item.id] ?? []) people.add(memberId)
+    }
+    return [...people]
+}
+
 /** memberId → their share of the assigned items, before adjustments. */
 function itemSubtotals(state: ScanState, decimals: number, locale?: string): Map<string, bigint> {
     const totals = new Map<string, bigint>()
@@ -322,7 +334,9 @@ function spreadMinor(amount: bigint, ids: string[], weights: bigint[], spread: A
 export function memberTotals(state: ScanState, decimals: number, locale?: string): Record<string, string> {
     const subtotals = itemSubtotals(state, decimals, locale)
     const totals = new Map(subtotals)
-    const ids = [...subtotals].filter(([, amount]) => amount > 0n).map(([id]) => id)
+    const ids = peopleWithItems(state, decimals, locale)
+    // Proportional spreading weighs by subtotal, so a zero share gets nothing of
+    // it; equal spreading counts everyone in `ids`.
     const weights = ids.map((id) => subtotals.get(id) ?? 0n)
     const base = assignedItemsMinor(state, decimals, locale)
 
