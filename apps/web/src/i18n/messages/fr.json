@@ -949,7 +949,24 @@
                 "unreadable": "Impossible d’ouvrir ce fichier comme image.",
                 "generic": "Impossible de lire cette facture.",
                 "hint": "Prends la photo bien de face, avec toute la facture dans le cadre et suffisamment de lumière."
-            }
+            },
+            "adjustmentsTitle": "Pourboire, taxe ou remise",
+            "addAdjustment": "Ajouter un pourboire, une taxe ou une remise",
+            "kindDiscount": "Remise",
+            "kindTip": "Pourboire",
+            "kindTax": "Taxe",
+            "kindService": "Service",
+            "adjustmentKindGroup": "Type d'ajustement",
+            "adjustmentUnitGroup": "Pourcentage ou montant",
+            "adjustmentSpreadGroup": "Répartition : {kind}",
+            "adjustmentValueFor": "Valeur : {kind}",
+            "removeAdjustmentFor": "Retirer : {kind}",
+            "spreadProportional": "Selon ce que chacun a pris",
+            "spreadEqual": "À parts égales",
+            "adjustmentInvalid": "Saisis un montant valide. Les pourcentages vont jusqu'à 100.",
+            "discountTooLarge": "La remise dépasse ce que quelqu'un a pris. Baisse-la ou répartis-la selon ce que chacun a pris.",
+            "billTotal": "Total de l'addition",
+            "suggestDiscount": "Retirer {amount} comme remise"
         },
         "theme": {
             "title": "Thème",

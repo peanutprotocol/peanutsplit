@@ -36,10 +36,14 @@ import { cn } from '@/lib/cn'
 import { useFeedback } from '@/lib/use-settings'
 import { MemberAvatar } from '../MemberAvatar'
 import { Money } from '../Money'
+import { ScanAdjustments } from './ScanAdjustments'
 import {
+    assignedItemsMinor,
     assignedTotalMinor,
+    invalidAdjustments,
     itemMinor,
     memberTotals,
+    membersBelowZero,
     unassignedItems,
     type ScanAction,
     type ScanState,
@@ -66,7 +70,12 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
     const unassigned = unassignedItems(state, decimals, locale)
     const totals = memberTotals(state, decimals, locale)
     const assignedTotal = assignedTotalMinor(state, decimals, locale)
-    const canApply = unassigned.length === 0 && BigInt(assignedTotal) > 0n
+    const belowZero = membersBelowZero(state, decimals, locale)
+    const canApply =
+        unassigned.length === 0 &&
+        belowZero.length === 0 &&
+        invalidAdjustments(state, decimals, locale).length === 0 &&
+        BigInt(assignedTotal) > 0n
 
     return (
         <div className="flex flex-col gap-5">
@@ -220,6 +229,20 @@ export function ScanAssign({ state, dispatch, members, decimals, currencies, onB
             {unassigned.length > 0 && (
                 <p role="alert" data-testid="scan-unassigned" className="text-sm font-bold text-error">
                     {t('unassigned', { count: unassigned.length })}
+                </p>
+            )}
+
+            <ScanAdjustments
+                state={state}
+                dispatch={dispatch}
+                baseMinor={assignedItemsMinor(state, decimals, locale)}
+                decimals={decimals}
+                currencies={currencies}
+            />
+
+            {belowZero.length > 0 && (
+                <p role="alert" data-testid="scan-below-zero" className="text-sm font-bold text-error">
+                    {t('discountTooLarge')}
                 </p>
             )}
 

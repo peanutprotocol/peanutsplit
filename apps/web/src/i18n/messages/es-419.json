@@ -949,7 +949,24 @@
                 "unreadable": "No se pudo abrir ese archivo como imagen.",
                 "generic": "No se pudo leer esa cuenta.",
                 "hint": "Toma la foto de frente, con toda la cuenta en cuadro y buena luz."
-            }
+            },
+            "adjustmentsTitle": "Propina, impuesto o descuento",
+            "addAdjustment": "Agregar propina, impuesto o descuento",
+            "kindDiscount": "Descuento",
+            "kindTip": "Propina",
+            "kindTax": "Impuesto",
+            "kindService": "Servicio",
+            "adjustmentKindGroup": "Tipo de ajuste",
+            "adjustmentUnitGroup": "Porcentaje o monto",
+            "adjustmentSpreadGroup": "Cómo repartir: {kind}",
+            "adjustmentValueFor": "Valor: {kind}",
+            "removeAdjustmentFor": "Quitar: {kind}",
+            "spreadProportional": "Según lo que pidió cada uno",
+            "spreadEqual": "En partes iguales",
+            "adjustmentInvalid": "Ingresa un monto válido. Los porcentajes llegan hasta 100.",
+            "discountTooLarge": "El descuento es mayor que lo que pidió alguien. Bájalo o repártelo según lo que pidió cada uno.",
+            "billTotal": "Total de la cuenta",
+            "suggestDiscount": "Restar {amount} como descuento"
         },
         "theme": {
             "title": "Tema",

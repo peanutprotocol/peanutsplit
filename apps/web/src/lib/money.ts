@@ -675,3 +675,25 @@ export function equalSplitMinor(totalMinor: string, count: number): string[] {
     const remainder = total - base * BigInt(count)
     return Array.from({ length: count }, (_, index) => (base + (BigInt(index) < remainder ? 1n : 0n)).toString())
 }
+
+/**
+ * Spread `total` across `weights` so the parts are whole minor units and sum to `total` exactly.
+ * Floor first, then hand the remainder to the largest fractional parts — the standard
+ * largest-remainder apportionment, and the reason a multi-payer row never loses a cent.
+ */
+export function allocateProportionally(total: bigint, weights: readonly bigint[]): bigint[] {
+    const totalWeight = weights.reduce((a, w) => a + w, 0n)
+    if (totalWeight <= 0n) return weights.map(() => 0n)
+
+    const parts = weights.map((w) => (total * w) / totalWeight)
+    const remainders = weights.map((w, i) => ({ i, rest: total * w - parts[i] * totalWeight }))
+    let left = total - parts.reduce((a, p) => a + p, 0n)
+
+    remainders.sort((a, b) => (a.rest === b.rest ? a.i - b.i : a.rest > b.rest ? -1 : 1))
+    for (const { i } of remainders) {
+        if (left <= 0n) break
+        parts[i] += 1n
+        left -= 1n
+    }
+    return parts
+}

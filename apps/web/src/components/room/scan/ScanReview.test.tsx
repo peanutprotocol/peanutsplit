@@ -32,6 +32,7 @@ describe('ScanReview total mismatch', () => {
     it('presents a correct discrepancy as nonblocking information, not a hard error', () => {
         const state: ScanState = {
             items: [{ id: 'item-1', label: 'Dinner', amountInput: '145.00', quantity: null }],
+            adjustments: [],
             assignments: {},
             receiptTotalMinor: '15519',
             currency: 'USD',

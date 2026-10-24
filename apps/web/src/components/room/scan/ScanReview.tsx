@@ -12,7 +12,9 @@
  * The totals block is the honest part. It shows what the items add up to next to
  * what the receipt says it should be, and when they disagree it says so plainly
  * rather than quietly adopting one of the two. A mismatch is information (a
- * missed line, a tip written in by hand), not an error to suppress.
+ * missed line, a tip written in by hand), not an error to suppress. When the
+ * items come to MORE than the receipt and no discount was read, the gap is
+ * almost always a discount, so it offers to add exactly that as one.
  */
 
 import { useRef } from 'react'
@@ -25,7 +27,16 @@ import { cn } from '@/lib/cn'
 import { formatAmountInput, formatMoney, parseAmountToMinor } from '@/lib/money'
 import { useFeedback } from '@/lib/use-settings'
 import { Money } from '../Money'
-import { invalidAmountItems, itemsTotalMinor, totalMismatchMinor, type ScanAction, type ScanState } from './scan-state'
+import { KIND_KEY } from './ScanAdjustments'
+import {
+    adjustmentMinor,
+    billTotalMinor,
+    invalidAmountItems,
+    itemsTotalMinor,
+    totalMismatchMinor,
+    type ScanAction,
+    type ScanState,
+} from './scan-state'
 
 interface ScanReviewProps {
     state: ScanState
@@ -47,6 +58,9 @@ export function ScanReview({ state, dispatch, decimals, currencies, onContinue, 
     const total = itemsTotalMinor(state, decimals, locale)
     const mismatch = totalMismatchMinor(state, decimals, locale)
     const hasMismatch = mismatch !== null && mismatch !== '0'
+    const billTotal = billTotalMinor(state, decimals, locale)
+    const overshoot = hasMismatch && mismatch.startsWith('-') ? mismatch.slice(1) : null
+    const offerDiscount = overshoot !== null && !state.adjustments.some((adjustment) => adjustment.kind === 'discount')
     const canContinue = BigInt(total) > 0n && invalidAmounts.length === 0
 
     return (
@@ -171,6 +185,26 @@ export function ScanReview({ state, dispatch, decimals, currencies, onContinue, 
                     <span>{t('itemsTotal')}</span>
                     <Money minor={total} currency={state.currency} catalog={currencies} />
                 </div>
+                {state.adjustments.map((adjustment) => (
+                    <div
+                        key={adjustment.id}
+                        data-testid="scan-review-adjustment"
+                        className="flex items-center justify-between gap-3"
+                    >
+                        <span className="min-w-0 truncate">{adjustment.label || t(KIND_KEY[adjustment.kind])}</span>
+                        <Money
+                            minor={adjustmentMinor(adjustment, total, decimals, locale)}
+                            currency={state.currency}
+                            catalog={currencies}
+                        />
+                    </div>
+                ))}
+                {state.adjustments.length > 0 && (
+                    <div className="flex items-center justify-between border-t border-n-1 pt-1">
+                        <span>{t('billTotal')}</span>
+                        <Money minor={billTotal} currency={state.currency} catalog={currencies} />
+                    </div>
+                )}
                 {state.receiptTotalMinor !== null && (
                     <div className="flex items-center justify-between text-grey-1">
                         <span>{t('receiptTotal')}</span>
@@ -188,6 +222,27 @@ export function ScanReview({ state, dispatch, decimals, currencies, onContinue, 
                             ),
                         })}
                     </p>
+                )}
+                {offerDiscount && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            dispatch({
+                                type: 'add-adjustment',
+                                kind: 'discount',
+                                unit: 'amount',
+                                valueInput: formatAmountInput(overshoot, decimals, locale),
+                            })
+                            feedback('tick')
+                        }}
+                        data-testid="scan-suggest-discount"
+                        className="mt-1 flex min-h-11 items-center gap-2 self-start rounded-sm border border-n-1 bg-white px-3 py-2 text-h8"
+                    >
+                        <Icon name="plus" size={14} />
+                        {t('suggestDiscount', {
+                            amount: formatMoney(overshoot, state.currency, currencies, locale),
+                        })}
+                    </button>
                 )}
             </div>
 

@@ -949,7 +949,24 @@
                 "unreadable": "Die Datei konnte nicht als Bild geöffnet werden.",
                 "generic": "Der Beleg konnte nicht gelesen werden.",
                 "hint": "Fotografiere den ganzen Beleg gerade von oben und bei gutem Licht."
-            }
+            },
+            "adjustmentsTitle": "Trinkgeld, Steuer oder Rabatt",
+            "addAdjustment": "Trinkgeld, Steuer oder Rabatt hinzufügen",
+            "kindDiscount": "Rabatt",
+            "kindTip": "Trinkgeld",
+            "kindTax": "Steuer",
+            "kindService": "Service",
+            "adjustmentKindGroup": "Art der Anpassung",
+            "adjustmentUnitGroup": "Prozent oder Betrag",
+            "adjustmentSpreadGroup": "Aufteilung: {kind}",
+            "adjustmentValueFor": "Wert: {kind}",
+            "removeAdjustmentFor": "{kind} entfernen",
+            "spreadProportional": "Nach Verzehr",
+            "spreadEqual": "Zu gleichen Teilen",
+            "adjustmentInvalid": "Gib einen gültigen Betrag ein. Prozente gehen bis 100.",
+            "discountTooLarge": "Der Rabatt ist höher als das, was jemand hatte. Senke ihn oder teile ihn nach Verzehr auf.",
+            "billTotal": "Rechnungssumme",
+            "suggestDiscount": "{amount} als Rabatt abziehen"
         },
         "theme": {
             "title": "Design",

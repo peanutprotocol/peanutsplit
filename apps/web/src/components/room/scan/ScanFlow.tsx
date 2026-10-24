@@ -70,6 +70,7 @@ type Phase = 'camera' | 'scanning' | 'review' | 'assign' | 'error'
 /** A reducer needs a state to start from; the real one arrives with the parse. */
 const EMPTY: ScanState = {
     items: [],
+    adjustments: [],
     assignments: {},
     receiptTotalMinor: null,
     currency: 'USD',

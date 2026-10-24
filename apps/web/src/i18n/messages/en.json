@@ -949,7 +949,24 @@
                 "unreadable": "That file could not be opened as an image.",
                 "generic": "Could not read that bill.",
                 "hint": "Take the photo straight on, with the whole bill in frame and the lights up."
-            }
+            },
+            "adjustmentsTitle": "Tip, tax or discount",
+            "addAdjustment": "Add a tip, tax or discount",
+            "kindDiscount": "Discount",
+            "kindTip": "Tip",
+            "kindTax": "Tax",
+            "kindService": "Service",
+            "adjustmentKindGroup": "Type of adjustment",
+            "adjustmentUnitGroup": "Percentage or amount",
+            "adjustmentSpreadGroup": "How to share the {kind}",
+            "adjustmentValueFor": "{kind} value",
+            "removeAdjustmentFor": "Remove {kind}",
+            "spreadProportional": "By what each had",
+            "spreadEqual": "Equally",
+            "adjustmentInvalid": "Enter a valid amount. Percentages go up to 100.",
+            "discountTooLarge": "The discount is bigger than what someone had. Lower it or share it by what each had.",
+            "billTotal": "Bill total",
+            "suggestDiscount": "Take {amount} off as a discount"
         },
         "theme": {
             "title": "Theme",
