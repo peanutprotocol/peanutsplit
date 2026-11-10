@@ -55,8 +55,8 @@ export default function manifest(): MetadataRoute.Manifest {
          * 96x96 assets are exactly the work that waits on `feat-logo`.
          */
         shortcuts: [
-            // The one thing somebody opens the app cold to do, and the only screen that works with
-            // no room on this device at all. `start_url` already covers "take me to my rooms".
+            // Resolve the room on this device; its credential never belongs in the public manifest.
+            { name: 'Add expense', url: '/app?add=1' },
             { name: 'New split', url: '/new' },
             { name: 'Import from Splitwise', url: '/import' },
         ],

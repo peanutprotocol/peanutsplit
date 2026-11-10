@@ -75,9 +75,11 @@ const relativeTime = (epochMs: number, locale: string): string => {
 export function YourRooms({
     surface = 'landing',
     entryActions,
+    addExpense = false,
 }: {
     surface?: 'landing' | 'app'
     entryActions?: ReactNode
+    addExpense?: boolean
 }) {
     const router = useRouter()
     const t = useTranslations('marketing.rooms')
@@ -196,7 +198,7 @@ export function YourRooms({
             // not. This is especially important when localStorage was denied.
             toast(recoveryNotice, { duration: TOAST_MS.actionable })
             feedback('pop')
-            router.push(`/r/${state.room.slug}`)
+            router.push(`/r/${encodeURIComponent(state.room.slug)}${addExpense ? '?add=1' : ''}`)
         } catch (error) {
             setRecoveryError(
                 isApiError(error, 'NOT_FOUND') || isApiError(error, 'ROOM_NOT_FOUND')
@@ -256,7 +258,7 @@ export function YourRooms({
                                 className="shadow-4 flex overflow-hidden rounded-sm border border-n-1 bg-white"
                             >
                                 <RoomCardLink
-                                    href={`/r/${room.slug}`}
+                                    href={`/r/${encodeURIComponent(room.slug)}${addExpense ? '?add=1' : ''}`}
                                     data-focus-contained
                                     whileTap={motionAllowed ? { scale: 0.97 } : undefined}
                                     onClick={() => feedback('whoosh')}

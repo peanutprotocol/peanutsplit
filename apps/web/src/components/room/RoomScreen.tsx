@@ -443,7 +443,7 @@ export function RoomScreen({ slug }: { slug: string }) {
         })()
     }, [consumeSharedReceipt, error, params.add, params.shared])
 
-    if (isApiError(error, 'NOT_FOUND')) return <RoomNotFound slug={slug} />
+    if (isApiError(error, 'NOT_FOUND')) return <RoomNotFound slug={slug} addExpense={params.add} />
     if (error && !state) return <RoomErrorState onRetry={() => void refetch()} />
 
     const closeDrawers = () => setParams({ add: null, expense: null, settle: null })

@@ -40,6 +40,48 @@ async function modelStandaloneLaunch(page: Page): Promise<void> {
     })
 }
 
+test('a quick-add launch restores the prepared room ahead of older saved history', async ({
+    page,
+    request,
+    newDevice,
+}) => {
+    const createdResponse = await request.post('/api/rooms', {
+        data: { name: 'Prepared quick-add room', currency: 'EUR', creatorName: 'Ana' },
+    })
+    expect(createdResponse.status()).toBe(201)
+    const created = (await createdResponse.json()) as CreatedRoom
+    await page.goto('/app?manage=1')
+    const prepared = await page.evaluate(
+        async ({ slug, token }) => {
+            const response = await fetch(`/api/rooms/${encodeURIComponent(slug)}/install-handoff`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Member-Token': token },
+                body: '{}',
+            })
+            return response.status
+        },
+        { slug: created.room.slug, token: created.memberToken }
+    )
+    expect(prepared).toBe(201)
+
+    const installed = await newDevice()
+    await copyHandoffCookies(page.context(), installed.context())
+    await modelStandaloneLaunch(installed)
+    await installed.addInitScript(() => {
+        localStorage.setItem(
+            'ps:recent',
+            JSON.stringify([{ slug: 'older-room-calm-river-piano', name: 'Older room', lastSeenAt: Date.now() }])
+        )
+    })
+    await installed.goto(new URL('/app?add=1', page.url()).toString())
+    await expect(installed).toHaveURL(new RegExp(`/r/${created.room.slug}\\?add=1$`))
+    await expect(installed.getByTestId('join-gate')).toBeHidden()
+    await expect(installed.getByTestId('expense-drawer')).toBeVisible()
+    await expect(installed.getByTestId('expense-drawer-room-switcher')).toContainText(created.room.name)
+    const state = await request.get(`/api/rooms/${created.room.slug}`)
+    expect((await state.json()).expenses).toEqual([])
+})
+
 test('iOS cookie-only first launch restores and ACKs one room while a regular tab never redeems it', async ({
     page,
     request,

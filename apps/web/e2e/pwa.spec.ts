@@ -12,7 +12,7 @@ import { openCurrentRoomSettings } from './helpers'
  * Room creation is metered per IP (20/hour), so this file takes its own TEST-NET address rather
  * than sharing either project's budget.
  */
-test('the manifest names the app Split, offers v1 creation shortcuts, and carries no room', async ({ request }) => {
+test('the manifest names the app Split, offers quick expense entry, and carries no room', async ({ request }) => {
     const response = await request.get('/manifest.webmanifest')
     expect(response.status()).toBe(200)
 
@@ -29,7 +29,8 @@ test('the manifest names the app Split, offers v1 creation shortcuts, and carrie
     expect(manifest.name).toBe('Split')
     expect(manifest.short_name).toBe('Split')
     expect(manifest).toMatchObject({ id: '/', start_url: '/app', scope: '/' })
-    expect(manifest.shortcuts?.map((shortcut) => shortcut.url)).toEqual(['/new', '/import'])
+    expect(manifest.shortcuts?.map((shortcut) => shortcut.url)).toEqual(['/app?add=1', '/new', '/import'])
+    expect(manifest.shortcuts?.[0]?.name).toBe('Add expense')
     // The share sheet is v2's, and this build is v1. An entry here would put Split in every
     // Android photo share sheet and then decline the photo.
     expect(manifest.share_target).toBeUndefined()

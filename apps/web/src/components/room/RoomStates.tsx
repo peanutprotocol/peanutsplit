@@ -59,7 +59,7 @@ export function RoomErrorState({ onRetry }: { onRetry: () => void }) {
     )
 }
 
-export function RoomNotFound({ slug }: { slug?: string }) {
+export function RoomNotFound({ slug, addExpense = false }: { slug?: string; addExpense?: boolean }) {
     const t = useTranslations('room.states')
     const forgetMissingRoom = useCallback(() => {
         if (slug) forgetRoom(slug)
@@ -83,7 +83,7 @@ export function RoomNotFound({ slug }: { slug?: string }) {
             <p className="text-h5">{t('notFoundTitle')}</p>
             <p className="max-w-[22rem] text-sm text-grey-1">{t('notFoundBody')}</p>
             <Link
-                href="/app?manage=1"
+                href={addExpense ? '/app?manage=1&add=1' : '/app?manage=1'}
                 replace
                 onClick={forgetMissingRoom}
                 className={buttonClassName({ variant: 'stroke', className: 'max-w-xs justify-center' })}

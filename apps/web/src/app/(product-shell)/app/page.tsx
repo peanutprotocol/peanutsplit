@@ -22,6 +22,7 @@ export default async function AppHomePage({
     searchParams,
 }: {
     searchParams: Promise<{
+        add?: string | string[]
         manage?: string | string[]
         install?: string | string[]
         repair?: string | string[]
@@ -34,6 +35,8 @@ export default async function AppHomePage({
         getTranslations('marketing.rooms'),
         getTranslations('room.header'),
     ])
+    const { add, manage, install, repair, source } = await searchParams
+    const addExpense = add === '1'
 
     const fallback = (
         <main data-testid="app-home" className="split-app-frame mx-auto min-h-dvh w-full max-w-xl bg-background">
@@ -53,6 +56,7 @@ export default async function AppHomePage({
             </div>
             <YourRooms
                 surface="app"
+                addExpense={addExpense}
                 entryActions={
                     <nav aria-label={tHeader('addOrJoinRoom')} className="mb-5 grid gap-3">
                         <Link
@@ -82,7 +86,6 @@ export default async function AppHomePage({
         </main>
     )
 
-    const { manage, install, repair, source } = await searchParams
     const repairing = isInstallRepairRequest(repair)
     if (install === '1') {
         return (
@@ -103,7 +106,7 @@ export default async function AppHomePage({
     return (
         <>
             <CanonicalAppLaunchMarker />
-            {manage === '1' ? fallback : <RecentRoomAppEntry>{fallback}</RecentRoomAppEntry>}
+            {manage === '1' ? fallback : <RecentRoomAppEntry addExpense={addExpense}>{fallback}</RecentRoomAppEntry>}
         </>
     )
 }

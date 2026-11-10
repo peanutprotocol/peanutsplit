@@ -74,7 +74,7 @@ test('the manifest advertises the exact image-only OS share contract', async ({ 
         enctype: 'multipart/form-data',
         params: { files: [{ name: 'receipt', accept: ['image/*'] }] },
     })
-    expect(manifest.shortcuts?.map((shortcut) => shortcut.url)).toEqual(['/new', '/import'])
+    expect(manifest.shortcuts?.map((shortcut) => shortcut.url)).toEqual(['/app?add=1', '/new', '/import'])
     expect(JSON.stringify(manifest)).not.toContain('/r/')
 })
 

@@ -18,7 +18,7 @@ import { mostRecentRoomPath } from '@/lib/recent-rooms'
  * room before consulting any older installed-context history. A transient handoff
  * failure reveals the chooser instead of sending the person to a stale room.
  */
-export function RecentRoomAppEntry({ children }: { children: ReactNode }) {
+export function RecentRoomAppEntry({ children, addExpense = false }: { children: ReactNode; addExpense?: boolean }) {
     const router = useRouter()
     const t = useTranslations('routeStates.loading')
     const [showFallback, setShowFallback] = useState(false)
@@ -32,7 +32,7 @@ export function RecentRoomAppEntry({ children }: { children: ReactNode }) {
             if (!current) return
 
             if (handoff.status === 'restored') {
-                router.replace(handoff.roomPath)
+                router.replace(addExpense ? `${handoff.roomPath}?add=1` : handoff.roomPath)
                 return
             }
             if (handoff.status === 'transient-failure') {
@@ -45,7 +45,7 @@ export function RecentRoomAppEntry({ children }: { children: ReactNode }) {
             // is safe to consult.
             const roomPath = mostRecentRoomPath()
             if (roomPath) {
-                router.replace(roomPath)
+                router.replace(addExpense ? `${roomPath}?add=1` : roomPath)
                 return
             }
             setShowFallback(true)
@@ -55,7 +55,7 @@ export function RecentRoomAppEntry({ children }: { children: ReactNode }) {
             current = false
             controller.abort()
         }
-    }, [router])
+    }, [addExpense, router])
 
     if (showFallback) return children
 

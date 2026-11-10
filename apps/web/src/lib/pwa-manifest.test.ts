@@ -47,10 +47,14 @@ describe('the installed app is named Split', () => {
 })
 
 describe('shortcuts', () => {
-    it('offers new-room and import entry points in both flag states', async () => {
+    it('prioritizes quick expense entry while keeping creation and import in both flag states', async () => {
         for (const v2 of [false, true]) {
             const manifest = await manifestWith(v2)
-            expect(manifest.shortcuts?.map((shortcut) => shortcut.url)).toEqual(['/new', '/import'])
+            expect(manifest.shortcuts).toEqual([
+                expect.objectContaining({ name: 'Add expense', url: '/app?add=1' }),
+                expect.objectContaining({ name: 'New split', url: '/new' }),
+                expect.objectContaining({ name: 'Import from Splitwise', url: '/import' }),
+            ])
         }
     })
 })

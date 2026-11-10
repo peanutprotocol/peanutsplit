@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import Link from 'next/link'
 import { AnimatePresence, motion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
@@ -137,6 +138,7 @@ export function ExpenseDrawer({
 }: ExpenseDrawerProps) {
     const t = useTranslations('room.expenseDrawer')
     const tExpenses = useTranslations('room.expenses')
+    const tHeader = useTranslations('room.header')
     const tDates = useTranslations('dates')
     const roleName = (member: { name: string; removedAt?: string | null }) =>
         isFormerMember(member) ? t('formerName', { name: member.name }) : member.name
@@ -160,6 +162,7 @@ export function ExpenseDrawer({
     const [values, setValues] = useState<ExpenseFormValues>(() =>
         emptyExpenseForm({ currency: state.room.currency, members: activeRoster, paidById: defaultPaidById })
     )
+    const initialValuesRef = useRef(values)
     /** Role-specific draft preservation. If a poll marks a selected person
      * Former mid-entry, keep that exact row visible so it can be changed or
      * removed. Once removed it is no longer offered, and one role never grants
@@ -332,15 +335,15 @@ export function ExpenseDrawer({
         )
         setManualFxRateInput(expenseNeedsManualRate ? formatManualFxRateInput(expense!.fxRate, locale) : '')
         setManualFxRateSource(expenseNeedsManualRate ? 'expense' : null)
-        setValues(
-            expense
-                ? expenseToFormValues(expense, currencies, locale)
-                : emptyExpenseForm({
-                      currency: recents[0] ?? state.room.currency,
-                      members: activeRoster,
-                      paidById: defaultPaidById,
-                  })
-        )
+        const initialValues = expense
+            ? expenseToFormValues(expense, currencies, locale)
+            : emptyExpenseForm({
+                  currency: recents[0] ?? state.room.currency,
+                  members: activeRoster,
+                  paidById: defaultPaidById,
+              })
+        initialValuesRef.current = initialValues
+        setValues(initialValues)
         // `currencies` and `state.members` intentionally excluded — a poll landing
         // mid-edit must not stomp on what is being typed.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1159,6 +1162,15 @@ export function ExpenseDrawer({
           ? t('addWithAmount', { amount: formatMoney(totalMinor!, values.currency, currencies, locale) })
           : t('add')
     const pending = addExpense.isPending || updateExpense.isPending
+    // Changing rooms resets the form. Offer it only before the person starts a draft.
+    const canSwitchRoom =
+        !pending &&
+        !addMember.isPending &&
+        !sharedReceipt &&
+        !manualFxRateInput &&
+        !newPayerName &&
+        !newParticipantName &&
+        JSON.stringify(values) === JSON.stringify(initialValuesRef.current)
     const categoryLabels: Record<(typeof CURATED_EXPENSE_CATEGORY_IDS)[number], string> = {
         'food-drink': t('categories.foodDrink'),
         transport: t('categories.transport'),
@@ -1247,6 +1259,28 @@ export function ExpenseDrawer({
                     <DrawerTitle className="text-h5">{expense ? t('editTitle') : t('addTitle')}</DrawerTitle>
                     <CloseButton onClick={close} label={t('close')} data-testid="close-expense" />
                 </DrawerHeader>
+                {!expense && (
+                    <div className="shrink-0 px-4 pb-2">
+                        {canSwitchRoom ? (
+                            <Link
+                                href="/app?manage=1&add=1"
+                                aria-label={`${state.room.name}: ${tHeader('openRoomSwitcher')}`}
+                                data-testid="expense-drawer-room-switcher"
+                                className="flex min-h-11 items-center justify-between gap-2 rounded-sm border border-n-1 bg-white px-3 text-sm font-bold"
+                            >
+                                <span className="min-w-0 truncate">{state.room.name}</span>
+                                <Icon name="chevron-down" size={18} className="shrink-0" aria-hidden="true" />
+                            </Link>
+                        ) : (
+                            <p
+                                data-testid="expense-drawer-room-name"
+                                className="flex min-h-11 items-center truncate px-3 text-sm font-bold"
+                            >
+                                {state.room.name}
+                            </p>
+                        )}
+                    </div>
+                )}
                 {filingMeta && (
                     <p
                         data-testid="expense-filing-meta"
