@@ -137,7 +137,7 @@ Hugo under supervisor posture.
 
 **Disk (box-level, already known to Hugo).** Bus shows root fs climbing 92→96% on
 08-26/27 then relieved; now 76% and rising again. Per /root/CLAUDE.md this alert
-"names the victim, not the cause" — flife/build-cache churn fills the disk and pages
+"names the victim, not the cause" — build-cache churn from other apps fills the disk and pages
 the payments app. No peanut-split impact observed in the window. No action by me.
 
 **Record relocation noted.** INCIDENTS.md/STEWARD-STATE.md moved into

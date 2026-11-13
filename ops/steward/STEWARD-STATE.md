@@ -1,7 +1,7 @@
 # PEANUTSPLIT SUPERVISOR — STATE
 
 Maintained by the box-resident SUPERVISOR session. Started 2026-08-18 (as steward;
-re-titled SUPERVISOR same day, permanent). Peer: /root/wordle/STEWARD-STATE.md ·
+re-titled SUPERVISOR same day, permanent). Peer: the other box stewards ·
 playbook: /root/STEWARD-HANDOFF.md (§1 authority table DOES NOT apply here).
 
 ## Posture (Hugo, 2026-08-18 — SUPERVISOR, permanent, overrides charter)
@@ -60,7 +60,7 @@ playbook: /root/STEWARD-HANDOFF.md (§1 authority table DOES NOT apply here).
 6. **User voice** — `split.FeedbackReport` table (1 row total, a test). Check each sweep.
 7. **Uptime** — Kuma monitor id 18 `peanutsplit.com (edge)`, 60s, notifies Discord
    (notification id 2 `discord-split`) + Telegram (id 1). Verified beating 2026-08-18.
-8. **Resources** — shared box (see /root/CLAUDE.md): wordle prod, flife, Dokploy apps.
+8. **Resources** — shared box (see /root/CLAUDE.md): other Dokploy apps.
    Disk 64%, RAM 27G available at survey. Steward may not run heavy jobs un-safeboxed.
 9. **Secrets** — Dokploy env (VAPID keys, SPLIT_AUTH_SECRET, OneSignal, OpenRouter,
    PEANUT_WEBHOOK_SECRET), /root/.split-discord-webhook (0600), deploy ssh key.
@@ -75,7 +75,7 @@ playbook: /root/STEWARD-HANDOFF.md (§1 authority table DOES NOT apply here).
   All branches synthetically tested 2026-08-18.
 - **`/root/split-org-deploy-alert.sh`** cron */2: red Dokploy build → Discord ping.
   (Steward-fixed 2026-08-18: shell-injection via commit title, see INCIDENTS.)
-- **Dead-man switch: none for this steward yet** (wordle steward's covers box-level).
+- **Dead-man switch: none for this steward yet** (another box steward's covers box-level).
   Open question below.
 
 ## Baselines (2026-08-18, read-only DB)
