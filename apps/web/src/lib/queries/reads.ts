@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
-import { queryOptions, useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
+import { type FetchStatus, queryOptions, useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../api'
 import type { CurrencyInfo, RoomHistoryPage, RoomState } from '../api-types'
 import { FALLBACK_CURRENCIES } from '../money'
@@ -50,6 +50,17 @@ const retryRoomRead = (failureCount: number, error: unknown): boolean => {
     const status = (error as { status?: number }).status
     if (status === 404) return false
     return failureCount < 2
+}
+
+/**
+ * True when a room read has no data and will not get any by itself while the screen waits: it
+ * failed, or React Query paused it. A query that starts after the browser fired `offline` does
+ * not fail, it pauses (`fetchStatus: 'paused'`, still `isPending`, no error) until `online`.
+ * Without this the room would show its skeleton, with no Retry and no way back, for as long as
+ * the person stays offline. The paused query resumes by itself once the network returns.
+ */
+export function roomReadBlocked(query: { data: unknown; error: unknown; fetchStatus: FetchStatus }): boolean {
+    return query.data === undefined && (query.error != null || query.fetchStatus === 'paused')
 }
 
 /**
