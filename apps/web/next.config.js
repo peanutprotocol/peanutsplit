@@ -94,7 +94,9 @@ if (process.env.SPLIT_NATIVE_BUILD === '1') {
     // App-store build: static export of the app surface only. docs/current/NATIVE.md
     module.exports = withNextIntl({
         output: 'export',
-        distDir: '.next-native', // never touches the web build's .next
+        // The export lands here. Next still builds into .next (forced for output: 'export'), which
+        // replaces any web build there; scripts/native/postbuild.mjs then clears it except cache.
+        distDir: '.next-native',
         trailingSlash: true, // room/index.html, which Capacitor's file server resolves
         images: { unoptimized: true },
         pageExtensions: ['native.tsx', 'native.ts'],

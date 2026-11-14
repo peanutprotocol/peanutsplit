@@ -105,4 +105,16 @@ if (dsn && !containedInChunk(dsn)) fail('NEXT_PUBLIC_SENTRY_DSN is set but not i
 const total = files.reduce((sum, file) => sum + statSync(file).size, 0)
 const megabytes = (total / 1024 / 1024).toFixed(2)
 if (total > MAX_BYTES) fail(`export is ${megabytes} MB, above the 15 MB cap`)
+
+// 7. Next always builds an `output: 'export'` app inside .next and only copies the export to
+//    .next-native, so .next now holds this app build in place of any web build. Clear it (keeping
+//    .next/cache so the next web build stays fast): a later `next start`, standalone copy or
+//    `.next/static` check then fails loudly instead of using the app build.
+const buildDir = join(appRoot, '.next')
+if (existsSync(buildDir)) {
+    for (const name of readdirSync(buildDir)) {
+        if (name !== 'cache') rmSync(join(buildDir, name), { recursive: true, force: true })
+    }
+}
+
 console.log(`native postbuild: ok, ${html.length} pages, ${files.length} files, total ${megabytes} MB`)
