@@ -19,7 +19,10 @@ vi.mock('next-intl', () => ({
     useTranslations: (namespace: string) => (key: string, values?: Record<string, string>) =>
         `${namespace}.${key}${values ? `:${Object.values(values).join(',')}` : ''}`,
 }))
-vi.mock('@/lib/queries', () => ({
+vi.mock('@/lib/queries', async () => ({
+    // The real predicate, so the load-error case exercises the screen's own blocked-read rule.
+    roomReadBlocked: (await vi.importActual<typeof import('@/lib/queries/reads')>('@/lib/queries/reads'))
+        .roomReadBlocked,
     useRoomSnapshot: (...args: unknown[]) => mocks.snapshot(...args),
     // A regression to the live room hook stays renderable so the assertion can
     // report the actual SSE/polling contract violation rather than a mock error.
