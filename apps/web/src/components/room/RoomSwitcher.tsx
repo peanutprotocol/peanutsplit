@@ -10,6 +10,7 @@ import { DrawerBody } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 import type { ApiRoom } from '@/lib/api-types'
 import { cn } from '@/lib/cn'
+import { roomPath } from '@/lib/platform'
 import { readRecentRooms, type RecentRoom } from '@/lib/recent-rooms'
 import { themeFor } from '@/lib/themes'
 
@@ -119,7 +120,7 @@ export function RoomSwitcher({ open, onClose, onOpenSettings, currentSettingsRef
                                 className={compoundRowClass}
                             >
                                 <Link
-                                    href={`/r/${encodeURIComponent(candidate.slug)}`}
+                                    href={roomPath(candidate.slug)}
                                     data-testid="room-switcher-tile"
                                     data-focus-contained
                                     data-slug={candidate.slug}
@@ -133,7 +134,7 @@ export function RoomSwitcher({ open, onClose, onOpenSettings, currentSettingsRef
                                     <Icon name="chevron-right" size={18} className="shrink-0" aria-hidden="true" />
                                 </Link>
                                 <Link
-                                    href={`/r/${encodeURIComponent(candidate.slug)}?settings=1`}
+                                    href={roomPath(candidate.slug, 'room', 'settings=1')}
                                     onClick={beginSettingsTransition}
                                     aria-label={t('openRoomSettings', { room: candidate.name })}
                                     data-testid="room-switcher-settings"

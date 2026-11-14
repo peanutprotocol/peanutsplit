@@ -1,0 +1,12 @@
+[
+    {
+        "relation": ["delegate_permission/common.handle_all_urls"],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.peanutsplit.app",
+            "sha256_cert_fingerprints": [
+                "PLACEHOLDER:REPLACE_WITH_PLAY_APP_SIGNING_AND_UPLOAD_KEY_SHA256_AFTER_FIRST_PLAY_UPLOAD"
+            ]
+        }
+    }
+]

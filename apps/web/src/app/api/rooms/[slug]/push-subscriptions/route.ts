@@ -6,10 +6,15 @@
  * channel to it needs proof of membership, because a bare link-holder who never
  * joined should not be able to make somebody's phone buzz on a schedule they
  * chose. The proof is the member token the server minted at join time.
+ *
+ * Two body shapes: a browser's Web Push subscription (`endpoint` + `keys`) and
+ * an app install's device token (`transport` + `token`), stored as
+ * `<transport>:<token>`. `server/validation.ts` turns both into one channel.
  */
 import { prisma } from '@/server/db'
 import { ApiError, readJson, respond } from '@/server/http'
 import { isAllowedPushEndpoint } from '@/server/pushHosts'
+import { assertNativePushAvailable } from '@/server/push-native/config'
 import { assertProvenMember, loadRoom } from '@/server/roomState'
 import { enforceRateLimit, meterRoomLookup, WRITE_LIMIT } from '@/server/rateLimit'
 import { pushSubscribeSchema, pushUnsubscribeSchema } from '@/server/validation'
@@ -28,13 +33,14 @@ export const POST = (request: Request, ctx: Ctx) =>
         enforceRateLimit(request, WRITE_LIMIT, 'push-subscribe')
         const { slug } = await ctx.params
         const body = pushSubscribeSchema.parse(await readJson(request))
+        assertNativePushAvailable(body.transport)
         // A guessed slug 404s here and a real slug with a bad token 403s, so the
         // miss goes on the shared budget — same as the DELETE below and the
         // status route beside it. All three paths meter it the same way.
         const room = await meterRoomLookup(request, () => loadRoom(slug))
         assertProvenMember(room, body.memberId, body.memberToken)
 
-        if (!isAllowedPushEndpoint(body.endpoint)) {
+        if (body.transport === 'webpush' && !isAllowedPushEndpoint(body.endpoint)) {
             throw new ApiError(400, 'UNSUPPORTED_PUSH_HOST', 'that is not a push service we can deliver to')
         }
 
@@ -65,17 +71,18 @@ export const POST = (request: Request, ctx: Ctx) =>
                 create: {
                     roomId: room.id,
                     memberId: body.memberId,
+                    transport: body.transport,
                     endpoint: body.endpoint,
-                    p256dh: body.keys.p256dh,
-                    auth: body.keys.auth,
+                    p256dh: body.keys?.p256dh ?? null,
+                    auth: body.keys?.auth ?? null,
                     userAgent: body.userAgent ?? null,
                 },
                 update: {
                     // memberId too: one phone can be passed to whoever is paying,
                     // and the channel should follow whoever it last proved it was.
                     memberId: body.memberId,
-                    p256dh: body.keys.p256dh,
-                    auth: body.keys.auth,
+                    p256dh: body.keys?.p256dh ?? null,
+                    auth: body.keys?.auth ?? null,
                     userAgent: body.userAgent ?? null,
                     lastSeenAt: new Date(),
                 },

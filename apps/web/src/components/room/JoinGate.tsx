@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { roomProps, track } from '@/lib/analytics'
 import { isApiError } from '@/lib/api'
 import type { ApiMember, RoomState } from '@/lib/api-types'
 import type { MemberIdentity } from '@/lib/identity'
@@ -56,6 +57,7 @@ export function JoinGate({ slug, state, onJoined, previousIdentity = null }: Joi
     const [reactivation, setReactivation] = useState<ApiMember | null>(null)
 
     useEffect(() => {
+        track('join_gate_shown', roomProps(slug))
         const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null
         const gateRoot = gateRootRef.current
         const background = gateRoot?.parentElement
@@ -123,6 +125,7 @@ export function JoinGate({ slug, state, onJoined, previousIdentity = null }: Joi
         try {
             const next = await claimMember.mutateAsync({ memberId })
             feedback('pop')
+            track('join_gate_completed', { ...roomProps(slug), via: 'claim' })
             onJoined({ memberId: next.memberId, token: next.memberToken, name: memberName })
         } catch (err) {
             feedback('error', { haptic: 'error' })
@@ -145,6 +148,7 @@ export function JoinGate({ slug, state, onJoined, previousIdentity = null }: Joi
         try {
             const next = await joinRoom.mutateAsync({ name: trimmed })
             feedback('pop')
+            track('join_gate_completed', { ...roomProps(slug), via: 'new' })
             onJoined({ memberId: next.memberId, token: next.memberToken, name: trimmed })
         } catch (err) {
             // The card is the whole screen here; shaking it is the only motion
@@ -175,6 +179,7 @@ export function JoinGate({ slug, state, onJoined, previousIdentity = null }: Joi
         try {
             const next = await reactivateMember.mutateAsync(reactivation.id)
             feedback('pop')
+            track('join_gate_completed', { ...roomProps(slug), via: 'new' })
             onJoined({ memberId: next.memberId, token: next.memberToken, name: reactivation.name })
         } catch (err) {
             feedback('error', { haptic: 'error' })

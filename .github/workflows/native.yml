@@ -1,0 +1,457 @@
+# Unsigned builds of the store apps (Capacitor) plus a web regression gate. No secrets: the
+# signed lane is native-release.yml. Design: local/split-native-app ARCHITECTURE 14.1 and PLAN 10.
+#
+# One push filter serves both branches, because GitHub allows one `push` block per workflow. A
+# push to native-apps that touches none of these paths changes nothing a native build reads.
+# On main only the export runs: most changes reach main without a PR, and the static export is
+# what they break. Android, iOS and the web e2e comparison carry `if: github.ref != main`.
+name: Native apps
+
+on:
+  push:
+    branches: [native-apps, main]
+    paths:
+      - 'apps/web/**'
+      - '.github/workflows/native.yml'
+  pull_request:
+    paths:
+      - 'apps/web/**'
+      - '.github/workflows/native.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Every job repeats the same guard: a PR whose head is native-apps already ran on its push, so
+  # the pull_request run for that SHA is skipped.
+  export:
+    if: github.event_name != 'pull_request' || github.head_ref != 'native-apps'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      # corepack, not a pinned pnpm action: apps/web and the root each declare their own pnpm.
+      - run: corepack enable
+
+      - run: pnpm bootstrap
+
+      # The self-test flag makes the debug APK and the simulator build log `SPLIT_CORS ok|blocked`
+      # on boot. Only this job sets it; the release lane never does, so release bundles drop it.
+      # The placeholder DATABASE_URL matches the Dockerfile: the build needs a value, not a database.
+      - name: Build the static export
+        run: pnpm --dir apps/web native:build
+        env:
+          NEXT_PUBLIC_BASE_URL: https://peanutsplit.com
+          NEXT_PUBLIC_SPLIT_CORS_SELFTEST: '1'
+          DATABASE_URL: postgresql://build:build@localhost:5432/build
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-export
+          path: apps/web/.next-native
+          # `.next-native` itself starts with a dot; without this the upload finds no files.
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+  android:
+    needs: export
+    if: github.ref != 'refs/heads/main' && (github.event_name != 'pull_request' || github.head_ref != 'native-apps')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      - run: corepack enable
+
+      - run: pnpm bootstrap
+
+      # Capacitor 8 needs Java 21.
+      - uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: native-export
+          path: apps/web/.next-native
+
+      # No NODE_ENV=production prefix: this is the debug build, and Capacitor keeps WebView
+      # debugging on only outside production, which the emulator smoke needs.
+      - name: Copy the export into the Android project
+        working-directory: apps/web
+        run: pnpm exec cap sync android
+
+      # The release bundle is unsigned: build.gradle attaches a signing config only when
+      # keystore.properties exists, and CI has none.
+      - name: Build the debug APK and the unsigned release bundle
+        working-directory: apps/web/android
+        run: ./gradlew :app:assembleDebug :app:bundleRelease
+
+      # Google Play rejects native libraries that are not 16 KB page aligned. Split ships no
+      # native code of its own. The only expected library is androidx.datastore's
+      # libdatastore_shared_counter.so, which firebase-messaging (push) pulls in. Any other .so
+      # is a plugin change to look at first. The 16 KB rule applies to 64-bit libraries only.
+      - name: Check the bundle's native libraries
+        working-directory: apps/web/android
+        run: |
+          shopt -s nullglob
+          bundles=(app/build/outputs/bundle/release/*.aab)
+          if [ "${#bundles[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one release bundle, found ${#bundles[@]}."
+            exit 1
+          fi
+          python3 - "${bundles[0]}" <<'PY'
+          import struct, sys, zipfile
+
+          ALLOWED = {"libdatastore_shared_counter.so"}
+          bad = []
+          with zipfile.ZipFile(sys.argv[1]) as bundle:
+              for name in bundle.namelist():
+                  if not name.endswith(".so"):
+                      continue
+                  base = name.rsplit("/", 1)[-1]
+                  if base not in ALLOWED:
+                      bad.append(f"{name}: not on the allowed list")
+                      continue
+                  elf = bundle.read(name)
+                  is64 = elf[4] == 2
+                  if not is64:
+                      print(f"ok (32-bit): {name}")
+                      continue
+                  endian = "<" if elf[5] == 1 else ">"
+                  if is64:
+                      phoff, = struct.unpack_from(endian + "Q", elf, 0x20)
+                      phentsize, phnum = struct.unpack_from(endian + "HH", elf, 0x36)
+                  else:
+                      phoff, = struct.unpack_from(endian + "I", elf, 0x1C)
+                      phentsize, phnum = struct.unpack_from(endian + "HH", elf, 0x2A)
+                  for i in range(phnum):
+                      off = phoff + i * phentsize
+                      p_type, = struct.unpack_from(endian + "I", elf, off)
+                      if p_type != 1:
+                          continue
+                      align, = struct.unpack_from(endian + "Q", elf, off + 0x30) if is64 else struct.unpack_from(endian + "I", elf, off + 0x1C)
+                      if align < 16384:
+                          bad.append(f"{name}: LOAD segment aligned to {align} bytes")
+                          break
+                  else:
+                      print(f"ok: {name}")
+          for line in bad:
+              print(f"::error::{line}")
+          sys.exit(1 if bad else 0)
+          PY
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: android
+          path: |
+            apps/web/android/app/build/outputs/apk/debug/*.apk
+            apps/web/android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+          retention-days: 14
+
+  ios:
+    needs: export
+    if: github.ref != 'refs/heads/main' && (github.event_name != 'pull_request' || github.head_ref != 'native-apps')
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1
+        with:
+          xcode-version: latest-stable
+
+      # App Store uploads need Xcode 26 and the iOS 26 SDK since 28 Apr 2026. Fail here, not at
+      # upload time, when the runner image falls behind.
+      - name: Require Xcode 26 or later
+        run: |
+          xcodebuild -version
+          major="$(xcodebuild -version | awk 'NR == 1 { split($2, v, "."); print v[1] }')"
+          if [ "${major}" -lt 26 ]; then
+            echo "::error::Xcode ${major} is too old. App Store uploads need Xcode 26 or later."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      - run: corepack enable
+
+      - run: pnpm bootstrap
+
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: native-export
+          path: apps/web/.next-native
+
+      - name: Copy the export into the iOS project
+        working-directory: apps/web
+        run: pnpm exec cap sync ios
+
+      - name: Build for the simulator (no signing)
+        working-directory: apps/web
+        run: >-
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug
+          -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath build/sim CODE_SIGNING_ALLOWED=NO build
+
+      # Proves the Release configuration compiles for a device without any certificate.
+      - name: Archive for a device (unsigned)
+        working-directory: apps/web
+        run: >-
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release
+          -destination 'generic/platform=iOS' -archivePath build/ios/App.xcarchive
+          CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" archive
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ios-sim-app
+          path: apps/web/build/sim/Build/Products/Debug-iphonesimulator/App.app
+          if-no-files-found: error
+          retention-days: 14
+
+      # Swift Package Manager resolves the plugin versions only on macOS. The resolved file is
+      # committed from this artifact so every later build uses the same versions.
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ios-package-resolved
+          path: apps/web/ios/App/App.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+          if-no-files-found: warn
+          retention-days: 30
+
+  # The three existing Playwright suites, once on the merge base with main and once on the pushed
+  # commit. Each leg records results and never fails on a test: web-e2e-compare decides, so a
+  # failure that already exists on main never blocks this branch.
+  web-e2e:
+    name: web-e2e (${{ matrix.ref }}, ${{ matrix.suite.id }})
+    if: github.ref != 'refs/heads/main' && (github.event_name != 'pull_request' || github.head_ref != 'native-apps')
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    strategy:
+      fail-fast: false
+      matrix:
+        ref: [base, head]
+        suite:
+          - { id: e2e, config: playwright.config.ts }
+          - { id: pwa-boundary, config: playwright.pwa-boundary.config.ts }
+          - { id: v2, config: playwright.v2.config.ts }
+    env:
+      # Playwright reads CI for forbidOnly and its two retries.
+      CI: true
+      # migrate deploy reads DATABASE_URL; the Playwright webServer reads only E2E_DATABASE_URL.
+      DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
+      E2E_DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: peanut
+          POSTGRES_PASSWORD: peanut
+          POSTGRES_DB: peanut_split_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U peanut"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      # Full history so the merge base with main can be found.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check out the merge base with main
+        if: matrix.ref == 'base'
+        run: |
+          git checkout --detach "$(git merge-base origin/main HEAD)"
+          git log -1 --format='Base commit: %H %s'
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      - run: corepack enable
+
+      - run: pnpm bootstrap
+
+      - run: pnpm --dir apps/web exec prisma migrate deploy
+
+      - run: pnpm --dir apps/web exec playwright install --with-deps chromium
+
+      # The PWA boundary config has no webServer: it needs a production build, served the way
+      # the Dockerfile serves it (static assets and public/ copied next to server.js).
+      - name: Build and start the standalone server
+        if: matrix.suite.id == 'pwa-boundary'
+        working-directory: apps/web
+        run: |
+          pnpm build
+          server="$(find .next/standalone -name server.js -not -path '*/node_modules/*' | head -n 1)"
+          app_dir="$(dirname "${server}")"
+          cp -R .next/static "${app_dir}/.next/static"
+          cp -R public "${app_dir}/public"
+          PORT=8777 HOSTNAME=0.0.0.0 nohup node "${server}" > "${RUNNER_TEMP}/standalone.log" 2>&1 &
+          for attempt in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:8777/healthcheck > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat "${RUNNER_TEMP}/standalone.log"
+          exit 1
+
+      - name: Run the suite
+        working-directory: apps/web
+        env:
+          SUITE_CONFIG: ${{ matrix.suite.config }}
+          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ runner.temp }}/web-e2e/results.json
+          PWA_BOUNDARY_PORT: '8777'
+        run: |
+          pnpm exec playwright test --config "${SUITE_CONFIG}" --reporter=json \
+            || echo "::warning::Some tests failed. web-e2e-compare decides whether any is new."
+
+      # The e2e suite runs six workers against a dev server on a small runner, so some tests fail
+      # from load alone; base shows the same rate. Head failures get one more run with a single
+      # worker, and web-e2e-compare blocks only on a test that fails here too.
+      - name: Re-run the head failures with one worker
+        if: matrix.ref == 'head'
+        working-directory: apps/web
+        env:
+          SUITE_CONFIG: ${{ matrix.suite.config }}
+          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ runner.temp }}/web-e2e/confirm.json
+          PWA_BOUNDARY_PORT: '8777'
+        run: |
+          pnpm exec playwright test --config "${SUITE_CONFIG}" --last-failed --workers=1 --retries=1 --reporter=json \
+            || echo "::warning::Some head failures repeat with one worker. web-e2e-compare lists them."
+
+      # The iPhone store offer is off until the App Store ID exists, so the suites above run with it
+      # unset and skip e2e/store-offer.spec.ts. Here a second production build has it set, and the
+      # spec gates directly: it is new, so there is no base result to compare against. It runs on
+      # the pwa-boundary leg, after that suite is done with its own build, because that leg has no
+      # dev server and already builds the standalone server.
+      - name: Store offer against a build with the App Store ID
+        if: matrix.ref == 'head' && matrix.suite.id == 'pwa-boundary'
+        working-directory: apps/web
+        env:
+          NEXT_PUBLIC_IOS_APP_STORE_ID: '6740000000'
+          NEXT_PUBLIC_BASE_URL: http://localhost:8779
+          E2E_BASE_URL: http://localhost:8779
+          E2E_SKIP_GLOBAL_SETUP: '1'
+          SPLIT_FX_MODE: static
+        run: |
+          pnpm build
+          server="$(find .next/standalone -name server.js -not -path '*/node_modules/*' | head -n 1)"
+          app_dir="$(dirname "${server}")"
+          cp -R .next/static "${app_dir}/.next/static"
+          cp -R public "${app_dir}/public"
+          PORT=8779 HOSTNAME=0.0.0.0 nohup node "${server}" > "${RUNNER_TEMP}/store-offer.log" 2>&1 &
+          for attempt in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:8779/healthcheck > /dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          pnpm exec playwright test --config playwright.config.ts --project=mobile e2e/store-offer.spec.ts \
+            --reporter=list || { cat "${RUNNER_TEMP}/store-offer.log"; exit 1; }
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: ${{ !cancelled() }}
+        with:
+          name: web-e2e-results-${{ matrix.ref }}-${{ matrix.suite.id }}
+          path: ${{ runner.temp }}/web-e2e/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: ${{ !cancelled() }}
+        with:
+          name: web-e2e-traces-${{ matrix.ref }}-${{ matrix.suite.id }}
+          path: apps/web/test-results
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # Fails when a test fails on head and either passed on base or does not exist there (so new
+  # specs gate), and when a suite has no passing test on base or head (a broken harness turns
+  # red instead of passing). A failure that also fails on base, or that passes on the head's
+  # one-worker re-run, is listed and does not block.
+  web-e2e-compare:
+    needs: web-e2e
+    if: ${{ !cancelled() && needs.web-e2e.result != 'skipped' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          pattern: web-e2e-results-*
+          path: results
+
+      - name: Compare head with base
+        run: |
+          node - <<'EOF'
+          const fs = require('fs')
+          const passed = (status) => status === 'expected' || status === 'flaky'
+          function load(ref, suite, name = 'results.json') {
+            const file = `results/web-e2e-results-${ref}-${suite}/${name}`
+            if (!fs.existsSync(file)) return null
+            const tests = new Map()
+            const walk = (node, titles) => {
+              for (const spec of node.specs ?? [])
+                for (const test of spec.tests)
+                  tests.set([...titles, spec.title, test.projectName].join(' > '), test.status)
+              for (const child of node.suites ?? []) walk(child, [...titles, child.title])
+            }
+            for (const top of JSON.parse(fs.readFileSync(file, 'utf8')).suites ?? []) walk(top, [top.title])
+            return tests
+          }
+          const problems = []
+          for (const suite of ['e2e', 'pwa-boundary', 'v2']) {
+            const base = load('base', suite)
+            const head = load('head', suite)
+            const confirm = load('head', suite, 'confirm.json')
+            const count = (tests) => (tests ? [...tests.values()].filter(passed).length : 0)
+            console.log(`${suite}: base passed ${count(base)}/${base?.size ?? 0}, head passed ${count(head)}/${head?.size ?? 0}`)
+            if (count(base) === 0) problems.push(`${suite}: no passing test on base (missing or broken harness)`)
+            if (count(head) === 0) problems.push(`${suite}: no passing test on head (missing or broken harness)`)
+            for (const [id, status] of head ?? []) {
+              if (status !== 'unexpected') continue
+              if (passed(confirm?.get(id))) {
+                console.log(`  passed on the one-worker re-run (load flake, not blocking): ${id}`)
+                continue
+              }
+              const before = base?.get(id)
+              if (before === undefined) problems.push(`${suite}: new test fails on head: ${id}`)
+              else if (passed(before)) problems.push(`${suite}: passed on base, fails on head: ${id}`)
+              else console.log(`  also fails on base (not blocking): ${id}`)
+            }
+          }
+          for (const problem of problems) console.log(`::error::${problem}`)
+          console.log(problems.length ? `${problems.length} blocking problem(s).` : 'No new failures.')
+          process.exit(problems.length ? 1 : 0)
+          EOF

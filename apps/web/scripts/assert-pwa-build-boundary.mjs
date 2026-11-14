@@ -55,4 +55,12 @@ assert.doesNotMatch(
     'content layout owns a PWA side effect'
 )
 
-process.stdout.write('PWA build boundary: product-only registration verified.\n')
+// Capacitor belongs only in the store-app export. Minified bundles keep no '@capacitor' import
+// path, so also look for the core's own identifiers (isNativePlatform, androidBridge, Capacitor.).
+const capacitorMarker = /isNativePlatform|androidBridge|@capacitor\/|Capacitor\./
+const capacitorChunks = chunks
+    .filter((file) => capacitorMarker.test(readFileSync(file, 'utf8')))
+    .map((file) => file.slice(appRoot.length))
+assert.deepEqual(capacitorChunks, [], 'Capacitor code in the web bundle')
+
+process.stdout.write('PWA build boundary: product-only registration and no Capacitor verified.\n')

@@ -26,6 +26,7 @@
         "rooms": {
             "title": "Tus salas",
             "subtitle": "Guardadas en este dispositivo.",
+            "emptyHint": "Abre el link de una sala desde tu chat o pégalo aquí.",
             "openLabel": "Abrir sala",
             "showMore": "Mostrar {count, plural, one {# sala más} other {# salas más}}",
             "showLess": "Mostrar menos salas",
@@ -207,6 +208,10 @@
                 "continue": "Volver a Split",
                 "copyRoom": "Copiar enlace original de la sala",
                 "roomRecovery": "¿No aparece la sala después de instalar? Abre una vez el enlace original."
+            },
+            "store": {
+                "cta": "Descarga la app",
+                "note": "Tus salas se abren en la app cuando tocas sus links."
             }
         },
         "linkExplainer": {
@@ -399,7 +404,9 @@
             "sound": "Sonido",
             "haptics": "Vibración",
             "privacyNote": "Uso gratis, sin registro. Cualquiera con el link de una sala puede abrirla.",
-            "manageRooms": "Administrar salas"
+            "manageRooms": "Administrar salas",
+            "scanConsent": "Leer recibos con IA",
+            "scanConsentHint": "Las fotos de los recibos van a Google Gemini a través de OpenRouter."
         },
         "feedback": {
             "title": "Reportar un problema",
@@ -607,6 +614,7 @@
         "states": {
             "errorTitle": "No pudimos cargar esta sala",
             "errorBody": "Seguro es la conexión. No se perdió nada — intenta otra vez.",
+            "offlineBody": "Estás sin conexión. Esta sala se carga cuando vuelvas a tener conexión.",
             "staleTitle": "Esta sala puede estar desactualizada",
             "staleBody": "Mostramos la última sala cargada. Editar o eliminar gastos guardados y saldar cuentas queda pausado hasta actualizar. Aún puedes agregar un gasto.",
             "retry": "Intentar de nuevo",
@@ -916,6 +924,12 @@
             "step2": "Escanear una cuenta · quién pidió qué",
             "reading": "Leyendo la cuenta…",
             "privacyNote": "Split envía la foto una vez y no la guarda.",
+            "consent": {
+                "title": "¿Leer este recibo con IA?",
+                "body": "Para leer tu recibo, Split envía la foto a Google Gemini a través de OpenRouter. Split no la guarda.",
+                "allow": "Permitir",
+                "notNow": "Ahora no"
+            },
             "reviewTitle": "Revisa los ítems",
             "reviewBody": "Corrige lo que haya salido mal, borra lo que no es tuyo y agrega lo que falte.",
             "reviewFromMerchant": "De {merchant}. Corrige lo que haya salido mal y agrega lo que falte.",
@@ -1144,9 +1158,21 @@
         "iosNeedsPwa": "Agrega Split a tu pantalla de inicio.",
         "iosHow": "¿Cómo?",
         "denied": "Bloqueadas en los ajustes de tu navegador.",
+        "deniedApp": "Las notificaciones de Split están desactivadas. Actívalas en la configuración de tu teléfono.",
         "unknown": "No se pudo comprobar ahora — este dispositivo puede seguir recibiéndolas.",
         "needsToken": "Elige tu nombre otra vez para activarlas.",
         "failed": "no se pudieron cambiar las notificaciones — inténtalo de nuevo"
+    },
+    "native": {
+        "update": {
+            "title": "Actualiza Split",
+            "body": "Esta versión de Split está desactualizada. Actualízala para seguir usando tus salas.",
+            "cta": "Actualizar",
+            "openWeb": "Abrir en el navegador"
+        }
+    },
+    "legal": {
+        "privacy": "Privacidad"
     },
     "routeStates": {
         "error": {
@@ -1229,7 +1255,8 @@
         "NO_RATE": "No hay cotización entre esa moneda y la de la sala, así que no se puede convertir. Usá la moneda de la sala.",
         "MANUAL_FX_RATE_REQUIRED": "Ingresa una cotización manual para esta moneda personalizada.",
         "MANUAL_FX_RATE_INVALID": "Esa cotización manual no es válida o hace que el monto convertido se redondee a cero.",
-        "MANUAL_FX_RATE_NOT_ALLOWED": "Las cotizaciones manuales solo están disponibles para monedas personalizadas del gasto."
+        "MANUAL_FX_RATE_NOT_ALLOWED": "Las cotizaciones manuales solo están disponibles para monedas personalizadas del gasto.",
+        "NATIVE_PUSH_UNAVAILABLE": "Las notificaciones aún no están disponibles."
     },
     "derivation": {
         "title": "Cómo sale este número",

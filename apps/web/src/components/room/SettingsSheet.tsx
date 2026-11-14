@@ -17,11 +17,14 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/u
 import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
 import { Icon } from '@/components/ui/Icon'
 import { SettingRow } from '@/components/ui/SettingRow'
+import { SettingToggle } from '@/components/ui/SettingToggle'
 import { SlideToConfirm } from '@/components/ui/SlideToConfirm'
 import { asLocale, LOCALE_LABELS } from '@/i18n/locales'
 import { roomProps, track } from '@/lib/analytics'
 import type { ApiMember, ApiRoom, RoomState } from '@/lib/api-types'
 import { copyText } from '@/lib/clipboard'
+import { splitV2Enabled } from '@/lib/flags'
+import { IS_NATIVE_APP } from '@/lib/platform'
 import { productUrl } from '@/lib/site'
 import { useErrorMessage } from '@/lib/error-messages'
 import type { MemberIdentity } from '@/lib/identity'
@@ -30,7 +33,7 @@ import { useSetEmblem, useSetRoomName, useSetTheme } from '@/lib/queries'
 import { emblemChoice, roomEmblemValue } from '@/lib/room-emblem'
 import { themeFor } from '@/lib/themes'
 import { TOAST_MS } from '@/lib/toasts'
-import { useFeedback } from '@/lib/use-settings'
+import { useFeedback, useSettings } from '@/lib/use-settings'
 import { DeviceSheet } from './DeviceSheet'
 import { FeedbackReportDrawer } from './FeedbackReportDrawer'
 import { HistorySheet } from './HistorySheet'
@@ -83,9 +86,11 @@ export function SettingsSheet({
 }: SettingsSheetProps) {
     const t = useTranslations('room.header')
     const tTheme = useTranslations('room.theme')
+    const tLegal = useTranslations('legal')
     const locale = asLocale(useLocale())
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
+    const { settings, setScanConsent } = useSettings()
     const setRoomName = useSetRoomName(room.slug, identity?.token)
     const setTheme = useSetTheme(room.slug, identity?.token)
     const setEmblem = useSetEmblem(room.slug, identity?.token)
@@ -365,6 +370,18 @@ export function SettingsSheet({
                             testId="device-row"
                         />
 
+                        {/* The app asks before the first receipt scan; this is where that answer
+                        can be changed later. The web does not ask, so it has nothing to change. */}
+                        {IS_NATIVE_APP && splitV2Enabled() && (
+                            <SettingToggle
+                                label={t('scanConsent')}
+                                hint={t('scanConsentHint')}
+                                checked={settings.scanConsent}
+                                onChange={setScanConsent}
+                                testId="setting-scan-consent"
+                            />
+                        )}
+
                         <SettingRow
                             label={t('reportProblem')}
                             value={t('reportProblemHint')}
@@ -376,7 +393,14 @@ export function SettingsSheet({
 
                         {/* The one surviving statement of the link-is-the-credential
                         fact. It used to appear four times. Say it once, here. */}
-                        <p className="text-center text-sm text-grey-1">{t('privacyNote')}</p>
+                        <div className="flex flex-col items-center gap-1 text-center text-sm text-grey-1">
+                            <p>{t('privacyNote')}</p>
+                            {/* Both stores require a privacy link inside the app. A plain anchor: in
+                            the app the external-link handler opens it in the system browser. */}
+                            <a href={productUrl('/privacy')} className="underline" data-testid="privacy-link">
+                                {tLegal('privacy')}
+                            </a>
+                        </div>
                     </DrawerBody>
                 </DrawerContent>
             </Drawer>

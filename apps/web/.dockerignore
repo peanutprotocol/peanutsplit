@@ -4,6 +4,11 @@ node_modules
 .github
 e2e
 e2e-v2
+e2e-native
+ios
+android
+.next-native
+resources
 docs
 local
 *.log

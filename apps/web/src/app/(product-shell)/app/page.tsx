@@ -9,6 +9,7 @@ import { RecentRoomAppEntry } from '@/components/pwa/RecentRoomAppEntry'
 import { Doodle } from '@/components/ui/Doodle'
 import { buttonClassName } from '@/components/ui/button-style'
 import { installSurfaceSource, isInstallRepairRequest } from '@/lib/install-surface'
+import { productUrl } from '@/lib/site'
 
 export const metadata: Metadata = {
     title: 'Split',
@@ -29,11 +30,12 @@ export default async function AppHomePage({
         source?: string | string[]
     }>
 }) {
-    const [tCreate, tFooter, tRooms, tHeader] = await Promise.all([
+    const [tCreate, tFooter, tRooms, tHeader, tLegal] = await Promise.all([
         getTranslations('room.create'),
         getTranslations('marketing.footer'),
         getTranslations('marketing.rooms'),
         getTranslations('room.header'),
+        getTranslations('legal'),
     ])
     const { add, manage, install, repair, source } = await searchParams
     const addExpense = add === '1'
@@ -83,6 +85,12 @@ export default async function AppHomePage({
                     </nav>
                 }
             />
+            {/* Same privacy link as the store app's rooms home (both stores require one). */}
+            <p className="px-5 pb-8 text-center text-sm text-grey-1">
+                <a href={productUrl('/privacy')} className="underline" data-testid="app-privacy-link">
+                    {tLegal('privacy')}
+                </a>
+            </p>
         </main>
     )
 

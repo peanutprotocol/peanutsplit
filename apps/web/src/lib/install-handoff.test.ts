@@ -438,3 +438,48 @@ describe('arming from the install surface', () => {
         expect(hasPreparedInstallHandoff(document.cookie)).toBe(false)
     })
 })
+
+describe('in the store app', () => {
+    /** `IS_NATIVE_APP` is fixed at module load, so the app's copy is loaded fresh with the build flag. */
+    async function loadNative() {
+        vi.stubEnv('NEXT_PUBLIC_NATIVE_BUILD', '1')
+        vi.resetModules()
+        const [handoff, nativeApi] = await Promise.all([import('./install-handoff'), import('./api')])
+        return { handoff, installHandoff: nativeApi.api.installHandoff }
+    }
+
+    afterEach(() => {
+        vi.unstubAllEnvs()
+        vi.resetModules()
+    })
+
+    it('restores nothing, even from a standalone launch that holds a prepared marker', async () => {
+        const storage = installBrowser({ marker: 'notifications' })
+        const { handoff, installHandoff } = await loadNative()
+        const redeem = vi.spyOn(installHandoff, 'redeem').mockResolvedValue(payload())
+
+        await expect(handoff.restorePreparedInstallHandoff()).resolves.toEqual({ status: 'not-needed' })
+        expect(redeem).not.toHaveBeenCalled()
+        expect(storage.getItem(RECENT_ROOMS_KEY)).toBeNull()
+        expect(readRoomUpdates(SLUG)).toEqual({})
+    })
+
+    it('never arms or cancels a handoff, and leaves the cookie jar and storage untouched', async () => {
+        const storage = installBrowser({ standalone: false, marker: false })
+        const { handoff, installHandoff } = await loadNative()
+        const prepare = vi.spyOn(installHandoff, 'prepare').mockImplementation(async () => {
+            document.cookie = `${INSTALL_HANDOFF_READY_COOKIE}=1`
+            return { prepared: true }
+        })
+        const acknowledge = vi.spyOn(installHandoff, 'acknowledge').mockResolvedValue(undefined)
+        const cookiesBefore = document.cookie
+
+        await expect(handoff.prepareInstallHandoff(SLUG, 'tok_1', { notifications: true })).resolves.toBeNull()
+        await expect(handoff.cancelPreparedInstallHandoff({ intent: 'any' })).resolves.toBeUndefined()
+
+        expect(document.cookie).toBe(cookiesBefore)
+        expect(storage.length).toBe(0)
+        expect(prepare).not.toHaveBeenCalled()
+        expect(acknowledge).not.toHaveBeenCalled()
+    })
+})

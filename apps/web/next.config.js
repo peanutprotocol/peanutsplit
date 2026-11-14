@@ -25,6 +25,10 @@ const nextConfig = {
     // and the proxy owns the general strip for everything else.
     skipTrailingSlashRedirect: true,
 
+    // Defined so Next inlines it: an undefined NEXT_PUBLIC_* survives as `process.env.X`, webpack
+    // cannot fold the guard in src/lib/native/host.ts, and the Capacitor chunk lands in this build.
+    env: { NEXT_PUBLIC_NATIVE_BUILD: '0' },
+
     /**
      * Two retirements, neither of them locale detection: nothing here reads `Accept-Language` or a
      * cookie, and no reader is ever moved off the language they asked for.
@@ -56,6 +60,27 @@ const nextConfig = {
     },
 
     /**
+     * Two static files the store apps depend on. Both paths contain a dot, so src/proxy.ts's
+     * matcher skips them. iOS reads the association file only as JSON (it is served as
+     * application/octet-stream otherwise), and the apps fetch the version config cross-origin.
+     */
+    async headers() {
+        return [
+            {
+                source: '/.well-known/apple-app-site-association',
+                headers: [{ key: 'Content-Type', value: 'application/json' }],
+            },
+            {
+                source: '/app-config.json',
+                headers: [
+                    { key: 'Access-Control-Allow-Origin', value: '*' },
+                    { key: 'Cache-Control', value: 'public, max-age=300' },
+                ],
+            },
+        ]
+    },
+
+    /**
      * `public/` serves files at their exact path only — a directory never resolves to its own
      * index.html. The funnel quiz is one self-contained static file under `public/dev/funnel-quiz/`,
      * and this maps the clean URL onto it. After-files stage, so real files still win.
@@ -65,9 +90,26 @@ const nextConfig = {
     },
 }
 
-// Serwist compiles src/app/sw.ts → public/sw.js. Skipped in dev so cold starts
-// stay fast and the SW never caches a half-built dev bundle.
-if (process.env.NODE_ENV !== 'development') {
+if (process.env.SPLIT_NATIVE_BUILD === '1') {
+    // App-store build: static export of the app surface only. docs/current/NATIVE.md
+    module.exports = withNextIntl({
+        output: 'export',
+        // The export lands here. Next still builds into .next (forced for output: 'export'), which
+        // replaces any web build there; scripts/native/postbuild.mjs then clears it except cache.
+        distDir: '.next-native',
+        trailingSlash: true, // room/index.html, which Capacitor's file server resolves
+        images: { unoptimized: true },
+        pageExtensions: ['native.tsx', 'native.ts'],
+        reactStrictMode: true,
+        productionBrowserSourceMaps: false,
+        typescript: { tsconfigPath: 'tsconfig.native.json' },
+        // NEXT_PUBLIC_BASE_URL stays out of this block on purpose: a config value would override
+        // the process env, and the test export must be able to point at a loopback API.
+        env: { NEXT_PUBLIC_NATIVE_BUILD: '1' },
+    })
+} else if (process.env.NODE_ENV !== 'development') {
+    // Serwist compiles src/app/sw.ts → public/sw.js. Skipped in dev so cold starts
+    // stay fast and the SW never caches a half-built dev bundle.
     module.exports = async () => {
         const withSerwist = (await import('@serwist/next')).default({
             swSrc: './src/app/sw.ts',

@@ -11,6 +11,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
+import { apiUrl } from './platform'
 
 /** First retry. Doubling from here, so a server that comes straight back is
  *  noticed within a second. */
@@ -67,7 +68,7 @@ export function useRoomEvents(slug: string, onPoke: () => void): RoomEvents {
 
         const connect = () => {
             if (stopped || source) return
-            const stream = new EventSource(`/api/rooms/${encodeURIComponent(slug)}/events`)
+            const stream = new EventSource(apiUrl(`/api/rooms/${encodeURIComponent(slug)}/events`))
             source = stream
 
             stream.onopen = () => {

@@ -10,18 +10,19 @@ import { Icon } from '@/components/ui/Icon'
 import { isApiError } from '@/lib/api'
 import { importedRoomPath } from '@/lib/import-routes'
 import { isCatalogCode } from '@/lib/money'
-import { useRoomSnapshot } from '@/lib/queries'
+import { roomReadBlocked, useRoomSnapshot } from '@/lib/queries'
 import { themeVars } from '@/lib/themes'
 import { useRoomIdentity } from '@/lib/use-identity'
 
 export function ExistingRoomImportScreen({ slug }: { slug: string }) {
     const t = useTranslations('import.existing')
-    const { data: state, error, isPending, refetch } = useRoomSnapshot(slug)
+    const { data: state, error, fetchStatus, isPending, refetch } = useRoomSnapshot(slug)
     const { identity } = useRoomIdentity(slug)
 
     if (isApiError(error, 'NOT_FOUND')) return <RoomNotFound slug={slug} />
 
-    if (error && !state) {
+    // A paused read (started after an `offline` event) offers the same Retry and way back.
+    if (roomReadBlocked({ data: state, error, fetchStatus })) {
         return (
             <main className="split-app-frame mx-auto flex min-h-dvh w-full max-w-xl flex-col bg-background px-4 py-8">
                 <p className="text-h5">{t('loadFailed')}</p>

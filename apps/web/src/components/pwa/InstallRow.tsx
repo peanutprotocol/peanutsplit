@@ -5,10 +5,11 @@ import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { SettingRow } from '@/components/ui/SettingRow'
 import { StateRow } from '@/components/ui/StateRow'
-import { installMeasureProps, track } from '@/lib/analytics'
+import { installMeasureProps, roomProps, track } from '@/lib/analytics'
 import { cancelPreparedInstallHandoff, prepareInstallHandoff } from '@/lib/install-handoff'
 import { openInstallRepairSurface, openInstallSurface } from '@/lib/install-surface'
-import { isIOSHere, noteInstallDismissed, promptInstall, useInstallState } from '@/lib/install'
+import { isIOSHere, noteInstallDismissed, noteStoreTapped, promptInstall, useInstallState } from '@/lib/install'
+import { storeAppUrl } from '@/lib/store-app'
 import { useFeedback } from '@/lib/use-settings'
 
 /**
@@ -112,6 +113,25 @@ export function InstallRow({ slug, token, active = true }: { slug: string; token
                 onClick={() => openInstallRepairSurface('settings')}
                 testId="install-row-repair"
             />
+        )
+    }
+
+    if (state === 'store') {
+        const url = storeAppUrl()
+        if (!url) return null
+        return (
+            <div className="grid gap-2">
+                <SettingRow
+                    label={t('store.cta')}
+                    onClick={() => {
+                        track('store_link_clicked', roomProps(slug, { platform: 'ios', source: 'settings' }))
+                        noteStoreTapped()
+                        window.location.assign(url)
+                    }}
+                    testId="install-row-store"
+                />
+                <p className="text-sm leading-5 text-grey-1">{t('store.note')}</p>
+            </div>
         )
     }
 

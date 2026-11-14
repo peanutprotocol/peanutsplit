@@ -304,21 +304,33 @@ export interface SettlementInput {
 
 // ─── push ───────────────────────────────────────────────────────────────────
 
-export interface PushSubscribeInput {
-    endpoint: string
-    keys: { p256dh: string; auth: string }
+/** The native app's delivery service. iOS builds pick `apns` or `apns-sandbox`
+ *  from the build's APNs environment; Android uses `fcm`. */
+export type NativePushTransport = 'apns' | 'apns-sandbox' | 'fcm'
+
+interface PushMemberProof {
     memberId: string
     /** Proof of membership. Unlike every other write, push registration is not
      *  satisfied by holding the room link. */
     memberToken: string
-    userAgent?: string | null
 }
 
-export interface PushUnsubscribeInput {
+/** A browser's Web Push subscription. */
+export interface WebPushChannel {
     endpoint: string
-    memberId: string
-    memberToken: string
 }
+
+/** An app install's device token. The server stores it as `<transport>:<token>`. */
+export interface NativePushChannel {
+    transport: NativePushTransport
+    token: string
+}
+
+export type PushSubscribeInput =
+    | (WebPushChannel & PushMemberProof & { keys: { p256dh: string; auth: string }; userAgent?: string | null })
+    | (NativePushChannel & PushMemberProof & { userAgent?: string | null })
+
+export type PushUnsubscribeInput = (WebPushChannel | NativePushChannel) & PushMemberProof
 
 // ─── receipt scan ───────────────────────────────────────────────────────────
 // A scan is a DRAFT, not a write. Nothing here is stored anywhere: the image is

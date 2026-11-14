@@ -11,7 +11,9 @@ import { toast } from 'sonner'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
+import { roomProps, track } from '@/lib/analytics'
 import { api, isApiError } from '@/lib/api'
+import { IS_NATIVE_APP, roomPath } from '@/lib/platform'
 import { readRecentRooms, rememberRoom, roomSlugFromLink, type RecentRoom } from '@/lib/recent-rooms'
 import { themeFor } from '@/lib/themes'
 import { TOAST_MS } from '@/lib/toasts'
@@ -87,6 +89,8 @@ export function YourRooms({
     const motionAllowed = useMotionAllowed()
     const feedback = useFeedback()
     const [recent, setRecent] = useState<RecentRoom[]>([])
+    /** False until the localStorage read, so a device with rooms never flashes the empty line. */
+    const [loaded, setLoaded] = useState(false)
     /**
      * What this person asked the list to do, `null` until they ask anything.
      *
@@ -127,6 +131,7 @@ export function YourRooms({
 
     useEffect(() => {
         setRecent(readRecentRooms())
+        setLoaded(true)
     }, [])
 
     // Hiding a single sixth room behind a passive "and 1 more" footer made the
@@ -198,7 +203,8 @@ export function YourRooms({
             // not. This is especially important when localStorage was denied.
             toast(recoveryNotice, { duration: TOAST_MS.actionable })
             feedback('pop')
-            router.push(`/r/${encodeURIComponent(state.room.slug)}${addExpense ? '?add=1' : ''}`)
+            if (IS_NATIVE_APP) track('app_room_opened', roomProps(state.room.slug, { via: 'paste' }))
+            router.push(roomPath(state.room.slug, 'room', addExpense ? 'add=1' : ''))
         } catch (error) {
             setRecoveryError(
                 isApiError(error, 'NOT_FOUND') || isApiError(error, 'ROOM_NOT_FOUND')
@@ -258,7 +264,7 @@ export function YourRooms({
                                 className="shadow-4 flex overflow-hidden rounded-sm border border-n-1 bg-white"
                             >
                                 <RoomCardLink
-                                    href={`/r/${encodeURIComponent(room.slug)}${addExpense ? '?add=1' : ''}`}
+                                    href={roomPath(room.slug, 'room', addExpense ? 'add=1' : '')}
                                     data-focus-contained
                                     whileTap={motionAllowed ? { scale: 0.97 } : undefined}
                                     onClick={() => feedback('whoosh')}
@@ -324,6 +330,13 @@ export function YourRooms({
                         </motion.button>
                     )}
                 </>
+            )}
+
+            {surface === 'app' && loaded && recent.length === 0 && (
+                // Web /app and the store app share this line: a fresh app install starts here.
+                <p data-testid="recent-rooms-empty" className="text-sm leading-5 text-grey-1">
+                    {t('emptyHint')}
+                </p>
             )}
 
             {surface === 'app' && (

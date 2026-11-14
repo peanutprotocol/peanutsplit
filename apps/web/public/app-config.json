@@ -1,0 +1,7 @@
+{
+    "minBuild": { "ios": 0, "android": 0 },
+    "store": {
+        "ios": "https://apps.apple.com/app/idPLACEHOLDER",
+        "android": "https://play.google.com/store/apps/details?id=com.peanutsplit.app"
+    }
+}

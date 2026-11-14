@@ -26,6 +26,7 @@
         "rooms": {
             "title": "Deine Gruppen",
             "subtitle": "Auf diesem Gerät gespeichert.",
+            "emptyHint": "Öffne einen Gruppenlink aus deinem Chat oder füge ihn hier ein.",
             "openLabel": "Gruppe öffnen",
             "showMore": "{count, plural, one {# weitere Gruppe anzeigen} other {# weitere Gruppen anzeigen}}",
             "showLess": "Weniger Gruppen anzeigen",
@@ -207,6 +208,10 @@
                 "continue": "Zurück zu Split",
                 "copyRoom": "Ursprünglichen Gruppenlink kopieren",
                 "roomRecovery": "Ist die Gruppe nach der Installation verschwunden? Öffne den ursprünglichen Gruppenlink einmal."
+            },
+            "store": {
+                "cta": "Hol dir die App",
+                "note": "Deine Gruppen öffnen sich in der App, wenn du auf ihre Links tippst."
             }
         },
         "linkExplainer": {
@@ -399,7 +404,9 @@
             "sound": "Ton",
             "haptics": "Haptik",
             "privacyNote": "Kostenlos nutzbar, keine Anmeldung. Alle mit dem Gruppenlink können die Gruppe öffnen.",
-            "manageRooms": "Gruppen verwalten"
+            "manageRooms": "Gruppen verwalten",
+            "scanConsent": "Belege mit KI lesen",
+            "scanConsentHint": "Belegfotos gehen über OpenRouter an Google Gemini."
         },
         "feedback": {
             "title": "Problem melden",
@@ -607,6 +614,7 @@
         "states": {
             "errorTitle": "Diese Gruppe konnte nicht geladen werden",
             "errorBody": "Wahrscheinlich wackelt die Verbindung. Nichts geht verloren – versuche es noch einmal.",
+            "offlineBody": "Du bist offline. Diese Gruppe wird geladen, sobald du wieder online bist.",
             "staleTitle": "Diese Gruppe ist möglicherweise nicht aktuell",
             "staleBody": "Die zuletzt geladene Version der Gruppe wird angezeigt. Gespeicherte Ausgaben können erst nach einer Aktualisierung bearbeitet oder gelöscht werden; auch Zahlungen können bis dahin nicht erfasst werden. Neue Ausgaben kannst du weiterhin hinzufügen.",
             "retry": "Noch einmal versuchen",
@@ -916,6 +924,12 @@
             "step2": "Beleg scannen · Wer hatte was?",
             "reading": "Beleg wird gelesen…",
             "privacyNote": "Split sendet das Foto einmalig und speichert es nicht.",
+            "consent": {
+                "title": "Diesen Beleg mit KI lesen?",
+                "body": "Um deinen Beleg zu lesen, sendet Split das Foto über OpenRouter an Google Gemini. Split speichert es nicht.",
+                "allow": "Erlauben",
+                "notNow": "Nicht jetzt"
+            },
             "reviewTitle": "Positionen prüfen",
             "reviewBody": "Korrigiere Fehler, lösche, was dir nicht gehört, und ergänze Fehlendes.",
             "reviewFromMerchant": "Von {merchant}. Korrigiere Fehler und ergänze Fehlendes.",
@@ -1144,9 +1158,21 @@
         "iosNeedsPwa": "Füge Split zu deinem Home-Bildschirm hinzu.",
         "iosHow": "Wie?",
         "denied": "In deinen Browsereinstellungen blockiert.",
+        "deniedApp": "Benachrichtigungen für Split sind aus. Schalte sie in den Einstellungen deines Handys ein.",
         "unknown": "Der Status konnte gerade nicht geprüft werden – möglicherweise erhält dieses Gerät weiterhin Benachrichtigungen.",
         "needsToken": "Wähle deinen Namen erneut aus, um Benachrichtigungen zu aktivieren.",
         "failed": "Benachrichtigungen konnten nicht geändert werden – versuche es noch einmal"
+    },
+    "native": {
+        "update": {
+            "title": "Split aktualisieren",
+            "body": "Diese Version von Split ist veraltet. Aktualisiere sie, um deine Gruppen weiter zu nutzen.",
+            "cta": "Aktualisieren",
+            "openWeb": "Im Browser öffnen"
+        }
+    },
+    "legal": {
+        "privacy": "Datenschutz"
     },
     "routeStates": {
         "error": {
@@ -1229,7 +1255,8 @@
         "NO_RATE": "Für diese Währung gibt es keinen Wechselkurs zur Gruppenwährung. Verwende stattdessen die Gruppenwährung.",
         "MANUAL_FX_RATE_REQUIRED": "Gib für diese benutzerdefinierte Währung einen manuellen Kurs ein.",
         "MANUAL_FX_RATE_INVALID": "Dieser Kurs ist ungültig oder rundet den umgerechneten Betrag auf null.",
-        "MANUAL_FX_RATE_NOT_ALLOWED": "Manuelle Kurse sind nur bei benutzerdefinierten Ausgabenwährungen möglich."
+        "MANUAL_FX_RATE_NOT_ALLOWED": "Manuelle Kurse sind nur bei benutzerdefinierten Ausgabenwährungen möglich.",
+        "NATIVE_PUSH_UNAVAILABLE": "Benachrichtigungen sind noch nicht verfügbar."
     },
     "derivation": {
         "title": "So kommt dieser Betrag zustande",

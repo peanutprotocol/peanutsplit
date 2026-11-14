@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { deriveInstallState, type InstallEnvironment } from './install'
 
 const env = (overrides: Partial<InstallEnvironment> = {}): InstallEnvironment => ({
+    isNativeApp: false,
+    hasStoreApp: false,
     isStandalone: false,
     isIOS: false,
     hasPrompt: false,
@@ -50,6 +52,26 @@ describe('deriveInstallState', () => {
     it('sends iOS to the how-to sheet without treating a pending browser check as unsupported', () => {
         expect(deriveInstallState(env({ isIOS: true }))).toBe('ios')
         expect(deriveInstallState(env())).toBe('waiting')
+    })
+
+    it('treats the store app as installed before anything else, so it never shows install UI', () => {
+        expect(deriveInstallState(env({ isNativeApp: true }))).toBe('installed')
+        expect(deriveInstallState(env({ isNativeApp: true, isIOS: true, hasStoreApp: true }))).toBe('installed')
+        expect(deriveInstallState(env({ isNativeApp: true, isStandalone: true, isRoomPath: true }))).toBe('installed')
+        expect(deriveInstallState(env({ isNativeApp: true, hasPrompt: true }))).toBe('installed')
+    })
+
+    it('offers the store to a browser that has a store app, ahead of the PWA paths', () => {
+        expect(deriveInstallState(env({ isIOS: true, hasStoreApp: true }))).toBe('store')
+        expect(deriveInstallState(env({ isIOS: true, hasStoreApp: true, promptSpent: true }))).toBe('store')
+    })
+
+    it('leaves installed and repairable PWAs alone when a store app exists', () => {
+        expect(deriveInstallState(env({ isIOS: true, hasStoreApp: true, isStandalone: true }))).toBe('installed')
+        expect(deriveInstallState(env({ isIOS: true, hasStoreApp: true, isStandalone: true, isRoomPath: true }))).toBe(
+            'repair'
+        )
+        expect(deriveInstallState(env({ isIOS: true, hasStoreApp: true, installedHere: true }))).toBe('installed')
     })
 })
 
@@ -413,6 +435,156 @@ describe('the install store', () => {
 
         dismissInstallRepairNotice()
         expect(isInstallRepairNoticeDismissed()).toBe(true)
+    })
+})
+
+const IPHONE_UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) Version/17.5 Safari/604.1'
+const ANDROID_UA = 'Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 Chrome/127.0 Mobile Safari/537.36'
+const DESKTOP_UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/127.0 Safari/537.36'
+
+/**
+ * The App Store offer as the live store derives it: the store ID is a build-time env var, the
+ * device comes from the navigator. Android must keep the PWA states whatever the env says.
+ */
+describe('the store-app offer in the live store', () => {
+    beforeEach(() => {
+        vi.resetModules()
+    })
+
+    afterEach(() => {
+        vi.unstubAllGlobals()
+        vi.unstubAllEnvs()
+    })
+
+    it('offers the store on an iPhone when the store ID is set', async () => {
+        vi.stubEnv('NEXT_PUBLIC_IOS_APP_STORE_ID', '6740000000')
+        fakeWindow({ ua: IPHONE_UA, platform: 'iPhone', maxTouchPoints: 5 })
+        const { captureInstallPrompt, readInstallState } = await import('./install')
+
+        captureInstallPrompt()
+        expect(readInstallState()).toBe('store')
+    })
+
+    it('offers the store on an iPad that reports a desktop user agent', async () => {
+        vi.stubEnv('NEXT_PUBLIC_IOS_APP_STORE_ID', '6740000000')
+        fakeWindow({
+            ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Version/17.5 Safari/605.1.15',
+            platform: 'MacIntel',
+            maxTouchPoints: 5,
+        })
+        const { captureInstallPrompt, readInstallState } = await import('./install')
+
+        captureInstallPrompt()
+        expect(readInstallState()).toBe('store')
+    })
+
+    it('keeps the iPhone on the Add-to-Home-Screen steps while the store ID is unset', async () => {
+        vi.stubEnv('NEXT_PUBLIC_IOS_APP_STORE_ID', '')
+        fakeWindow({ ua: IPHONE_UA, platform: 'iPhone', maxTouchPoints: 5 })
+        const { captureInstallPrompt, readInstallState } = await import('./install')
+
+        captureInstallPrompt()
+        expect(readInstallState()).toBe('ios')
+    })
+
+    it('keeps an installed iPhone PWA installed when the store ID is set', async () => {
+        vi.stubEnv('NEXT_PUBLIC_IOS_APP_STORE_ID', '6740000000')
+        fakeWindow({ ua: IPHONE_UA, platform: 'iPhone', maxTouchPoints: 5, standalone: true, pathname: '/app' })
+        const { captureInstallPrompt, readInstallState } = await import('./install')
+
+        captureInstallPrompt()
+        expect(readInstallState()).toBe('installed')
+    })
+
+    for (const storeId of ['6740000000', '']) {
+        it(`keeps Android on today's PWA states (store ID ${storeId ? 'set' : 'unset'})`, async () => {
+            vi.stubEnv('NEXT_PUBLIC_IOS_APP_STORE_ID', storeId)
+            const win = fakeWindow({ ua: ANDROID_UA, platform: 'Linux armv8l', maxTouchPoints: 5 })
+            const { captureInstallPrompt, promptInstall, readInstallState } = await import('./install')
+
+            captureInstallPrompt()
+            expect(readInstallState()).toBe('waiting')
+            win.fire('beforeinstallprompt', {
+                prompt: async () => {},
+                userChoice: Promise.resolve({ outcome: 'dismissed' }),
+            })
+            expect(readInstallState()).toBe('promptable')
+            await promptInstall()
+            expect(readInstallState()).toBe('dismissed')
+        })
+
+        it(`keeps desktop on today's PWA states (store ID ${storeId ? 'set' : 'unset'})`, async () => {
+            vi.stubEnv('NEXT_PUBLIC_IOS_APP_STORE_ID', storeId)
+            const win = fakeWindow({ ua: DESKTOP_UA })
+            const { captureInstallPrompt, readInstallState } = await import('./install')
+
+            captureInstallPrompt()
+            expect(readInstallState()).toBe('waiting')
+            win.fire('beforeinstallprompt')
+            expect(readInstallState()).toBe('promptable')
+        })
+    }
+})
+
+describe('the store-tap snooze', () => {
+    beforeEach(() => {
+        vi.resetModules()
+    })
+
+    afterEach(() => {
+        vi.restoreAllMocks()
+        vi.unstubAllGlobals()
+    })
+
+    it('quiets the automatic offer for 30 days without counting a dismissal', async () => {
+        const win = fakeWindow({ ua: IPHONE_UA, platform: 'iPhone', maxTouchPoints: 5 })
+        const announced = vi.fn()
+        win.listeners.set('ps:install-snooze-change', [announced])
+        ;(window as unknown as { dispatchEvent: (event: Event) => boolean }).dispatchEvent = (event) => {
+            for (const handler of win.listeners.get(event.type) ?? []) handler(event)
+            return true
+        }
+        const now = vi.spyOn(Date, 'now').mockReturnValue(5_000)
+        const { STORE_TAPPED_AT_KEY, isInstallSnoozed, noteStoreTapped } = await import('./install')
+
+        expect(isInstallSnoozed()).toBe(false)
+        noteStoreTapped()
+
+        expect(win.store.get(STORE_TAPPED_AT_KEY)).toBe('5000')
+        expect(win.store.get('ps:pwa-dismiss-count')).toBeUndefined()
+        expect(announced).toHaveBeenCalledTimes(1)
+        expect(isInstallSnoozed()).toBe(true)
+
+        now.mockReturnValue(5_000 + 30 * 24 * 60 * 60 * 1000 - 1)
+        expect(isInstallSnoozed()).toBe(true)
+        now.mockReturnValue(5_000 + 30 * 24 * 60 * 60 * 1000)
+        expect(isInstallSnoozed()).toBe(false)
+        expect(win.store.get('ps:pwa-dismiss-count')).toBeUndefined()
+    })
+
+    it('leaves an earlier dismissal count and its backoff untouched', async () => {
+        const win = fakeWindow({ ua: IPHONE_UA, platform: 'iPhone', maxTouchPoints: 5 })
+        const now = vi.spyOn(Date, 'now').mockReturnValue(1_000)
+        const { installBackoffMs, isInstallSnoozed, noteInstallDismissed, noteStoreTapped } = await import('./install')
+
+        noteInstallDismissed()
+        noteInstallDismissed()
+        now.mockReturnValue(2_000)
+        noteStoreTapped()
+
+        expect(win.store.get('ps:pwa-dismiss-count')).toBe('2')
+        expect(win.store.get('ps:pwa-dismissed-at')).toBe('1000')
+        // The dismissal backoff (48 h) ends long before the store-tap snooze does.
+        now.mockReturnValue(1_000 + installBackoffMs(2) + 1)
+        expect(isInstallSnoozed()).toBe(true)
+    })
+
+    it('fails open when storage is denied', async () => {
+        fakeWindow({ denyLocalStorage: true })
+        const { isInstallSnoozed, noteStoreTapped } = await import('./install')
+
+        expect(() => noteStoreTapped()).not.toThrow()
+        expect(isInstallSnoozed()).toBe(false)
     })
 })
 

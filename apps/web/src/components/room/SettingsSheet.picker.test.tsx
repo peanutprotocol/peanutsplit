@@ -68,7 +68,10 @@ vi.mock('@/lib/queries', () => ({
     useSetRoomName: () => ({ isPending: false, mutate: vi.fn() }),
     useSetTheme: () => ({ isPending: false, mutate: vi.fn() }),
 }))
-vi.mock('@/lib/use-settings', () => ({ useFeedback: () => () => undefined }))
+vi.mock('@/lib/use-settings', () => ({
+    useFeedback: () => () => undefined,
+    useSettings: () => ({ settings: { scanConsent: false }, setScanConsent: () => undefined }),
+}))
 vi.mock('./DeviceSheet', () => ({ DeviceSheet: () => null }))
 vi.mock('./FeedbackReportDrawer', () => ({ FeedbackReportDrawer: () => null }))
 vi.mock('./HistorySheet', () => ({ HistorySheet: () => null }))

@@ -234,3 +234,31 @@ describe('recent-room persistence results', () => {
         expect(forgetRoom(SLUG)).toBe(false)
     })
 })
+
+describe('recent rooms in the store app', () => {
+    afterEach(() => {
+        vi.unstubAllEnvs()
+        vi.unstubAllGlobals()
+        vi.resetModules()
+    })
+
+    it('opens the most recent room on the static native route', async () => {
+        vi.stubEnv('NEXT_PUBLIC_NATIVE_BUILD', '1')
+        vi.resetModules()
+        const recent = await import('./recent-rooms')
+        vi.stubGlobal('window', {
+            localStorage: {
+                getItem: (key: string) =>
+                    key === RECENT_ROOMS_KEY ? JSON.stringify([{ slug: SLUG, name: 'Lisbon', lastSeenAt: 1 }]) : null,
+                setItem: () => undefined,
+            },
+        })
+
+        expect(recent.mostRecentRoomPath()).toBe(`/room/?slug=${SLUG}`)
+    })
+
+    it('accepts a pasted web room link while the app runs on its own origin', () => {
+        expect(roomSlugFromLink(`https://peanutsplit.com/r/${SLUG}`, 'capacitor://localhost')).toBe(SLUG)
+        expect(roomSlugFromLink(`https://peanutsplit.com/r/${SLUG}`, 'https://localhost')).toBe(SLUG)
+    })
+})
