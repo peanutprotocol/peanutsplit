@@ -351,6 +351,36 @@ jobs:
           pnpm exec playwright test --config "${SUITE_CONFIG}" --last-failed --workers=1 --retries=1 --reporter=json \
             || echo "::warning::Some head failures repeat with one worker. web-e2e-compare lists them."
 
+      # The iPhone store offer is off until the App Store ID exists, so the suites above run with it
+      # unset and skip e2e/store-offer.spec.ts. Here a second production build has it set, and the
+      # spec gates directly: it is new, so there is no base result to compare against. It runs on
+      # the pwa-boundary leg, after that suite is done with its own build, because that leg has no
+      # dev server and already builds the standalone server.
+      - name: Store offer against a build with the App Store ID
+        if: matrix.ref == 'head' && matrix.suite.id == 'pwa-boundary'
+        working-directory: apps/web
+        env:
+          NEXT_PUBLIC_IOS_APP_STORE_ID: '6740000000'
+          NEXT_PUBLIC_BASE_URL: http://localhost:8779
+          E2E_BASE_URL: http://localhost:8779
+          E2E_SKIP_GLOBAL_SETUP: '1'
+          SPLIT_FX_MODE: static
+        run: |
+          pnpm build
+          server="$(find .next/standalone -name server.js -not -path '*/node_modules/*' | head -n 1)"
+          app_dir="$(dirname "${server}")"
+          cp -R .next/static "${app_dir}/.next/static"
+          cp -R public "${app_dir}/public"
+          PORT=8779 HOSTNAME=0.0.0.0 nohup node "${server}" > "${RUNNER_TEMP}/store-offer.log" 2>&1 &
+          for attempt in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:8779/healthcheck > /dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          pnpm exec playwright test --config playwright.config.ts --project=mobile e2e/store-offer.spec.ts \
+            --reporter=list || { cat "${RUNNER_TEMP}/store-offer.log"; exit 1; }
+
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: ${{ !cancelled() }}
         with:
