@@ -7,6 +7,7 @@ import { motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { peanutCheering } from '@/assets/mascot'
 import { type DoodleName } from '@/components/ui/doodles'
+import { RECAP_AVAILABLE } from '@/lib/platform'
 import { recapPath } from '@/lib/recap'
 import { storyBucketFor } from '@/lib/story'
 import { DUCK_LEAD_MS, duckMaster } from '@/lib/sounds'
@@ -199,9 +200,13 @@ export function AllSettled({ compact = false, celebrate = false, summary, emblem
                 {slug && (
                     <div className="mt-3 flex w-full max-w-xs flex-col items-center gap-2">
                         <RecapShareButton slug={slug} />
-                        <Link href={recapPath(slug)} className="text-sm font-bold text-n-1 underline">
-                            {tRecap('seeRecap')}
-                        </Link>
+                        {/* The recap page reads the database on the server, so the store app ships
+                            without it in v1. The share card above is fetched from the server and stays. */}
+                        {RECAP_AVAILABLE && (
+                            <Link href={recapPath(slug)} className="text-sm font-bold text-n-1 underline">
+                                {tRecap('seeRecap')}
+                            </Link>
+                        )}
                     </div>
                 )}
             </motion.div>

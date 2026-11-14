@@ -42,19 +42,53 @@ export function RoomSkeleton() {
     )
 }
 
-export function RoomErrorState({ onRetry }: { onRetry: () => void }) {
+/**
+ * `offline` swaps the generic copy for the calm offline line and adds a way back to "Your rooms".
+ * The room then loads by itself on the window `online` event; in the store app the resume
+ * listener dispatches one too. `manage=1` keeps `/app` on the list: plain `/app` resumes the
+ * newest room, which is the one that just failed to load.
+ */
+export function RoomErrorState({ onRetry, offline = false }: { onRetry: () => void; offline?: boolean }) {
     const t = useTranslations('room.states')
+    const tRooms = useTranslations('marketing.rooms')
+
+    useEffect(() => {
+        if (!offline) return
+        window.addEventListener('online', onRetry)
+        return () => window.removeEventListener('online', onRetry)
+    }, [offline, onRetry])
+
+    const retry = (
+        <Button variant="primary" shadowSize="4" className="justify-center text-h6" onClick={onRetry}>
+            {t('retry')}
+        </Button>
+    )
 
     return (
         <div className="flex flex-col items-center gap-4 px-4 py-16 text-center">
             {/* Always above the fold when it renders, and it is the LCP element —
                 eager, or the error screen paints its own headline before its face. */}
             <Image src={peanutSad} alt="" unoptimized priority className="h-32 w-32 object-contain" />
-            <p className="text-h5">{t('errorTitle')}</p>
-            <p className="max-w-[20rem] text-sm text-grey-1">{t('errorBody')}</p>
-            <Button variant="primary" shadowSize="4" className="justify-center text-h6" onClick={onRetry}>
-                {t('retry')}
-            </Button>
+            {offline ? (
+                <>
+                    <p className="max-w-[20rem] text-h5">{t('offlineBody')}</p>
+                    <div className="flex flex-wrap items-center justify-center gap-3">
+                        {retry}
+                        <Link
+                            href="/app?manage=1"
+                            className={buttonClassName({ variant: 'stroke', className: 'justify-center' })}
+                        >
+                            {tRooms('title')}
+                        </Link>
+                    </div>
+                </>
+            ) : (
+                <>
+                    <p className="text-h5">{t('errorTitle')}</p>
+                    <p className="max-w-[20rem] text-sm text-grey-1">{t('errorBody')}</p>
+                    {retry}
+                </>
+            )}
         </div>
     )
 }
