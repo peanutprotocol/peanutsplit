@@ -6,7 +6,7 @@ Every installed dependency of Peanut Split and the license it ships under, acros
 lockfiles. Prose notices for the material that needs one — fonts, icon geometry, quoted
 competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-826 packages, 15 license classes.
+892 packages, 16 license classes.
 
 | License | Packages |
 | --- | ---: |
@@ -14,17 +14,18 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 | `(MIT OR CC0-1.0)` | 4 |
 | `(MPL-2.0 OR Apache-2.0)` | 1 |
 | `0BSD` | 1 |
-| `Apache-2.0` | 48 |
+| `Apache-2.0` | 49 |
 | `Apache-2.0 AND MIT` | 1 |
 | `BSD-2-Clause` | 10 |
 | `BSD-3-Clause` | 24 |
-| `BlueOak-1.0.0` | 5 |
+| `BlueOak-1.0.0` | 11 |
 | `CC-BY-4.0` | 1 |
 | `FSL-1.1-MIT` | 2 |
-| `ISC` | 37 |
+| `ISC` | 42 |
 | `LGPL-3.0-or-later` | 1 |
-| `MIT` | 688 |
+| `MIT` | 741 |
 | `MPL-2.0` | 2 |
+| `Unlicense` | 1 |
 
 ## (Apache-2.0 AND MIT)
 
@@ -82,6 +83,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `detect-libc@2.1.2`
 - `didyoumean@1.2.2`
 - `ecdsa-sig-formatter@1.0.11`
+- `elementtree@0.1.7`
 - `expect-type@1.4.0`
 - `fb-watchman@2.0.2`
 - `human-signals@2.1.0`
@@ -142,11 +144,17 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## BlueOak-1.0.0
 
+- `chownr@3.0.0`
 - `glob@13.0.6`
 - `lru-cache@11.5.3`
 - `minimatch@10.2.6`
 - `minipass@7.1.3`
+- `package-json-from-dist@1.0.1`
 - `path-scurry@2.0.2`
+- `rimraf@6.1.3`
+- `sax@1.6.1`
+- `tar@7.5.22`
+- `yallist@5.0.0`
 
 ## CC-BY-4.0
 
@@ -159,9 +167,12 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## ISC
 
+- `@capacitor/synapse@1.0.4`
+- `@isaacs/fs-minipass@4.0.1`
 - `@istanbuljs/load-nyc-config@1.1.0`
 - `@ungap/structured-clone@1.4.0`
 - `anymatch@3.1.3`
+- `at-least-node@1.0.0`
 - `cliui@8.0.1`
 - `electron-to-chromium@1.5.440`
 - `fastq@1.20.3`
@@ -174,6 +185,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `idb@8.0.3`
 - `inflight@1.0.6`
 - `inherits@2.0.4`
+- `ini@4.1.3`
 - `isexe@2.0.0`
 - `lru-cache@5.1.1`
 - `make-error@1.3.6`
@@ -182,6 +194,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `once@1.4.0`
 - `picocolors@1.1.1`
 - `qrcode.react@4.2.0`
+- `sax@1.1.4`
 - `semver@6.3.1`
 - `semver@7.8.5`
 - `siginfo@2.0.0`
@@ -239,6 +252,18 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `@babel/traverse@7.29.8`
 - `@babel/types@7.29.8`
 - `@bcoe/v8-coverage@0.2.3`
+- `@capacitor/android@8.2.0`
+- `@capacitor/app@8.1.2`
+- `@capacitor/browser@8.0.5`
+- `@capacitor/cli@8.2.0`
+- `@capacitor/core@8.2.0`
+- `@capacitor/filesystem@8.1.5`
+- `@capacitor/ios@8.2.0`
+- `@capacitor/preferences@8.0.1`
+- `@capacitor/push-notifications@8.1.3`
+- `@capacitor/share@8.0.3`
+- `@capacitor/splash-screen@8.0.2`
+- `@capacitor/status-bar@8.0.4`
 - `@eloqnt/config@0.1.1`
 - `@eloqnt/format-json@0.1.0`
 - `@eloqnt/format-po@0.1.1`
@@ -261,6 +286,14 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `@formatjs/intl-localematcher@0.8.14`
 - `@headlessui/tailwindcss@0.2.2`
 - `@img/colour@1.1.0`
+- `@ionic/cli-framework-output@2.2.8`
+- `@ionic/utils-array@2.1.6`
+- `@ionic/utils-fs@3.1.7`
+- `@ionic/utils-object@2.1.6`
+- `@ionic/utils-process@2.1.12`
+- `@ionic/utils-stream@3.1.7`
+- `@ionic/utils-subprocess@3.0.1`
+- `@ionic/utils-terminal@2.3.5`
 - `@istanbuljs/schema@0.1.6`
 - `@jest/console@29.7.0`
 - `@jest/core@29.7.0`
@@ -354,6 +387,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `@types/deep-eql@4.0.2`
 - `@types/estree-jsx@1.0.5`
 - `@types/estree@1.0.9`
+- `@types/fs-extra@8.1.5`
 - `@types/graceful-fs@4.1.9`
 - `@types/hast@3.0.5`
 - `@types/istanbul-lib-coverage@2.0.6`
@@ -368,6 +402,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `@types/node@22.20.4`
 - `@types/react-dom@19.3.0`
 - `@types/react@19.3.0`
+- `@types/slice-ansi@4.0.0`
 - `@types/stack-utils@2.0.3`
 - `@types/trusted-types@2.0.7`
 - `@types/unist@2.0.11`
@@ -396,6 +431,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `@webassemblyjs/wasm-opt@1.14.1`
 - `@webassemblyjs/wasm-parser@1.14.1`
 - `@webassemblyjs/wast-printer@1.14.1`
+- `@xmldom/xmldom@0.9.12`
 - `abstract-logging@2.0.1`
 - `acorn-import-phases@1.0.4`
 - `acorn-jsx@5.3.2`
@@ -416,6 +452,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `aria-hidden@1.2.6`
 - `asn1.js@5.4.1`
 - `assertion-error@2.0.1`
+- `astral-regex@2.0.0`
 - `astring@1.9.0`
 - `atomic-sleep@1.0.0`
 - `autoprefixer@10.6.1`
@@ -427,13 +464,16 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `bail@2.0.2`
 - `balanced-match@1.0.2`
 - `balanced-match@4.0.4`
+- `base64-js@1.5.1`
 - `binary-extensions@2.3.0`
 - `bn.js@4.12.5`
+- `bplist-parser@0.3.2`
 - `brace-expansion@1.1.21`
 - `brace-expansion@5.0.12`
 - `braces@3.0.3`
 - `browserslist@4.29.2`
 - `bs-logger@0.2.6`
+- `buffer-crc32@0.2.13`
 - `buffer-from@1.1.2`
 - `c12@3.1.0`
 - `callsites@3.1.0`
@@ -463,6 +503,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `color-convert@2.0.1`
 - `color-name@1.1.4`
 - `comma-separated-tokens@2.0.3`
+- `commander@12.1.0`
 - `commander@2.20.3`
 - `commander@4.1.1`
 - `common-tags@1.8.2`
@@ -483,6 +524,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `decode-named-character-reference@1.3.0`
 - `dedent@1.7.2`
 - `deepmerge@4.3.1`
+- `define-lazy-prop@2.0.0`
 - `defu@6.1.7`
 - `dequal@2.0.3`
 - `destr@2.0.5`
@@ -497,6 +539,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `emoji-regex@8.0.0`
 - `empathic@2.0.0`
 - `enhanced-resolve@5.25.1`
+- `env-paths@2.2.1`
 - `error-ex@1.3.4`
 - `es-errors@1.3.0`
 - `es-module-lexer@2.3.2`
@@ -533,6 +576,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `fastest-levenshtein@1.0.16`
 - `fastify-plugin@6.0.0`
 - `fastify@5.12.5`
+- `fd-slicer@1.1.0`
 - `fdir@6.5.0`
 - `fflate@0.4.9`
 - `fill-range@7.1.1`
@@ -541,6 +585,8 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `find-up@5.0.0`
 - `fraction.js@5.3.4`
 - `framer-motion@12.43.0`
+- `fs-extra@11.4.1`
+- `fs-extra@9.1.0`
 - `function-bind@1.1.2`
 - `gensync@1.0.0-beta.2`
 - `get-nonce@1.0.1`
@@ -570,6 +616,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `is-binary-path@2.1.0`
 - `is-core-module@2.17.0`
 - `is-decimal@2.0.1`
+- `is-docker@2.2.1`
 - `is-extendable@0.1.1`
 - `is-extglob@2.1.1`
 - `is-fullwidth-code-point@3.0.0`
@@ -580,6 +627,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `is-plain-obj@4.1.0`
 - `is-reference@1.2.1`
 - `is-stream@2.0.1`
+- `is-wsl@2.2.0`
 - `jest-changed-files@29.7.0`
 - `jest-circus@29.7.0`
 - `jest-cli@29.7.0`
@@ -616,10 +664,12 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `json-schema-ref-resolver@3.0.0`
 - `json-schema-traverse@1.0.0`
 - `json5@2.2.3`
+- `jsonfile@6.2.1`
 - `jwa@2.0.1`
 - `jws@4.0.1`
 - `kind-of@6.0.3`
 - `kleur@3.0.3`
+- `kleur@4.1.5`
 - `kolorist@1.8.0`
 - `leven@3.1.0`
 - `lilconfig@3.1.3`
@@ -692,6 +742,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `mimic-fn@2.1.0`
 - `minimist@1.2.8`
 - `minimizer-webpack-plugin@5.12.0`
+- `minizlib@3.1.0`
 - `module-details-from-path@1.0.4`
 - `motion-dom@12.43.0`
 - `motion-utils@12.39.0`
@@ -699,6 +750,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `ms@2.1.3`
 - `mz@2.7.0`
 - `nanoid@3.3.19`
+- `native-run@2.0.3`
 - `natural-compare@1.4.0`
 - `negotiator@1.1.0`
 - `neo-async@2.6.2`
@@ -721,6 +773,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `ohash@2.0.12`
 - `on-exit-leak-free@2.1.2`
 - `onetime@5.1.2`
+- `open@8.4.2`
 - `p-limit@2.3.0`
 - `p-limit@3.1.0`
 - `p-locate@4.1.0`
@@ -733,6 +786,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `path-key@3.1.1`
 - `path-parse@1.0.7`
 - `pathe@2.0.3`
+- `pend@1.2.0`
 - `perfect-debounce@1.0.0`
 - `picomatch@2.3.2`
 - `picomatch@4.0.7`
@@ -742,6 +796,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `pirates@4.0.7`
 - `pkg-dir@4.2.0`
 - `pkg-types@2.3.3`
+- `plist@3.1.1`
 - `po-parser@2.2.0`
 - `postcss-import@15.1.0`
 - `postcss-import@16.2.0`
@@ -776,6 +831,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `react-style-singleton@2.2.3`
 - `react@19.3.0`
 - `read-cache@1.0.2`
+- `readable-stream@3.6.2`
 - `readdirp@3.6.0`
 - `readdirp@4.1.2`
 - `real-require@0.2.0`
@@ -814,6 +870,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `shebang-regex@3.0.0`
 - `sisteransi@1.0.5`
 - `slash@3.0.0`
+- `slice-ansi@4.0.0`
 - `sonic-boom@4.2.1`
 - `sonner@2.0.8`
 - `source-map-support@0.5.13`
@@ -823,6 +880,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `stackback@0.0.2`
 - `stacktrace-parser@0.1.11`
 - `std-env@4.2.0`
+- `string_decoder@1.3.0`
 - `string-length@4.0.2`
 - `string-width@4.2.3`
 - `stringify-entities@4.0.4`
@@ -846,6 +904,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `thenify-all@1.6.0`
 - `thenify@3.3.1`
 - `thread-stream@3.2.0`
+- `through2@4.0.2`
 - `tinybench@2.9.0`
 - `tinyexec@1.3.1`
 - `tinyglobby@0.2.17`
@@ -853,6 +912,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `to-regex-range@5.0.1`
 - `toad-cache@3.7.4`
 - `tr46@0.0.3`
+- `tree-kill@1.2.2`
 - `trim-lines@3.0.1`
 - `trough@2.2.0`
 - `ts-jest@29.4.14`
@@ -868,6 +928,8 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `unist-util-stringify-position@4.0.0`
 - `unist-util-visit-parents@6.0.2`
 - `unist-util-visit@5.1.0`
+- `universalify@2.0.1`
+- `untildify@4.0.0`
 - `update-browserslist-db@1.3.3`
 - `use-callback-ref@1.3.3`
 - `use-intl@4.14.8`
@@ -886,7 +948,11 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `why-is-node-running@2.3.0`
 - `wordwrap@1.0.0`
 - `wrap-ansi@7.0.0`
+- `xml2js@0.6.2`
+- `xmlbuilder@11.0.1`
+- `xmlbuilder@15.1.1`
 - `yargs@17.7.3`
+- `yauzl@2.10.0`
 - `yocto-queue@0.1.0`
 - `zod@3.24.1`
 - `zod@4.4.3`
@@ -896,3 +962,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 - `next-mdx-remote@6.0.0`
 - `web-push@3.6.7`
+
+## Unlicense
+
+- `big-integer@1.6.52`
