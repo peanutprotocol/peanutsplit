@@ -7,12 +7,13 @@
  */
 
 import posthog from 'posthog-js'
-import type { CaptureOptions, CaptureResult } from 'posthog-js'
+import type { CaptureOptions, CaptureResult, PostHogConfig } from 'posthog-js'
 import type { ExpenseCreateResult, ExpenseInput } from './api-types'
 import { ACHIEVEMENT_TYPES } from './achievements-contract'
 import type { AchievementType } from './achievements-contract'
 import type { LandingVariant } from './flags'
 import type { AutoInstallTrigger } from './install-funnel'
+import { IS_NATIVE_APP, nativePlatform } from './platform'
 import type { RecapShareTier } from './recap'
 import { SHARE_PACKAGE_VARIANT } from './share-package-contract'
 
@@ -178,28 +179,53 @@ function stripAutomaticPageContext(capture: CaptureResult | null): CaptureResult
     }
 }
 
+/**
+ * The posthog.init options. `native` is IS_NATIVE_APP; a parameter so a test can read both branches.
+ *
+ * In the app PostHog must never load remote code. posthog-js fetches extension scripts (surveys,
+ * toolbar, recorder, heatmaps, web vitals, exception capture) from its host whenever a project
+ * setting turns them on; `disable_external_dependency_loading` is the one switch that stops all of
+ * them. Otherwise a dashboard toggle after review would run new code in the binary (App Store
+ * guideline 2.5.2) on the same origin as the member tokens. Split calls no flag API, so flags are
+ * off too. The web config is unchanged.
+ */
+export function analyticsInitOptions(native: boolean): Partial<PostHogConfig> {
+    const options: Partial<PostHogConfig> = {
+        api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com',
+        capture_pageview: false,
+        capture_pageleave: false,
+        disable_session_recording: true,
+        persistence: 'localStorage',
+        save_referrer: false,
+        // Paved expands `nl` to the newsletter that served the ad. PostHog only reads its own
+        // campaign keys, so without this the per-publisher read is silently lost. It names the
+        // publisher, never the reader.
+        custom_campaign_params: ['nl'],
+        // Room slugs are credentials; never let automatic capture lift one out
+        // of a URL, title, referrer or DOM interaction.
+        mask_all_text: true,
+        autocapture: false,
+        before_send: stripAutomaticPageContext,
+    }
+    if (!native) return options
+    return {
+        ...options,
+        disable_external_dependency_loading: true,
+        disable_surveys: true,
+        disable_conversations: true,
+        disable_product_tours: true,
+        advanced_disable_flags: true,
+    }
+}
+
 export function initAnalytics(): void {
     if (ready || typeof window === 'undefined') return
     const key = process.env.NEXT_PUBLIC_POSTHOG_KEY
     if (!key) return
     try {
-        posthog.init(key, {
-            api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com',
-            capture_pageview: false,
-            capture_pageleave: false,
-            disable_session_recording: true,
-            persistence: 'localStorage',
-            save_referrer: false,
-            // Paved expands `nl` to the newsletter that served the ad. PostHog only reads its own
-            // campaign keys, so without this the per-publisher read is silently lost. It names the
-            // publisher, never the reader.
-            custom_campaign_params: ['nl'],
-            // Room slugs are credentials; never let automatic capture lift one out
-            // of a URL, title, referrer or DOM interaction.
-            mask_all_text: true,
-            autocapture: false,
-            before_send: stripAutomaticPageContext,
-        })
+        posthog.init(key, analyticsInitOptions(IS_NATIVE_APP))
+        // Which build sent the event: the website or one of the store apps.
+        posthog.register({ surface: IS_NATIVE_APP ? nativePlatform() : 'web' })
         ready = true
     } catch {
         // Analytics must never prevent the app from mounting.

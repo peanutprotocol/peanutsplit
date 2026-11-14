@@ -3,6 +3,7 @@ import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 const posthog = vi.hoisted(() => ({
     capture: vi.fn(),
     init: vi.fn(),
+    register: vi.fn(),
 }))
 
 vi.mock('posthog-js', () => ({ default: posthog }))
@@ -325,5 +326,69 @@ describe('achievement measurement', () => {
         expect(CARD_TYPE).not.toHaveProperty('recap')
         expect(CARD_TYPE).not.toHaveProperty('invite')
         expect(new Set(Object.values(CARD_TYPE))).toEqual(new Set(ACHIEVEMENT_TYPES))
+    })
+})
+
+describe('store-app analytics', () => {
+    const NATIVE_ONLY = [
+        'disable_external_dependency_loading',
+        'disable_surveys',
+        'disable_conversations',
+        'disable_product_tours',
+        'advanced_disable_flags',
+    ]
+
+    it('never lets PostHog load remote code in the app', async () => {
+        const { analyticsInitOptions } = await import('./analytics')
+        const native = analyticsInitOptions(true)
+        expect(native).toMatchObject({
+            disable_external_dependency_loading: true,
+            disable_surveys: true,
+            disable_conversations: true,
+            disable_product_tours: true,
+            advanced_disable_flags: true,
+        })
+        // The privacy settings every build relies on stay in the app build too.
+        expect(native).toMatchObject({ autocapture: false, capture_pageview: false, mask_all_text: true })
+    })
+
+    it('keeps the web config exactly as before', async () => {
+        const { analyticsInitOptions } = await import('./analytics')
+        const web = analyticsInitOptions(false)
+        for (const key of NATIVE_ONLY) expect(web, key).not.toHaveProperty(key)
+        expect(Object.keys(web).sort()).toEqual(
+            [
+                'api_host',
+                'autocapture',
+                'before_send',
+                'capture_pageleave',
+                'capture_pageview',
+                'custom_campaign_params',
+                'disable_session_recording',
+                'mask_all_text',
+                'persistence',
+                'save_referrer',
+            ].sort()
+        )
+    })
+
+    it('labels web events with surface web and web init options', async () => {
+        vi.stubEnv('NEXT_PUBLIC_NATIVE_BUILD', '0')
+        const { initAnalytics } = await import('./analytics')
+        initAnalytics()
+        vi.unstubAllEnvs()
+        expect(posthog.register.mock.calls).toEqual([[{ surface: 'web' }]])
+        expect(posthog.init.mock.calls[0][1]).not.toHaveProperty('disable_external_dependency_loading')
+    })
+
+    it('labels app events with the native platform and passes the app options to posthog.init', async () => {
+        vi.stubEnv('NEXT_PUBLIC_NATIVE_BUILD', '1')
+        vi.stubGlobal('Capacitor', { getPlatform: () => 'android' })
+        const { initAnalytics } = await import('./analytics')
+        initAnalytics()
+        vi.unstubAllEnvs()
+        vi.unstubAllGlobals()
+        expect(posthog.register.mock.calls).toEqual([[{ surface: 'android' }]])
+        expect(posthog.init.mock.calls[0][1]).toMatchObject({ disable_external_dependency_loading: true })
     })
 })
