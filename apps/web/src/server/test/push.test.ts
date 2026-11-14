@@ -4,7 +4,8 @@
  * regression uses real web-push and stubs only the HTTPS request. Prisma stays
  * real so dedupe claims, daily caps, and endpoint pruning exercise database rules.
  */
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { generateKeyPairSync } from 'node:crypto'
 import { EventEmitter } from 'node:events'
 import type { ClientRequest, IncomingMessage } from 'node:http'
 import https from 'node:https'
@@ -20,6 +21,7 @@ import { DELETE as deleteSubscription, POST as postSubscription } from '@/app/ap
 import { POST as postSubscriptionStatus } from '@/app/api/rooms/[slug]/push-subscriptions/status/route'
 import { POST as postOpened } from '@/app/api/push/opened/route'
 import { POST as postDismissed } from '@/app/api/push/dismissed/route'
+import { resetFcmToken } from '@/server/push-native/fcm'
 import type { RoomStateWithMember } from '@/lib/api-types'
 
 const { sendNotification } = vi.hoisted(() => ({ sendNotification: vi.fn() }))
@@ -240,6 +242,143 @@ describe('subscribe endpoint', () => {
     })
 })
 
+const APNS_TOKEN = 'a1b2c3d4'.repeat(8)
+const FCM_TOKEN = 'dGVzdA:APA91bH-native_device'
+const NATIVE_ENV = [
+    'SPLIT_APNS_KEY_P8',
+    'SPLIT_APNS_KEY_ID',
+    'SPLIT_APNS_TEAM_ID',
+    'SPLIT_APNS_BUNDLE_ID',
+    'SPLIT_FCM_SERVICE_ACCOUNT_JSON',
+] as const
+
+/** Fake but well-formed credentials: nothing here reaches Apple or Google. */
+function setNativeCredentials(): void {
+    const ec = generateKeyPairSync('ec', { namedCurve: 'prime256v1' }).privateKey
+    const rsa = generateKeyPairSync('rsa', { modulusLength: 2048 }).privateKey
+    process.env.SPLIT_APNS_KEY_P8 = ec.export({ type: 'pkcs8', format: 'pem' }).toString()
+    process.env.SPLIT_APNS_KEY_ID = 'ABC123DEFG'
+    process.env.SPLIT_APNS_TEAM_ID = 'TEAM123456'
+    process.env.SPLIT_APNS_BUNDLE_ID = 'com.peanutsplit.app'
+    process.env.SPLIT_FCM_SERVICE_ACCOUNT_JSON = JSON.stringify({
+        project_id: 'split-test',
+        client_email: 'push@split-test.iam.gserviceaccount.com',
+        private_key: rsa.export({ type: 'pkcs8', format: 'pem' }).toString(),
+    })
+}
+
+function clearNativeCredentials(): void {
+    for (const name of NATIVE_ENV) delete process.env[name]
+}
+
+const nativeBody = (member: { id: string; token: string }, transport: string, token: string) => ({
+    transport,
+    token,
+    memberId: member.id,
+    memberToken: member.token,
+})
+
+const subscribeNative = (fixture: Fixture, member: { id: string; token: string }, transport: string, token: string) =>
+    call<{ subscribed: boolean } | { error: { code: string } }>(postSubscription as Handler, {
+        path: `/api/rooms/${fixture.slug}/push-subscriptions`,
+        method: 'POST',
+        params: { slug: fixture.slug },
+        body: nativeBody(member, transport, token),
+    })
+
+const askNativeStatus = (fixture: Fixture, member: { id: string; token: string }, transport: string, token: string) =>
+    call<{ subscribed: boolean } | { error: { code: string } }>(postSubscriptionStatus as Handler, {
+        path: `/api/rooms/${fixture.slug}/push-subscriptions/status`,
+        method: 'POST',
+        params: { slug: fixture.slug },
+        body: nativeBody(member, transport, token),
+    })
+
+describe('native app subscriptions', () => {
+    afterEach(clearNativeCredentials)
+
+    it('still rejects a web body without keys', async () => {
+        const fixture = await makeRoom()
+        const { status, body } = await call<{ error: { code: string } }>(postSubscription as Handler, {
+            path: `/api/rooms/${fixture.slug}/push-subscriptions`,
+            method: 'POST',
+            params: { slug: fixture.slug },
+            body: { endpoint: FCM('no-keys'), memberId: fixture.owner.id, memberToken: fixture.owner.token },
+        })
+        expect(status).toBe(400)
+        expect(body).toMatchObject({ error: { code: 'VALIDATION_ERROR' } })
+        expect(await prisma.pushSubscription.count()).toBe(0)
+    })
+
+    it('stores an app token under its prefixed endpoint, without keys', async () => {
+        setNativeCredentials()
+        const fixture = await makeRoom()
+        expect((await subscribeNative(fixture, fixture.owner, 'apns', APNS_TOKEN)).status).toBe(201)
+        expect((await subscribeNative(fixture, fixture.friend, 'fcm', FCM_TOKEN)).status).toBe(201)
+
+        const rows = await prisma.pushSubscription.findMany({ orderBy: { transport: 'asc' } })
+        expect(rows).toMatchObject([
+            { transport: 'apns', endpoint: `apns:${APNS_TOKEN}`, p256dh: null, auth: null, memberId: fixture.owner.id },
+            { transport: 'fcm', endpoint: `fcm:${FCM_TOKEN}`, p256dh: null, auth: null, memberId: fixture.friend.id },
+        ])
+    })
+
+    it('keeps web rows on the webpush transport', async () => {
+        const fixture = await makeRoom()
+        await subscribe(fixture, fixture.owner, FCM('a'))
+        expect(await prisma.pushSubscription.findFirst()).toMatchObject({ transport: 'webpush', endpoint: FCM('a') })
+    })
+
+    it('answers 503 NATIVE_PUSH_UNAVAILABLE on subscribe and status when the server has no credentials', async () => {
+        clearNativeCredentials()
+        const fixture = await makeRoom()
+
+        const subscribed = await subscribeNative(fixture, fixture.owner, 'fcm', FCM_TOKEN)
+        expect(subscribed.status).toBe(503)
+        expect(subscribed.body).toMatchObject({ error: { code: 'NATIVE_PUSH_UNAVAILABLE' } })
+        const status = await askNativeStatus(fixture, fixture.owner, 'apns-sandbox', APNS_TOKEN)
+        expect(status.status).toBe(503)
+        expect(status.body).toMatchObject({ error: { code: 'NATIVE_PUSH_UNAVAILABLE' } })
+        expect(await prisma.pushSubscription.count()).toBe(0)
+
+        // Web push is not gated on app credentials.
+        expect((await subscribe(fixture, fixture.owner, FCM('a'))).status).toBe(201)
+    })
+
+    it('answers status for a native token per room, and drops it on DELETE', async () => {
+        setNativeCredentials()
+        const first = await makeRoom()
+        const second = await makeRoom()
+        await subscribeNative(first, first.owner, 'apns-sandbox', APNS_TOKEN)
+
+        expect((await askNativeStatus(first, first.owner, 'apns-sandbox', APNS_TOKEN)).body).toEqual({
+            subscribed: true,
+        })
+        expect((await askNativeStatus(second, second.owner, 'apns-sandbox', APNS_TOKEN)).body).toEqual({
+            subscribed: false,
+        })
+        // The same token on the other APNs environment is a different channel.
+        expect((await askNativeStatus(first, first.owner, 'apns', APNS_TOKEN)).body).toEqual({ subscribed: false })
+
+        const removed = await call<{ subscribed: false; endpointStillUsed: boolean }>(deleteSubscription as Handler, {
+            path: `/api/rooms/${first.slug}/push-subscriptions`,
+            method: 'DELETE',
+            params: { slug: first.slug },
+            body: nativeBody(first.owner, 'apns-sandbox', APNS_TOKEN),
+        })
+        expect(removed.body).toEqual({ subscribed: false, endpointStillUsed: false })
+        expect(await prisma.pushSubscription.count()).toBe(0)
+    })
+
+    it('rejects a web body whose endpoint looks like a native channel', async () => {
+        const fixture = await makeRoom()
+        const { status, body } = await subscribe(fixture, fixture.owner, `fcm:${FCM_TOKEN}`)
+        expect(status).toBe(400)
+        expect(body).toMatchObject({ error: { code: 'UNSUPPORTED_PUSH_HOST' } })
+        expect(await prisma.pushSubscription.count()).toBe(0)
+    })
+})
+
 describe('unsubscribe endpoint', () => {
     it('preserves a channel rebound to another member when the previous member finishes cleanup', async () => {
         const fixture = await makeRoom()
@@ -391,6 +530,7 @@ describe('send pipeline', () => {
         const room = await loadRoom(fixture.slug)
         return sendRoomEvent({
             room,
+            analyticsKey: toRoomState(room).room.analyticsKey as string,
             template: 'expense_added',
             actorMemberId: fixture.owner.id,
             eventId,
@@ -582,6 +722,7 @@ describe('send pipeline', () => {
         const settled = () =>
             sendRoomEvent({
                 room,
+                analyticsKey: toRoomState(room).room.analyticsKey as string,
                 template: 'all_settled',
                 actorMemberId: fixture.owner.id,
                 buildPayload: (sendId) => allSettledPayload({ room, roomId: room.id, sendId }),
@@ -589,6 +730,102 @@ describe('send pipeline', () => {
 
         expect((await settled()).status).toBe('sent')
         expect(await settled()).toEqual({ status: 'skipped', reason: 'already-sent' })
+    })
+})
+
+describe('native fan-out', () => {
+    const fetchMock = vi.fn<typeof fetch>()
+
+    beforeEach(() => {
+        setNativeCredentials()
+        resetFcmToken()
+        fetchMock.mockReset()
+        vi.stubGlobal('fetch', fetchMock)
+        delete process.env.SPLIT_PUSH_PROXY_URL
+    })
+
+    afterEach(() => {
+        clearNativeCredentials()
+        vi.unstubAllGlobals()
+        vi.restoreAllMocks()
+    })
+
+    const seedNative = (roomId: string, memberId: string, transport: string, token: string) =>
+        prisma.pushSubscription.create({ data: { roomId, memberId, transport, endpoint: `${transport}:${token}` } })
+
+    it('sends FCM without the slug, keeps web push, and prunes an unregistered app token', async () => {
+        vi.spyOn(console, 'warn').mockImplementation(() => {})
+        const fixture = await makeRoom()
+        await seedSubscription(fixture.roomId, fixture.friend.id, FCM('friend-browser'))
+        await seedNative(fixture.roomId, fixture.friend.id, 'fcm', 'live-android')
+        await seedNative(fixture.roomId, fixture.friend.id, 'fcm', 'gone-android')
+
+        const sent: unknown[] = []
+        fetchMock.mockImplementation(async (input, init) => {
+            if (String(input) === 'https://oauth2.googleapis.com/token') {
+                return Response.json({ access_token: 'access-1', expires_in: 3600 })
+            }
+            const message = JSON.parse(String(init?.body)) as { message: { token: string } }
+            sent.push(message)
+            return message.message.token === 'gone-android'
+                ? Response.json({ error: { details: [{ errorCode: 'UNREGISTERED' }] } }, { status: 404 })
+                : Response.json({ name: 'projects/split-test/messages/1' })
+        })
+
+        const room = await loadRoom(fixture.slug)
+        const analyticsKey = toRoomState(room).room.analyticsKey as string
+        const outcome = await sendRoomEvent({
+            room,
+            analyticsKey,
+            template: 'expense_added',
+            actorMemberId: fixture.owner.id,
+            eventId: 'native-1',
+            buildPayload: (sendId) =>
+                expenseAddedPayload({
+                    room,
+                    roomId: room.id,
+                    sendId,
+                    actorName: 'Ana',
+                    description: 'Lift passes',
+                    amountMinor: '12000',
+                    currency: 'EUR',
+                }),
+        })
+
+        expect(outcome).toEqual({ status: 'sent', delivered: 2, pruned: 1 })
+        expect(sendNotification).toHaveBeenCalledTimes(1)
+        expect(sent).toHaveLength(2)
+        for (const message of sent) {
+            expect(JSON.stringify(message)).not.toContain(fixture.slug)
+            expect(message).toMatchObject({
+                message: {
+                    notification: { title: 'Ski Trip', body: 'Ana added Lift passes — €120.00' },
+                    data: { room: analyticsKey },
+                },
+            })
+        }
+        const left = await prisma.pushSubscription.findMany({ orderBy: { endpoint: 'asc' } })
+        expect(left.map((row) => row.endpoint)).toEqual(['fcm:live-android', FCM('friend-browser')])
+    })
+
+    it('skips app rows whose transport has no credentials, without burning the dedupe slot', async () => {
+        clearNativeCredentials()
+        const fixture = await makeRoom()
+        await seedNative(fixture.roomId, fixture.friend.id, 'fcm', 'android-without-server-key')
+        const room = await loadRoom(fixture.slug)
+
+        const outcome = await sendRoomEvent({
+            room,
+            analyticsKey: toRoomState(room).room.analyticsKey as string,
+            template: 'all_settled',
+            actorMemberId: fixture.owner.id,
+            buildPayload: (sendId) => allSettledPayload({ room, roomId: room.id, sendId }),
+        })
+
+        expect(outcome).toEqual({ status: 'skipped', reason: 'no-targets' })
+        expect(fetchMock).not.toHaveBeenCalled()
+        expect(await prisma.notificationSend.count()).toBe(0)
+        expect(await prisma.pushSubscription.count()).toBe(1)
     })
 })
 
