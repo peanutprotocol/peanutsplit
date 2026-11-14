@@ -6,7 +6,7 @@ Every installed dependency of Peanut Split and the license it ships under, acros
 lockfiles. Prose notices for the material that needs one — fonts, icon geometry, quoted
 competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-892 packages, 16 license classes.
+899 packages, 16 license classes.
 
 | License | Packages |
 | --- | ---: |
@@ -16,14 +16,14 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 | `0BSD` | 1 |
 | `Apache-2.0` | 49 |
 | `Apache-2.0 AND MIT` | 1 |
-| `BSD-2-Clause` | 10 |
+| `BSD-2-Clause` | 11 |
 | `BSD-3-Clause` | 24 |
 | `BlueOak-1.0.0` | 11 |
 | `CC-BY-4.0` | 1 |
 | `FSL-1.1-MIT` | 2 |
 | `ISC` | 42 |
 | `LGPL-3.0-or-later` | 1 |
-| `MIT` | 741 |
+| `MIT` | 747 |
 | `MPL-2.0` | 2 |
 | `Unlicense` | 1 |
 
@@ -106,6 +106,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 - `dotenv@16.6.1`
 - `dotenv@17.4.2`
+- `entities@7.0.1`
 - `eslint-scope@5.1.1`
 - `esprima@4.0.1`
 - `esrecurse@4.3.0`
@@ -408,6 +409,8 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `@types/unist@2.0.11`
 - `@types/unist@3.0.3`
 - `@types/web-push@3.6.4`
+- `@types/whatwg-mimetype@3.0.2`
+- `@types/ws@8.18.2`
 - `@types/yargs-parser@21.0.3`
 - `@types/yargs@17.0.35`
 - `@vitest/expect@4.1.11`
@@ -475,6 +478,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `bs-logger@0.2.6`
 - `buffer-crc32@0.2.13`
 - `buffer-from@1.1.2`
+- `buffer-image-size@0.6.4`
 - `c12@3.1.0`
 - `callsites@3.1.0`
 - `camelcase-css@2.0.1`
@@ -595,6 +599,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `giget@2.0.0`
 - `gray-matter@4.0.3`
 - `handlebars@4.7.9`
+- `happy-dom@21.0.4`
 - `has-flag@4.0.0`
 - `hasown@2.0.4`
 - `hast-util-to-estree@3.1.3`
@@ -944,10 +949,12 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - `watchpack@2.5.2`
 - `webpack-sources@3.6.0`
 - `webpack@5.108.4`
+- `whatwg-mimetype@3.0.0`
 - `whatwg-url@5.0.0`
 - `why-is-node-running@2.3.0`
 - `wordwrap@1.0.0`
 - `wrap-ansi@7.0.0`
+- `ws@8.22.1`
 - `xml2js@0.6.2`
 - `xmlbuilder@11.0.1`
 - `xmlbuilder@15.1.1`
