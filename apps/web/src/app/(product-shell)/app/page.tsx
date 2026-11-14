@@ -86,11 +86,11 @@ export default async function AppHomePage({
                 }
             />
             {/* Same privacy link as the store app's rooms home (both stores require one). */}
-            <footer className="px-5 pb-8 text-center text-sm text-grey-1">
+            <p className="px-5 pb-8 text-center text-sm text-grey-1">
                 <a href={productUrl('/privacy')} className="underline" data-testid="app-privacy-link">
                     {tLegal('privacy')}
                 </a>
-            </footer>
+            </p>
         </main>
     )
 

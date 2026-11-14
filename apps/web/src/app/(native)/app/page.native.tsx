@@ -71,11 +71,11 @@ function AppHome() {
             />
             {/* Both stores require a privacy link in the app (no Terms link in v1). The external-link
             handler opens it in the system browser. */}
-            <footer className="px-5 pb-8 text-center text-sm text-grey-1">
+            <p className="px-5 pb-8 text-center text-sm text-grey-1">
                 <a href={productUrl('/privacy')} className="underline" data-testid="app-privacy-link">
                     {tLegal('privacy')}
                 </a>
-            </footer>
+            </p>
         </main>
     )
 
