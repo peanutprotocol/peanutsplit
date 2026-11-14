@@ -11,8 +11,9 @@ import { toast } from 'sonner'
 import { BaseInput } from '@/components/ui/BaseInput'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
+import { roomProps, track } from '@/lib/analytics'
 import { api, isApiError } from '@/lib/api'
-import { roomPath } from '@/lib/platform'
+import { IS_NATIVE_APP, roomPath } from '@/lib/platform'
 import { readRecentRooms, rememberRoom, roomSlugFromLink, type RecentRoom } from '@/lib/recent-rooms'
 import { themeFor } from '@/lib/themes'
 import { TOAST_MS } from '@/lib/toasts'
@@ -202,6 +203,7 @@ export function YourRooms({
             // not. This is especially important when localStorage was denied.
             toast(recoveryNotice, { duration: TOAST_MS.actionable })
             feedback('pop')
+            if (IS_NATIVE_APP) track('app_room_opened', roomProps(state.room.slug, { via: 'paste' }))
             router.push(roomPath(state.room.slug, 'room', addExpense ? 'add=1' : ''))
         } catch (error) {
             setRecoveryError(
