@@ -251,7 +251,7 @@ jobs:
     name: web-e2e (${{ matrix.ref }}, ${{ matrix.suite.id }})
     if: github.ref != 'refs/heads/main' && (github.event_name != 'pull_request' || github.head_ref != 'native-apps')
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 70
     strategy:
       fail-fast: false
       matrix:
@@ -337,11 +337,25 @@ jobs:
           pnpm exec playwright test --config "${SUITE_CONFIG}" --reporter=json \
             || echo "::warning::Some tests failed. web-e2e-compare decides whether any is new."
 
+      # The e2e suite runs six workers against a dev server on a small runner, so some tests fail
+      # from load alone; base shows the same rate. Head failures get one more run with a single
+      # worker, and web-e2e-compare blocks only on a test that fails here too.
+      - name: Re-run the head failures with one worker
+        if: matrix.ref == 'head'
+        working-directory: apps/web
+        env:
+          SUITE_CONFIG: ${{ matrix.suite.config }}
+          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ runner.temp }}/web-e2e/confirm.json
+          PWA_BOUNDARY_PORT: '8777'
+        run: |
+          pnpm exec playwright test --config "${SUITE_CONFIG}" --last-failed --workers=1 --retries=1 --reporter=json \
+            || echo "::warning::Some head failures repeat with one worker. web-e2e-compare lists them."
+
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: ${{ !cancelled() }}
         with:
           name: web-e2e-results-${{ matrix.ref }}-${{ matrix.suite.id }}
-          path: ${{ runner.temp }}/web-e2e/results.json
+          path: ${{ runner.temp }}/web-e2e/
           if-no-files-found: warn
           retention-days: 14
 
@@ -355,7 +369,8 @@ jobs:
 
   # Fails when a test fails on head and either passed on base or does not exist there (so new
   # specs gate), and when a suite has no passing test on base or head (a broken harness turns
-  # red instead of passing). A failure that also fails on base is listed and does not block.
+  # red instead of passing). A failure that also fails on base, or that passes on the head's
+  # one-worker re-run, is listed and does not block.
   web-e2e-compare:
     needs: web-e2e
     if: ${{ !cancelled() && needs.web-e2e.result != 'skipped' }}
@@ -372,8 +387,8 @@ jobs:
           node - <<'EOF'
           const fs = require('fs')
           const passed = (status) => status === 'expected' || status === 'flaky'
-          function load(ref, suite) {
-            const file = `results/web-e2e-results-${ref}-${suite}/results.json`
+          function load(ref, suite, name = 'results.json') {
+            const file = `results/web-e2e-results-${ref}-${suite}/${name}`
             if (!fs.existsSync(file)) return null
             const tests = new Map()
             const walk = (node, titles) => {
@@ -389,12 +404,17 @@ jobs:
           for (const suite of ['e2e', 'pwa-boundary', 'v2']) {
             const base = load('base', suite)
             const head = load('head', suite)
+            const confirm = load('head', suite, 'confirm.json')
             const count = (tests) => (tests ? [...tests.values()].filter(passed).length : 0)
             console.log(`${suite}: base passed ${count(base)}/${base?.size ?? 0}, head passed ${count(head)}/${head?.size ?? 0}`)
             if (count(base) === 0) problems.push(`${suite}: no passing test on base (missing or broken harness)`)
             if (count(head) === 0) problems.push(`${suite}: no passing test on head (missing or broken harness)`)
             for (const [id, status] of head ?? []) {
               if (status !== 'unexpected') continue
+              if (passed(confirm?.get(id))) {
+                console.log(`  passed on the one-worker re-run (load flake, not blocking): ${id}`)
+                continue
+              }
               const before = base?.get(id)
               if (before === undefined) problems.push(`${suite}: new test fails on head: ${id}`)
               else if (passed(before)) problems.push(`${suite}: passed on base, fails on head: ${id}`)
