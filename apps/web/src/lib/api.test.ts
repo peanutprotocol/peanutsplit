@@ -489,3 +489,71 @@ describe('api requests', () => {
         expect(JSON.parse(fetchMock.mock.calls[0][1]?.body as string).clientKey).toBe('queued-replay-key-0001')
     })
 })
+
+describe('api origin and language per build', () => {
+    const SLUG = 'ski-trip-kunc-syrup-drum'
+
+    /** The build is chosen at module load, so the app case loads fresh copies of `api` and `platform`. */
+    async function loadNativeApi() {
+        vi.stubEnv('NEXT_PUBLIC_NATIVE_BUILD', '1')
+        vi.stubEnv('NEXT_PUBLIC_BASE_URL', 'https://peanutsplit.com')
+        vi.resetModules()
+        return import('./api')
+    }
+
+    afterEach(() => {
+        vi.unstubAllEnvs()
+        vi.resetModules()
+    })
+
+    it('keeps web requests same-origin and leaves the language to the browser', async () => {
+        const fetchMock = respondWith(200, { room: null })
+        vi.stubGlobal('fetch', fetchMock)
+        vi.stubGlobal('document', { documentElement: { lang: 'es-419' } })
+
+        await api.room(SLUG)
+        await api.replayWrite({
+            clientKey: 'web-replay-key-0001',
+            endpoint: `/api/rooms/${SLUG}/expenses`,
+            method: 'POST',
+            body: { description: 'Dinner', amountMinor: '2000', currency: 'EUR', paidById: 'm1', splitMode: 'EQUAL' },
+        })
+
+        expect(fetchMock.mock.calls[0][0]).toBe(`/api/rooms/${SLUG}`)
+        expect(fetchMock.mock.calls[1][0]).toBe(`/api/rooms/${SLUG}/expenses`)
+        expect(fetchMock.mock.calls[0][1].headers).not.toHaveProperty('Accept-Language')
+    })
+
+    it('sends app requests to the site origin in the UI language, while the queue keeps relative paths', async () => {
+        const native = await loadNativeApi()
+        const fetchMock = respondWith(200, { room: null })
+        vi.stubGlobal('fetch', fetchMock)
+        vi.stubGlobal('document', { documentElement: { lang: 'es-419' } })
+
+        // The offline queue stores this relative endpoint; only the request carries the origin.
+        expect(native.expensesPath(SLUG)).toBe(`/api/rooms/${SLUG}/expenses`)
+        await native.api.room(SLUG)
+        await native.api.replayWrite({
+            clientKey: 'app-replay-key-0001',
+            endpoint: native.expensesPath(SLUG),
+            method: 'POST',
+            body: { description: 'Dinner', amountMinor: '2000', currency: 'EUR', paidById: 'm1', splitMode: 'EQUAL' },
+        })
+
+        expect(fetchMock.mock.calls[0][0]).toBe(`https://peanutsplit.com/api/rooms/${SLUG}`)
+        expect(fetchMock.mock.calls[1][0]).toBe(`https://peanutsplit.com/api/rooms/${SLUG}/expenses`)
+        expect(fetchMock.mock.calls[0][1].headers['Accept-Language']).toBe('es-419')
+        expect(fetchMock.mock.calls[1][1].headers['Accept-Language']).toBe('es-419')
+    })
+
+    it('sends no Accept-Language from the app before the locale is known', async () => {
+        const native = await loadNativeApi()
+        const fetchMock = respondWith(200, { room: null })
+        vi.stubGlobal('fetch', fetchMock)
+        vi.stubGlobal('document', { documentElement: { lang: '' } })
+
+        await native.api.room(SLUG)
+
+        expect(fetchMock.mock.calls[0][1].headers).not.toHaveProperty('Accept-Language')
+    })
+})

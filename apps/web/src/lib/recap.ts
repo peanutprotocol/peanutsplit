@@ -22,6 +22,8 @@
  * revocable token — a real feature with a real surface, deliberately not V1.
  */
 
+import { apiUrl } from './platform'
+
 /** The members-only recap screen. Not shareable — see the note above. */
 export const recapPath = (slug: string): string => `/r/${slug}/recap`
 
@@ -45,8 +47,11 @@ export const recapPath = (slug: string): string => `/r/${slug}/recap`
  * deck's `<img>`. A Route Handler's path is served exactly as written, so this
  * one stays true across builds — and it renders the same art, through
  * `server/og/recapImage.tsx`.
+ *
+ * Through `apiUrl` because the store app is served from its own bundle: a relative path there
+ * resolves against `capacitor://localhost`, where no card exists. On web it stays relative.
  */
-export const recapImagePath = (slug: string): string => `/r/${slug}/recap/card`
+export const recapImagePath = (slug: string): string => apiUrl(`/r/${slug}/recap/card`)
 
 /** Which rung of the share chain actually fired. Analytics only. */
 export type RecapShareTier = 'files' | 'clipboard' | 'download'
