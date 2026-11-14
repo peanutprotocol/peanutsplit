@@ -107,8 +107,10 @@ jobs:
         run: ./gradlew :app:assembleDebug :app:bundleRelease
 
       # Google Play rejects native libraries that are not 16 KB page aligned. Split ships no
-      # native code of its own, so any .so in the bundle is a plugin change to look at first.
-      - name: Check that the bundle has no native libraries
+      # native code of its own. The only expected library is androidx.datastore's
+      # libdatastore_shared_counter.so, which firebase-messaging (push) pulls in. Any other .so
+      # is a plugin change to look at first. The 16 KB rule applies to 64-bit libraries only.
+      - name: Check the bundle's native libraries
         working-directory: apps/web/android
         run: |
           shopt -s nullglob
@@ -117,10 +119,46 @@ jobs:
             echo "::error::Expected exactly one release bundle, found ${#bundles[@]}."
             exit 1
           fi
-          if unzip -l "${bundles[0]}" | grep -E '\.so$'; then
-            echo "::error::The release bundle contains .so files (listed above)."
-            exit 1
-          fi
+          python3 - "${bundles[0]}" <<'PY'
+          import struct, sys, zipfile
+
+          ALLOWED = {"libdatastore_shared_counter.so"}
+          bad = []
+          with zipfile.ZipFile(sys.argv[1]) as bundle:
+              for name in bundle.namelist():
+                  if not name.endswith(".so"):
+                      continue
+                  base = name.rsplit("/", 1)[-1]
+                  if base not in ALLOWED:
+                      bad.append(f"{name}: not on the allowed list")
+                      continue
+                  elf = bundle.read(name)
+                  is64 = elf[4] == 2
+                  if not is64:
+                      print(f"ok (32-bit): {name}")
+                      continue
+                  endian = "<" if elf[5] == 1 else ">"
+                  if is64:
+                      phoff, = struct.unpack_from(endian + "Q", elf, 0x20)
+                      phentsize, phnum = struct.unpack_from(endian + "HH", elf, 0x36)
+                  else:
+                      phoff, = struct.unpack_from(endian + "I", elf, 0x1C)
+                      phentsize, phnum = struct.unpack_from(endian + "HH", elf, 0x2A)
+                  for i in range(phnum):
+                      off = phoff + i * phentsize
+                      p_type, = struct.unpack_from(endian + "I", elf, off)
+                      if p_type != 1:
+                          continue
+                      align, = struct.unpack_from(endian + "Q", elf, off + 0x30) if is64 else struct.unpack_from(endian + "I", elf, off + 0x1C)
+                      if align < 16384:
+                          bad.append(f"{name}: LOAD segment aligned to {align} bytes")
+                          break
+                  else:
+                      print(f"ok: {name}")
+          for line in bad:
+              print(f"::error::{line}")
+          sys.exit(1 if bad else 0)
+          PY
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
