@@ -19,9 +19,12 @@ import { breadcrumbSchema, pageMetadata, pageTitle } from '@/lib/seo'
  * describes the advertising tag is the one page that does not load it.
  *
  * Written from what the code does, not from a template. Every claim below has a file behind it:
- * the tags in `lib/google-ads.ts` and `lib/x-ads.ts`, the analytics boundary in `lib/analytics.ts`,
- * error reporting in `instrumentation-client.ts`, the receipt path in `server/model.ts`, and the
- * stored shapes in `prisma/schema.prisma`. Change one of those and change this page in the same push.
+ * the tags in `lib/google-ads.ts` and `lib/x-ads.ts` (website only: no native page renders them),
+ * the analytics boundary in `lib/analytics.ts`, error reporting in `instrumentation-client.ts`, the
+ * receipt path in `server/model.ts`, the app push senders in `server/push-native/apns.ts` and
+ * `server/push-native/fcm.ts`, and the stored shapes in `prisma/schema.prisma`. Change one of those
+ * and change this page in the same push. Every recipient named in `apps/web/store/privacy-answers.md`
+ * must also be named here.
  *
  * English only. `/es-419/privacy` and `/pt-br/privacy` are not routes — the same rule the rest of
  * the untranslated surface follows.
@@ -78,9 +81,10 @@ export default function PrivacyPage() {
                             personal data described here, under UK data protection law.
                         </p>
                         <p>
-                            This notice covers peanutsplit.com only. Peanut&rsquo;s wallet and card are a different
-                            product with a different policy, and nothing on this page describes them. If you settle a
-                            balance through a Peanut payment link, you leave Split and{' '}
+                            This notice covers the website at peanutsplit.com and the Peanut Split apps for iOS and
+                            Android, if you use them. Peanut&rsquo;s wallet and card are a different product with a
+                            different policy, and nothing on this page describes them. If you settle a balance through a
+                            Peanut payment link, you leave Split and{' '}
                             <a className={externalLink} href="https://peanut.me/en/privacy">
                                 Peanut&rsquo;s privacy policy
                             </a>{' '}
@@ -120,8 +124,9 @@ export default function PrivacyPage() {
                         <li>each expense: its description, amount, date, who paid, and how it was split;</li>
                         <li>settlements recorded in the room, and the reactions people leave on an expense;</li>
                         <li>
-                            a push subscription for each device that turns notifications on in a room &mdash; the
-                            browser&rsquo;s push address, its keys, and the browser&rsquo;s user-agent string;
+                            a push subscription for each device that turns notifications on in a room &mdash; either a
+                            browser&rsquo;s push address, its keys, and the browser&rsquo;s user-agent string, or an
+                            app&rsquo;s device token and the platform it belongs to;
                         </li>
                         <li>
                             a record of edits to the room, kept so the group can see what changed rather than for us to
@@ -143,6 +148,10 @@ export default function PrivacyPage() {
                         Your list of recent rooms, the token that says which member of a room you are, and your app
                         settings live in your browser&rsquo;s local storage. They are not sent to us. Clearing site data
                         loses them, and a room you have no link to is a room you cannot get back.
+                    </p>
+                    <p className="mt-4 text-base leading-7">
+                        The iOS and Android apps keep your recent rooms and member tokens on the phone in the same way,
+                        and your phone&rsquo;s own backup may include them.
                     </p>
                     <p className="mt-4 text-base leading-7">
                         Split itself sets four cookies. Each one is needed for the product to work. None of them
@@ -198,6 +207,7 @@ export default function PrivacyPage() {
                         Advertising
                     </h2>
                     <div className="mt-4 grid gap-4 text-base leading-7">
+                        <p>The Google Ads and X Ads tags described here load on the website only, never in the apps.</p>
                         <p>
                             Since 24 August 2026, peanutsplit.com carries a Google Ads tag (
                             <code className="text-sm">{GOOGLE_ADS_ID}</code>). It runs on this site only, and it has one
@@ -293,6 +303,11 @@ export default function PrivacyPage() {
                         <li>
                             your browser vendor&rsquo;s push service &mdash; it delivers a notification you asked for,
                             and it necessarily sees that a message was sent to your device;
+                        </li>
+                        <li>
+                            Apple Push Notification service and Google Firebase Cloud Messaging &mdash; they deliver the
+                            notifications you turn on in the iOS and Android apps, and they can read each
+                            notification&rsquo;s title and text, including names and amounts;
                         </li>
                         <li>our hosting provider &mdash; ordinary web-server request logs, including IP addresses.</li>
                     </ul>

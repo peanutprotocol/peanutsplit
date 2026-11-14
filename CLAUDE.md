@@ -51,6 +51,7 @@ two is the remaining merge.
 - **Do not scaffold deferred ideas.** Future-facing fields, states, routes, or abstractions require an approved ROADMAP item that explicitly authorizes implementation; listing an idea as deferred does not.
 - **No identity in analytics either** — no room slug, no member name, no amount. The slug is the room's access control; a name is what someone chose to show their friends. Rooms are grouped by `analyticsKey`, a one-way digest of the room UUID issued by the server — it cannot be turned back into a room, and the slug still never leaves the device. Attach it with `roomProps(slug, …)`, which looks the key up; never put a slug in a property bag.
 - Dependencies must be ≥14 days old (`.npmrc` enforces it).
+- **API routes stay backward compatible with every shipped app build.** The store apps have no over-the-air updates, so an old binary keeps calling the live API for months. A change an older build cannot handle raises `minBuild` in `apps/web/public/app-config.json` in the same push.
 - Run `pnpm typecheck && pnpm test && pnpm format` before pushing. Run `pnpm format` from `apps/web`, never the repo root — the root config can't resolve `prettier-plugin-tailwindcss` and reformats CI yaml as a side effect.
 
 ## Local dev
@@ -59,6 +60,8 @@ two is the remaining merge.
 pnpm bootstrap    # NOT plain `pnpm install` — see below
 pnpm dev          # API :5051 + web :3000 (or dev:api / dev:web for one)
 ```
+
+The iOS and Android apps (Capacitor, `apps/web/ios` and `apps/web/android`) bundle a static export of the app: `pnpm --dir apps/web native:build` builds it into `apps/web/.next-native`, and `pnpm --dir apps/web native:sync` builds it and copies it into both native projects. Details: [`docs/current/NATIVE.md`](docs/current/NATIVE.md).
 
 `apps/web` is not a workspace member, which has one sharp edge: running
 `pnpm install` inside `apps/web` walks _up_ and installs the workspace instead,
