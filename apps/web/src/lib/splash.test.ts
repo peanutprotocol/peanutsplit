@@ -36,16 +36,16 @@ describe('iOS launch screens', () => {
      * include list stops covering a folder that did not exist when it was written, and the symptom
      * — an asset silently missing offline — is invisible until someone is on a train. So the shape
      * of `public/` is pinned here: add a folder, and this fails until it is either added to the
-     * patterns or deliberately recorded as online-only. `dev/` and `press/` are the latter: an
-     * internal static quiz and downloadable distribution assets are not part of the installable
-     * app shell.
+     * patterns or deliberately recorded as online-only. `.well-known/`, `dev/` and `press/` are
+     * the latter: the app-link association files, an internal static quiz and downloadable
+     * distribution assets are not part of the installable app shell.
      */
     it('keeps every public folder either precached or explicitly online-only', () => {
         const folders = readdirSync(path.join(WEB, 'public'), { withFileTypes: true })
             .filter((entry) => entry.isDirectory())
             .map((entry) => entry.name)
             .sort()
-        expect(folders).toEqual(['dev', 'doodles', 'fonts', 'icons', 'install', 'press'])
+        expect(folders).toEqual(['.well-known', 'dev', 'doodles', 'fonts', 'icons', 'install', 'press'])
         expect(readFileSync(path.join(WEB, 'next.config.js'), 'utf8')).toContain("'install/*.svg'")
     })
 })
