@@ -22,7 +22,9 @@
         "e2e": "playwright test",
         "e2e:pwa-boundary": "playwright test --config playwright.pwa-boundary.config.ts",
         "e2e:v2": "playwright test --config playwright.v2.config.ts",
-        "icons": "node scripts/generate-icons.mjs"
+        "icons": "node scripts/generate-icons.mjs",
+        "native:build": "SPLIT_NATIVE_BUILD=1 NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL:-https://peanutsplit.com} NEXT_PUBLIC_SPLIT_V2_ENABLED=${NEXT_PUBLIC_SPLIT_V2_ENABLED:-1} NEXT_PUBLIC_FOSS_RELEASED=${NEXT_PUBLIC_FOSS_RELEASED:-1} next build --webpack && node scripts/native/postbuild.mjs",
+        "native:sync": "pnpm native:build && NODE_ENV=production cap sync"
     },
     "pnpm": {
         "onlyBuiltDependencies": [
