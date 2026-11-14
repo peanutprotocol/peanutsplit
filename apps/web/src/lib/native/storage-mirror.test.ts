@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Preferences as the native plugin would hold it: one key-value map that outlives localStorage.
-const preferences = vi.hoisted(() => ({ store: new Map<string, string>() }))
+// `stalled` holds every call's reply forever after the call itself reached the plugin, as when the
+// page unloads before the native side answers.
+const preferences = vi.hoisted(() => ({ store: new Map<string, string>(), stalled: false }))
 
 vi.mock('./capacitor/index', () => ({
     preferences: {
@@ -9,10 +11,12 @@ vi.mock('./capacitor/index', () => ({
         get: async (key: string) => preferences.store.get(key) ?? null,
         set: async (key: string, value: string) => {
             preferences.store.set(key, value)
+            if (preferences.stalled) await new Promise(() => {})
             return true
         },
         remove: async (key: string) => {
             preferences.store.delete(key)
+            if (preferences.stalled) await new Promise(() => {})
             return true
         },
     },
@@ -54,6 +58,7 @@ beforeEach(() => {
     vi.resetModules()
     vi.stubEnv('NEXT_PUBLIC_NATIVE_BUILD', '1')
     preferences.store.clear()
+    preferences.stalled = false
     const FakeStorageClass = makeStorageClass()
     local = new FakeStorageClass()
     session = new FakeStorageClass()
@@ -116,6 +121,22 @@ describe('installStorageMirror', () => {
 
         await vi.waitFor(() => expect([...preferences.store.keys()]).toEqual(['ps:pending:q2']))
         expect(local.getItem('ps:pending:q1')).toBeNull()
+    })
+
+    it('sends a remove without waiting for the reply to the write before it', async () => {
+        const { installStorageMirror } = await load()
+        installStorageMirror()
+        local.setItem('ps:member:ski-trip-kunc-syrup-drum', '{"id":"m1","token":"t1"}')
+        await vi.waitFor(() => expect(preferences.store.has('ps:member:ski-trip-kunc-syrup-drum')).toBe(true))
+
+        // Remove from device: the room list is rewritten, then the member token removed, and the
+        // page navigates away before any native reply arrives.
+        preferences.stalled = true
+        local.setItem('ps:recent', '[]')
+        local.removeItem('ps:member:ski-trip-kunc-syrup-drum')
+
+        await vi.waitFor(() => expect(preferences.store.has('ps:member:ski-trip-kunc-syrup-drum')).toBe(false))
+        expect(preferences.store.get('ps:recent')).toBe('[]')
     })
 
     it('leaves sessionStorage alone', async () => {

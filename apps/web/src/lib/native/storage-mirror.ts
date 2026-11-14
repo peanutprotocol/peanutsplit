@@ -54,13 +54,18 @@ export async function hydrateStorageMirror(): Promise<void> {
 
 /** Set once by installStorageMirror; every mirrored write reuses the one loaded host. */
 let mirrorHost: Promise<NativeHost> | null = null
-/** One queue, so a set followed by a remove of the same key reaches Preferences in that order. */
-let pending: Promise<unknown> = Promise.resolve()
 
+/**
+ * Sends the Preferences call in the microtask after its localStorage write, without waiting for the
+ * previous call's native reply. Waiting would lose a remove that a hard navigation follows (Remove
+ * from device, Leave): the page unloads before the earlier reply returns, Preferences keeps the
+ * key, and the next hydrate restores it. Capacitor runs one plugin's calls in dispatch order on
+ * iOS and Android, so a set followed by a remove still lands in that order.
+ */
 function mirror(write: (preferences: NativeHost['preferences']) => Promise<unknown>): void {
     const host = mirrorHost
     if (!host) return
-    pending = pending.then(() => host.then((loaded) => write(loaded.preferences))).catch(() => {})
+    void host.then((loaded) => write(loaded.preferences)).catch(() => {})
 }
 
 /**
