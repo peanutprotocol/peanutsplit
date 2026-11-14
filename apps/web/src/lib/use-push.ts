@@ -96,7 +96,12 @@ function deviceEnvironment(hasRoomSubscription: boolean): PushEnvironment {
  * deliver to.
  */
 async function activeRegistration(): Promise<ServiceWorkerRegistration> {
-    if (!(await navigator.serviceWorker.getRegistration())) await navigator.serviceWorker.register('/sw.js')
+    // The app export has no service worker, and its postbuild check rejects any
+    // `serviceWorker.register` call. The inline flag comparison lets the bundler
+    // drop the call from that export; the web build keeps it unchanged.
+    if (process.env.NEXT_PUBLIC_NATIVE_BUILD !== '1' && !(await navigator.serviceWorker.getRegistration())) {
+        await navigator.serviceWorker.register('/sw.js')
+    }
     return await navigator.serviceWorker.ready
 }
 
