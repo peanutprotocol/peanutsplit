@@ -50,13 +50,15 @@ async function nativeShare(data?: ShareData): Promise<void> {
 /**
  * Serves `navigator.share` (including files) through the native share sheet (ARCHITECTURE 9.2).
  *
- * Android's WebView has no `navigator.share`, so without this every Share button silently becomes
- * Copy there. Installed only where `share` is missing (iOS's WKWebView has its own); `canShare` is
- * replaced together with it so the two always describe the same implementation. Defining a missing
- * property on `navigator` is not a prototype patch.
+ * Installed on both platforms. Android's WebView has no `navigator.share`, so without this every
+ * Share button silently becomes Copy there. iOS's WKWebView has its own, but it needs transient user
+ * activation and refuses with NotAllowedError after an awaited fetch, which the history export does
+ * before it shares; the native plugin needs no activation. `canShare` is replaced together with
+ * `share` so the two always describe the same implementation. An own property on `navigator` shadows
+ * the WebView's and is not a prototype patch.
  */
 export function installSharePolyfill(): void {
-    if (typeof navigator === 'undefined' || typeof navigator.share === 'function') return
+    if (typeof navigator === 'undefined') return
     Object.defineProperty(navigator, 'share', { configurable: true, writable: true, value: nativeShare })
     Object.defineProperty(navigator, 'canShare', { configurable: true, writable: true, value: isSharePayload })
 }

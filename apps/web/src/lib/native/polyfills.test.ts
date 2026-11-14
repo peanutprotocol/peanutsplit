@@ -62,12 +62,21 @@ describe('installSharePolyfill', () => {
         expect(nav.canShare?.({ files: [new File(['x'], 'a.png')] })).toBe(true)
     })
 
-    it("keeps the WebView's own share (iOS)", async () => {
-        const own = async () => {}
+    it("replaces the WebView's own share (iOS), which refuses after an awaited fetch", async () => {
+        const own = vi.fn(async () => {
+            throw new DOMException('User activation is required', 'NotAllowedError')
+        })
         nav.share = own
+        nav.canShare = () => false
         await install()
-        expect(nav.share).toBe(own)
-        expect(nav.canShare).toBeUndefined()
+        expect(nav.share).not.toBe(own)
+        expect(nav.canShare?.({ files: [new File(['a,b'], 'history.csv')] })).toBe(true)
+
+        await nav.share?.({ files: [new File(['a,b'], 'history.csv', { type: 'text/csv' })] })
+        expect(own).not.toHaveBeenCalled()
+        expect(native.sheets).toEqual([
+            { title: undefined, text: undefined, url: undefined, files: ['file:///cache/history.csv'] },
+        ])
     })
 
     it('shares text and a link through the native sheet', async () => {
