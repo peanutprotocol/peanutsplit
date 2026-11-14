@@ -26,6 +26,7 @@
         "rooms": {
             "title": "Twoje pokoje",
             "subtitle": "Zapisane na tym urządzeniu.",
+            "emptyHint": "Otwórz link do pokoju z czatu albo wklej go tutaj.",
             "openLabel": "Otwórz pokój",
             "showMore": "Pokaż jeszcze {count, plural, one {# pokój} few {# pokoje} many {# pokoi} other {# pokoju}}",
             "showLess": "Pokaż mniej pokoi",
@@ -207,6 +208,10 @@
                 "continue": "Wróć do aplikacji Split",
                 "copyRoom": "Skopiuj oryginalny link do pokoju",
                 "roomRecovery": "Po instalacji brakuje pokoju? Otwórz raz jego oryginalny link."
+            },
+            "store": {
+                "cta": "Pobierz aplikację",
+                "note": "Twoje pokoje otwierają się w aplikacji, gdy dotkniesz linku do nich."
             }
         },
         "linkExplainer": {
@@ -399,7 +404,9 @@
             "sound": "Dźwięk",
             "haptics": "Wibracje",
             "privacyNote": "Każdy z linkiem może otworzyć pokój.",
-            "manageRooms": "Zarządzaj pokojami"
+            "manageRooms": "Zarządzaj pokojami",
+            "scanConsent": "Odczytuj paragony za pomocą AI",
+            "scanConsentHint": "Zdjęcia paragonów trafiają do Google Gemini przez OpenRouter."
         },
         "feedback": {
             "title": "Zgłoś problem",
@@ -607,6 +614,7 @@
         "states": {
             "errorTitle": "Nie udało się wczytać tego pokoju",
             "errorBody": "Prawdopodobnie połączenie szwankuje. Nic nie zginęło — spróbuj ponownie.",
+            "offlineBody": "Jesteś offline. Ten pokój wczyta się po odzyskaniu połączenia.",
             "staleTitle": "Ten pokój może być nieaktualny",
             "staleBody": "Pokazujemy ostatnio wczytany stan pokoju. Edycja i usuwanie zapisanych wydatków oraz rozliczanie są wstrzymane do czasu odświeżenia. Nadal możesz dodać wydatek.",
             "retry": "Spróbuj ponownie",
@@ -916,6 +924,12 @@
             "step2": "Zeskanuj rachunek · do kogo należy każda pozycja",
             "reading": "Odczytujemy rachunek…",
             "privacyNote": "Split wysyła zdjęcie jednorazowo i go nie przechowuje.",
+            "consent": {
+                "title": "Odczytać ten paragon za pomocą AI?",
+                "body": "Aby odczytać paragon, Split wysyła zdjęcie do Google Gemini przez OpenRouter. Split go nie przechowuje.",
+                "allow": "Zezwól",
+                "notNow": "Nie teraz"
+            },
             "reviewTitle": "Sprawdź pozycje",
             "reviewBody": "Popraw błędnie odczytane dane, usuń pozycje, które nie są twoje, i dodaj pominięte.",
             "reviewFromMerchant": "Sprzedawca: {merchant}. Popraw błędnie odczytane dane i dodaj pominięte pozycje.",
@@ -1144,9 +1158,21 @@
         "iosNeedsPwa": "Dodaj Split do ekranu początkowego.",
         "iosHow": "Jak?",
         "denied": "Zablokowane w ustawieniach przeglądarki.",
+        "deniedApp": "Powiadomienia Split są wyłączone. Włącz je w ustawieniach telefonu.",
         "unknown": "Nie udało się teraz sprawdzić — to urządzenie może nadal je otrzymywać.",
         "needsToken": "Wybierz ponownie swoje imię, aby je włączyć.",
         "failed": "nie udało się zmienić powiadomień — spróbuj ponownie"
+    },
+    "native": {
+        "update": {
+            "title": "Zaktualizuj Split",
+            "body": "Ta wersja Split jest nieaktualna. Zaktualizuj ją, aby dalej korzystać ze swoich pokoi.",
+            "cta": "Zaktualizuj",
+            "openWeb": "Otwórz w przeglądarce"
+        }
+    },
+    "legal": {
+        "privacy": "Prywatność"
     },
     "routeStates": {
         "error": {
@@ -1229,7 +1255,8 @@
         "NO_RATE": "Nie ma kursu między tą walutą a walutą pokoju, więc nie można jej przeliczyć. Użyj waluty pokoju.",
         "MANUAL_FX_RATE_REQUIRED": "Wpisz własny kurs tej niestandardowej waluty.",
         "MANUAL_FX_RATE_INVALID": "Wpisany kurs jest nieprawidłowy albo sprawia, że przeliczona kwota zaokrągla się do zera.",
-        "MANUAL_FX_RATE_NOT_ALLOWED": "Własne kursy są dostępne tylko dla niestandardowych walut wydatków."
+        "MANUAL_FX_RATE_NOT_ALLOWED": "Własne kursy są dostępne tylko dla niestandardowych walut wydatków.",
+        "NATIVE_PUSH_UNAVAILABLE": "Powiadomienia nie są jeszcze dostępne."
     },
     "derivation": {
         "title": "Skąd ta suma",

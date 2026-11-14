@@ -125,6 +125,15 @@ export type AnalyticsEvent =
     // A content CTA click through to `/new`. `source` is the page's own public slug — the same
     // value its URL shows every reader — so it names the PAGE, never the person who clicked.
     | 'content_cta_clicked'
+    // Native apps. `store_link_clicked` carries `platform: 'ios'` and the closed `source` of the web
+    // surface that showed the store link; `app_room_opened` carries only how the app reached the room
+    // (`link`, `push`, `paste` or `launch`). The join-gate pair measures whether a store banner costs
+    // web joins: `join_gate_completed` says only whether the person joined as someone new or claimed
+    // a name already on the roster. All four carry `roomProps(slug)` at most, never a slug or a name.
+    | 'store_link_clicked'
+    | 'app_room_opened'
+    | 'join_gate_shown'
+    | 'join_gate_completed'
 
 let ready = false
 

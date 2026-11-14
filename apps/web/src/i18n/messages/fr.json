@@ -26,6 +26,7 @@
         "rooms": {
             "title": "Tes groupes",
             "subtitle": "Enregistrés sur cet appareil.",
+            "emptyHint": "Ouvre un lien de groupe depuis ta discussion, ou colle-le ici.",
             "openLabel": "Ouvrir le groupe",
             "showMore": "Afficher {count, plural, one {# groupe supplémentaire} other {# groupes supplémentaires}}",
             "showLess": "Afficher moins de groupes",
@@ -207,6 +208,10 @@
                 "continue": "Retour à Split",
                 "copyRoom": "Copier le lien original du groupe",
                 "roomRecovery": "Le groupe a disparu après l’installation ? Ouvre une fois le lien original du groupe."
+            },
+            "store": {
+                "cta": "Télécharger l’app",
+                "note": "Tes groupes s’ouvrent dans l’app quand tu appuies sur leurs liens."
             }
         },
         "linkExplainer": {
@@ -399,7 +404,9 @@
             "sound": "Son",
             "haptics": "Vibrations",
             "privacyNote": "Utilisation gratuite, sans inscription. Toute personne ayant le lien d’un groupe peut l’ouvrir.",
-            "manageRooms": "Gérer les groupes"
+            "manageRooms": "Gérer les groupes",
+            "scanConsent": "Lire les reçus avec l’IA",
+            "scanConsentHint": "Les photos de reçus sont envoyées à Google Gemini via OpenRouter."
         },
         "feedback": {
             "title": "Signaler un problème",
@@ -607,6 +614,7 @@
         "states": {
             "errorTitle": "Impossible de charger ce groupe",
             "errorBody": "La connexion semble instable. Rien n’est perdu — réessaie.",
+            "offlineBody": "Tu es hors ligne. Ce groupe se chargera dès que tu seras de nouveau en ligne.",
             "staleTitle": "Ce groupe n’est peut-être plus à jour",
             "staleBody": "La dernière version chargée du groupe est affichée. Tu ne peux pas modifier ni supprimer les dépenses enregistrées, ni enregistrer de paiement, avant d’avoir actualisé le groupe. Tu peux toujours ajouter une dépense.",
             "retry": "Réessayer",
@@ -916,6 +924,12 @@
             "step2": "Scanner une facture · qui a pris quoi",
             "reading": "Lecture de la facture…",
             "privacyNote": "Split envoie la photo une seule fois et ne la conserve pas.",
+            "consent": {
+                "title": "Lire ce reçu avec l’IA ?",
+                "body": "Pour lire ton reçu, Split envoie la photo à Google Gemini via OpenRouter. Split ne la conserve pas.",
+                "allow": "Autoriser",
+                "notNow": "Pas maintenant"
+            },
             "reviewTitle": "Vérifier les articles",
             "reviewBody": "Corrige les erreurs, supprime ce qui ne doit pas être inclus et ajoute ce qui manque.",
             "reviewFromMerchant": "Facture de {merchant}. Corrige les erreurs et ajoute ce qui manque.",
@@ -1144,9 +1158,21 @@
         "iosNeedsPwa": "Ajoute Split à ton écran d’accueil.",
         "iosHow": "Comment ?",
         "denied": "Bloquées dans les réglages de ton navigateur.",
+        "deniedApp": "Les notifications de Split sont désactivées. Active-les dans les réglages de ton téléphone.",
         "unknown": "Impossible de vérifier maintenant — cet appareil reçoit peut-être encore les notifications.",
         "needsToken": "Choisis à nouveau ton nom pour activer cette option.",
         "failed": "impossible de modifier les notifications — réessaie"
+    },
+    "native": {
+        "update": {
+            "title": "Mettre à jour Split",
+            "body": "Cette version de Split n’est plus à jour. Mets-la à jour pour continuer à utiliser tes groupes.",
+            "cta": "Mettre à jour",
+            "openWeb": "Ouvrir dans le navigateur"
+        }
+    },
+    "legal": {
+        "privacy": "Confidentialité"
     },
     "routeStates": {
         "error": {
@@ -1229,7 +1255,8 @@
         "NO_RATE": "Il n’existe aucun taux de change entre cette devise et celle du groupe. Utilise la devise du groupe.",
         "MANUAL_FX_RATE_REQUIRED": "Saisis un taux manuel pour cette devise personnalisée.",
         "MANUAL_FX_RATE_INVALID": "Ce taux manuel est invalide ou arrondit le montant converti à zéro.",
-        "MANUAL_FX_RATE_NOT_ALLOWED": "Les taux manuels sont disponibles uniquement pour les devises de dépense personnalisées."
+        "MANUAL_FX_RATE_NOT_ALLOWED": "Les taux manuels sont disponibles uniquement pour les devises de dépense personnalisées.",
+        "NATIVE_PUSH_UNAVAILABLE": "Les notifications ne sont pas encore disponibles."
     },
     "derivation": {
         "title": "Comment ce solde est calculé",

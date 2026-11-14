@@ -109,6 +109,25 @@ describe('privacy-safe analytics', () => {
     })
 })
 
+describe('join-gate analytics', () => {
+    // JoinGate sends exactly these two payloads. They are the Smart App Banner guardrail, so they must
+    // count joins per room without ever carrying the room's credential or the name someone picked.
+    it('sends the room pseudonym and the join path, never the slug', async () => {
+        const { rememberRoomKey, roomProps, track } = await import('./analytics')
+        const slug = 'ski-trip-kunc-syrup-drum'
+        rememberRoomKey(slug, 'rk_join_gate')
+
+        track('join_gate_shown', roomProps(slug))
+        track('join_gate_completed', { ...roomProps(slug), via: 'claim' })
+
+        expect(posthog.capture.mock.calls).toEqual([
+            ['join_gate_shown', { room: 'rk_join_gate' }],
+            ['join_gate_completed', { room: 'rk_join_gate', via: 'claim' }],
+        ])
+        expect(JSON.stringify(posthog.capture.mock.calls)).not.toContain(slug)
+    })
+})
+
 describe('landing analytics', () => {
     it('sends only the allowlisted variant for every landing-funnel event', async () => {
         const { trackLanding } = await import('./analytics')

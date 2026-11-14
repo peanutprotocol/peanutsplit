@@ -30,6 +30,26 @@ describe('redactRoomSlugs', () => {
         )
     })
 
+    it('scrubs the slug query parameter the native app’s room pages use', () => {
+        expect(redactRoomSlugs('capacitor://localhost/room/?slug=ski-trip-kunc-syrup-drum&add=1')).toBe(
+            'capacitor://localhost/room/?slug=[slug]&add=1'
+        )
+        expect(redactRoomSlugs('https://localhost/room/import/?slug=ski-trip-kunc-syrup-drum')).toBe(
+            'https://localhost/room/import/?slug=[slug]'
+        )
+        expect(redactRoomSlugs('https://localhost/room/?add=1&slug=ski-trip-kunc-syrup-drum#expenses')).toBe(
+            'https://localhost/room/?add=1&slug=[slug]#expenses'
+        )
+    })
+
+    it('scrubs any slug parameter, on purpose, even outside a room path', () => {
+        // Over-redacting an unrelated `slug=` loses a little debugging detail; a narrower rule
+        // would leak a room credential the first time a new page passes one.
+        expect(redactRoomSlugs('https://peanutsplit.com/blog/?slug=splitwise-alternative')).toBe(
+            'https://peanutsplit.com/blog/?slug=[slug]'
+        )
+    })
+
     it('leaves slug-free strings alone', () => {
         expect(redactRoomSlugs('/new')).toBe('/new')
         expect(redactRoomSlugs('/api/currencies')).toBe('/api/currencies')
@@ -77,6 +97,40 @@ describe('redactTelemetryEvent', () => {
             request: { url: 'https://peanutsplit.com/r/[slug]' },
             exception: { values: [{ value: 'Fetch failed at /api/rooms/[slug]/expenses' }] },
             breadcrumbs: [{ message: 'Navigated from /r/[slug]' }],
+        })
+    })
+
+    it('scrubs the native app’s slug query from breadcrumbs and exception text', () => {
+        const capability = 'ski-trip-kunc-syrup-drum'
+        const event = redactTelemetryEvent({
+            exception: {
+                values: [{ value: `Failed to load capacitor://localhost/room/?slug=${capability}&add=1` }],
+            },
+            breadcrumbs: [
+                {
+                    message: `Navigated to /room/?slug=${capability}`,
+                    data: {
+                        from: 'capacitor://localhost/app/',
+                        to: `capacitor://localhost/room/?slug=${capability}&add=1`,
+                        url: `https://localhost/room/import/?slug=${capability}`,
+                    },
+                },
+            ],
+        })
+
+        expect(JSON.stringify(event)).not.toContain(capability)
+        expect(event).toEqual({
+            exception: { values: [{ value: 'Failed to load capacitor://localhost/room/?slug=[slug]&add=1' }] },
+            breadcrumbs: [
+                {
+                    message: 'Navigated to /room/?slug=[slug]',
+                    data: {
+                        from: 'capacitor://localhost/app/',
+                        to: 'capacitor://localhost/room/?slug=[slug]&add=1',
+                        url: 'https://localhost/room/import/?slug=[slug]',
+                    },
+                },
+            ],
         })
     })
 })

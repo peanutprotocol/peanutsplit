@@ -26,6 +26,7 @@
         "rooms": {
             "title": "Your rooms",
             "subtitle": "Saved on this device.",
+            "emptyHint": "Open a room link from your chat, or paste it here.",
             "openLabel": "Open room",
             "showMore": "Show {count, plural, one {# more room} other {# more rooms}}",
             "showLess": "Show fewer rooms",
@@ -207,6 +208,10 @@
                 "continue": "Back to Split",
                 "copyRoom": "Copy original room link",
                 "roomRecovery": "Room missing after installing? Open the original room link once."
+            },
+            "store": {
+                "cta": "Get the app",
+                "note": "Your rooms open in the app when you tap their links."
             }
         },
         "linkExplainer": {
@@ -399,7 +404,9 @@
             "sound": "Sound",
             "haptics": "Haptics",
             "privacyNote": "Free to use, no signup. Anyone with a room’s link can open it.",
-            "manageRooms": "Manage rooms"
+            "manageRooms": "Manage rooms",
+            "scanConsent": "Read receipts with AI",
+            "scanConsentHint": "Receipt photos go to Google Gemini through OpenRouter."
         },
         "feedback": {
             "title": "Report a problem",
@@ -607,6 +614,7 @@
         "states": {
             "errorTitle": "We could not load this room",
             "errorBody": "Probably a wobbly connection. Nothing is lost — try again.",
+            "offlineBody": "You’re offline. This room loads when you’re back online.",
             "staleTitle": "This room may be out of date",
             "staleBody": "Showing the last loaded room. Editing or deleting saved expenses and settling up are paused until refresh. You can still add an expense.",
             "retry": "Try again",
@@ -916,6 +924,12 @@
             "step2": "Scan a bill · who had what",
             "reading": "Reading the bill…",
             "privacyNote": "Split sends the photo once and doesn’t store it.",
+            "consent": {
+                "title": "Read this receipt with AI?",
+                "body": "To read your receipt, Split sends the photo to Google Gemini through OpenRouter. Split doesn’t store it.",
+                "allow": "Allow",
+                "notNow": "Not now"
+            },
             "reviewTitle": "Check the items",
             "reviewBody": "Fix anything that came out wrong, delete what is not yours, add what was missed.",
             "reviewFromMerchant": "From {merchant}. Fix anything that came out wrong, add what was missed.",
@@ -1144,9 +1158,21 @@
         "iosNeedsPwa": "Add Split to your home screen.",
         "iosHow": "How?",
         "denied": "Blocked in your browser settings.",
+        "deniedApp": "Notifications are off for Split. Turn them on in your phone’s Settings.",
         "unknown": "Couldn’t check just now — this device may still be getting them.",
         "needsToken": "Pick your name again to turn this on.",
         "failed": "could not change notifications — try again"
+    },
+    "native": {
+        "update": {
+            "title": "Update Split",
+            "body": "This version of Split is out of date. Update it to keep using your rooms.",
+            "cta": "Update",
+            "openWeb": "Open in browser"
+        }
+    },
+    "legal": {
+        "privacy": "Privacy"
     },
     "routeStates": {
         "error": {
@@ -1229,7 +1255,8 @@
         "NO_RATE": "There is no rate between that currency and the room’s, so it cannot be converted. Use the room currency.",
         "MANUAL_FX_RATE_REQUIRED": "Enter a manual rate for this custom currency.",
         "MANUAL_FX_RATE_INVALID": "That manual rate is invalid or makes the converted amount round to zero.",
-        "MANUAL_FX_RATE_NOT_ALLOWED": "Manual rates are only available for custom expense currencies."
+        "MANUAL_FX_RATE_NOT_ALLOWED": "Manual rates are only available for custom expense currencies.",
+        "NATIVE_PUSH_UNAVAILABLE": "Notifications aren’t available yet."
     },
     "derivation": {
         "title": "How this adds up",
