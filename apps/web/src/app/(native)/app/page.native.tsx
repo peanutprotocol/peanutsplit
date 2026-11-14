@@ -8,16 +8,20 @@ import { YourRooms } from '@/components/marketing/YourRooms'
 import { RecentRoomAppEntry } from '@/components/pwa/RecentRoomAppEntry'
 import { Doodle } from '@/components/ui/Doodle'
 import { buttonClassName } from '@/components/ui/button-style'
+import { productUrl } from '@/lib/site'
 
 /**
  * The app's rooms home: a client copy of (product-shell)/app/page.tsx without the install
- * surfaces, which do not apply inside the store app. Same test ids.
+ * surfaces (no install=1 branch, no CanonicalAppLaunchMarker) and without the landing link, whose
+ * marketing page is not in the binary. Same test ids. `manage=1` shows the list without the
+ * redirect to the recent room: the offline error, RoomSwitcher and leaving a room link here.
  */
 function AppHome() {
     const tCreate = useTranslations('room.create')
     const tFooter = useTranslations('marketing.footer')
     const tRooms = useTranslations('marketing.rooms')
     const tHeader = useTranslations('room.header')
+    const tLegal = useTranslations('legal')
     const searchParams = useSearchParams()
     const addExpense = searchParams.get('add') === '1'
 
@@ -65,6 +69,13 @@ function AppHome() {
                     </nav>
                 }
             />
+            {/* Both stores require a privacy link in the app (no Terms link in v1). The external-link
+            handler opens it in the system browser. */}
+            <footer className="px-5 pb-8 text-center text-sm text-grey-1">
+                <a href={productUrl('/privacy')} className="underline" data-testid="app-privacy-link">
+                    {tLegal('privacy')}
+                </a>
+            </footer>
         </main>
     )
 

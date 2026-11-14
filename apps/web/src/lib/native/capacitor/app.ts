@@ -19,6 +19,9 @@ export const onUrlOpen = (handler: (url: string) => void): Promise<() => void> =
 /** Calls `handler` each time the app returns to the foreground. Returns a disposer. */
 export const onResume = (handler: () => void): Promise<() => void> => listen(() => App.addListener('resume', handler))
 
+/** Calls `handler` each time the app goes to the background. Returns a disposer. */
+export const onPause = (handler: () => void): Promise<() => void> => listen(() => App.addListener('pause', handler))
+
 /** Calls `handler` on the Android back button; attaching it disables the default back. Returns a disposer. */
 export const onBackButton = (handler: (canGoBack: boolean) => void): Promise<() => void> =>
     listen(() => App.addListener('backButton', (event) => handler(event.canGoBack)))
