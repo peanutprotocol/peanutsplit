@@ -274,8 +274,9 @@ jobs:
           adb exec-out screencap -p > "${out}/3-after-back.png"
           adb logcat -d > "${out}/logcat.txt"
           grep -h 'SPLIT_CORS' "${out}/logcat.txt" || echo '::warning::No SPLIT_CORS line in logcat.'
-          if grep -q 'Uncaught' "${out}/logcat.txt"; then
-            grep 'Uncaught' "${out}/logcat.txt" | head -n 20
+          # Only the WebView console counts: system_server logs 'Uncaught remote exception' on its own.
+          if grep 'Capacitor/Console' "${out}/logcat.txt" | grep -q 'Uncaught'; then
+            grep 'Capacitor/Console' "${out}/logcat.txt" | grep 'Uncaught' | head -n 20
             echo '::error::The WebView logged an uncaught error.'
             exit 1
           fi
