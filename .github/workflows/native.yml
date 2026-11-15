@@ -385,12 +385,28 @@ jobs:
           xcrun simctl boot "${udid}" || true
           xcrun simctl bootstatus "${udid}" -b
           xcrun simctl install "${udid}" "${app}"
-          xcrun simctl launch --console-pty --terminate-running-process "${udid}" "${bundle}" > "${out}/console.log" 2>&1 &
-          launcher=$!
-          sleep 10
+          # --stdout/--stderr let simctl return at once with the pid; Capacitor prints the WebView
+          # console to stdout, so the SPLIT_CORS line lands in console.log.
+          touch "${out}/console.log"
+          if ! xcrun simctl launch --terminate-running-process \
+            --stdout="${out}/console.log" --stderr="${out}/console.log" "${udid}" "${bundle}"; then
+            echo '::warning::simctl launch failed.'
+          fi
+          # grep without -q reads all input, so pipefail never sees a SIGPIPE from launchctl.
+          running() { xcrun simctl spawn "${udid}" launchctl list | grep "UIKitApplication:${bundle}" > /dev/null; }
+          alive=1
+          for _ in $(seq 1 30); do
+            grep -q 'SPLIT_CORS' "${out}/console.log" && break
+            if ! running; then alive=0; break; fi
+            sleep 2
+          done
+          running || alive=0
           xcrun simctl io "${udid}" screenshot "${out}/launch.png"
-          sleep 5
-          kill "${launcher}" 2> /dev/null || true
+          xcrun simctl spawn "${udid}" log show --last 3m --style compact --predicate 'process == "App"' > "${out}/oslog.txt" 2>&1 || true
+          if [ "${alive}" = 0 ]; then
+            cp ~/Library/Logs/DiagnosticReports/App*.ips "${out}/" 2> /dev/null || true
+            echo '::warning::iOS app is not running after launch (crash report attached if one was written).'
+          fi
           grep -h 'SPLIT_CORS' "${out}/console.log" || echo '::warning::No SPLIT_CORS line in the simulator console.'
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
