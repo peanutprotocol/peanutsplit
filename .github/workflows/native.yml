@@ -51,6 +51,10 @@ jobs:
       - name: Check the native project settings
         run: node apps/web/scripts/native/assert-native-config.mjs
 
+      # The store images in apps/web/store/assets must exist at the exact sizes, with no alpha.
+      - name: Check the store images
+        run: node apps/web/store/check-assets.mjs
+
       # The self-test flag makes the debug APK and the simulator build log `SPLIT_CORS ok|blocked`
       # on boot. Only this job sets it; the release lane never does, so release bundles drop it.
       # The placeholder DATABASE_URL matches the Dockerfile: the build needs a value, not a database.
