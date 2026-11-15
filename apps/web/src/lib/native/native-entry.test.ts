@@ -48,7 +48,7 @@ function inputs(
         bootPath = '/',
         launchUrl = null,
         tap = null,
-    }: { bootPath?: string; launchUrl?: string | null; tap?: { slug: string; sendId: string } | null }
+    }: { bootPath?: string; launchUrl?: string | null; tap?: { slug: string | null; sendId: string } | null }
 ) {
     const consulted: string[] = []
     return {
@@ -157,6 +157,14 @@ describe('decideEntry', () => {
         expect((await decideEntry(run.value)).step).toBe('push')
         expect(history).toEqual([`/room/?slug=${OTHER_SLUG}`])
         expect(external).toEqual([])
+    })
+
+    it('opens the rooms list, not the most recent room, for a push tap with an unknown room key', async () => {
+        const { decideEntry } = await load()
+        const { nav, history } = fakeNav()
+        const run = inputs(nav, { tap: { slug: null, sendId: 's4' } })
+        expect(await decideEntry(run.value)).toEqual({ step: 'push', slug: null, sendId: 's4' })
+        expect(history).toEqual(['/app/?manage=1'])
     })
 
     it('goes home when there is no boot path, no launch link and no push tap', async () => {

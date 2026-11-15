@@ -92,9 +92,9 @@ describe('awaitColdPushTap', () => {
         expect(plugin.listeners.size).toBe(0)
     })
 
-    it('resolves null for an unknown room key, so the app opens the rooms home', async () => {
+    it('resolves a tap with no room for an unknown room key, so the app opens the rooms list', async () => {
         plugin.retained = tap('key-unknown')
-        expect(await (await load()).awaitColdPushTap()).toBeNull()
+        expect(await (await load()).awaitColdPushTap()).toEqual({ slug: null, sendId: SEND_ID })
         expect(events.tracked).toEqual([])
     })
 
@@ -143,13 +143,13 @@ describe('openWarmTap', () => {
         expect(events.tracked).toEqual([{ name: 'app_room_opened', props: { room: 'key-1', via: 'push' } }])
     })
 
-    it('opens the rooms home for an unknown key', async () => {
+    it('opens the rooms list, not the most recent room, for an unknown key', async () => {
         const { awaitColdPushTap, openWarmTap } = await load()
         await awaitColdPushTap()
         window.history.replaceState(null, '', '/app/')
         const pushed: string[] = []
         expect(openWarmTap(tap('key-unknown'), (path) => pushed.push(path))).toBe('home')
-        expect(pushed).toEqual(['/app/'])
+        expect(pushed).toEqual(['/app/?manage=1'])
     })
 
     it('skips the tap the cold check already claimed, even when the warm listener received it', async () => {

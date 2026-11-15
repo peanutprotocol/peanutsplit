@@ -4,20 +4,23 @@ import { dispatchNativeLink, nativePathForUrl, type NativeNav } from './links'
 /** The app's rooms home; RecentRoomAppEntry there moves a returning person to their latest room. */
 export const NATIVE_HOME = '/app/'
 
+/** The rooms list itself: `/app/` without the redirect to the latest room. */
+export const NATIVE_ROOMS_LIST = '/app/?manage=1'
+
 export interface EntryInputs {
     /** `window.__splitBootPath`: the location the WebView loaded before the boot script reset it to `/`. */
     bootPath: string | undefined
     /** The URL that launched the app, or null. */
     getLaunchUrl(): Promise<string | null>
-    /** The room of a notification tap that launched the app, or null. */
-    awaitColdPushTap(): Promise<{ slug: string; sendId: string } | null>
+    /** The notification tap that launched the app (`slug` null for an unknown room key), or null. */
+    awaitColdPushTap(): Promise<{ slug: string | null; sendId: string } | null>
     nav: NativeNav
 }
 
 export type EntryDecision =
     | { step: 'boot'; path: string }
     | { step: 'launch'; url: string; result: 'navigated' | 'duplicate' }
-    | { step: 'push'; slug: string; sendId: string }
+    | { step: 'push'; slug: string | null; sendId: string }
     | { step: 'home' }
 
 /**
@@ -29,7 +32,8 @@ export type EntryDecision =
  *    and never opens a browser.
  * 2. The launch URL goes through `dispatchNativeLink`, the same function `appUrlOpen` uses. If either
  *    delivery already navigated, stop; a replayed or unmappable launch URL falls through.
- * 3. A notification tap that launched the app opens its room.
+ * 3. A notification tap that launched the app opens its room, or the rooms list for an unknown room
+ *    key (never the most recent room, which would read as the wrong notification).
  * 4. Otherwise the rooms home.
  *
  * Steps 2 and 3 run before step 4, so a cold start from a link or a notification never shows the
@@ -53,7 +57,7 @@ export async function decideEntry(inputs: EntryInputs): Promise<EntryDecision> {
 
     const tap = await inputs.awaitColdPushTap()
     if (tap) {
-        nav.replace(roomPath(tap.slug))
+        nav.replace(tap.slug ? roomPath(tap.slug) : NATIVE_ROOMS_LIST)
         return { step: 'push', slug: tap.slug, sendId: tap.sendId }
     }
 

@@ -259,8 +259,8 @@ transport.
   `register()` resolves and no token ever arrives. `cap sync` never overwrites that file;
   `assert-native-config.mjs` checks both notification names.
 - A tap on a notification reads `data.room` (an `analyticsKey`) and opens the room stored for it. An
-  unknown key opens `/app/`, where `RecentRoomAppEntry` may then open the most recent room (a known minor
-  gap). Taps are de-duplicated by `sendId`.
+  unknown key opens the rooms list (`/app/?manage=1`), never the most recent room. Taps are
+  de-duplicated by `sendId`.
 
 **Server** (`apps/web/src/server/push.ts`, `apps/web/src/server/push-native/`):
 

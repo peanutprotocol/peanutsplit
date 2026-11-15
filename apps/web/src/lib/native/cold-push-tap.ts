@@ -1,7 +1,7 @@
 import { rememberRoomKey, roomProps, track } from '../analytics'
 import { apiUrl, NATIVE_PUSH_ENABLED, roomPath } from '../platform'
 import { loadHost } from './host'
-import { NATIVE_HOME } from './native-entry'
+import { NATIVE_ROOMS_LIST } from './native-entry'
 import { readPushRoom } from './push-room'
 
 /**
@@ -108,7 +108,7 @@ function openTap(tap: PushTap): string | null {
  * Resolves with the room of a notification tap that launched the app, or null: no tap, an unknown
  * room key, or a tap this tab already handled. The splash is still up, so the short wait is unseen.
  */
-export async function awaitColdPushTap(): Promise<{ slug: string; sendId: string } | null> {
+export async function awaitColdPushTap(): Promise<{ slug: string | null; sendId: string } | null> {
     const host = NATIVE_PUSH_ENABLED ? loadHost() : null
     if (!host) {
         coldSettled = true
@@ -127,17 +127,16 @@ export async function awaitColdPushTap(): Promise<{ slug: string; sendId: string
     const tap = coldTap
     coldTap = null
     if (!tap) return null
-    const slug = openTap(tap)
-    return slug ? { slug, sendId: tap.sendId } : null
+    return { slug: openTap(tap), sendId: tap.sendId }
 }
 
 /**
  * The warm tap handler for `NativeLinks`: a known room opens on top of the current screen, so
- * Android back returns to it; an unknown key opens the rooms home. Returns what it did.
+ * Android back returns to it; an unknown key opens the rooms list (not the most recent room). Returns what it did.
  */
 export function openWarmTap(data: Record<string, unknown>, push: (path: string) => void): 'skip' | 'room' | 'home' {
     if (claimTap(data) !== 'warm') return 'skip'
     const slug = openTap(readTap(data))
-    push(slug ? roomPath(slug) : NATIVE_HOME)
+    push(slug ? roomPath(slug) : NATIVE_ROOMS_LIST)
     return slug ? 'room' : 'home'
 }
