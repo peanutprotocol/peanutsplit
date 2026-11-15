@@ -1,0 +1,138 @@
+<!doctype html>
+<!--
+    The Google Play feature graphic, 1024 x 500 (PLAN 7.3). e2e-native/store-screenshots.spec.ts
+    opens this file and writes store/assets/feature-graphic.jpg. Brand sources only: the Split
+    mark (src/assets/logos/split-mark.svg), Gluten (public/fonts) and Roboto (@fontsource/roboto,
+    the same files the link-preview cards use), and the colours of the default pink room theme and
+    tailwind.config.js. The layout follows the marketing link preview (opengraph-image.png).
+    Play may crop the edges and lay a play button over the centre on some surfaces, so the words
+    stay on the left and the mark on the right.
+-->
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Peanut Split feature graphic</title>
+        <style>
+            @font-face {
+                font-family: 'Gluten';
+                src: url('../public/fonts/gluten-latin-400.woff2') format('woff2');
+                font-weight: 400;
+            }
+            @font-face {
+                font-family: 'Roboto';
+                src: url('../node_modules/@fontsource/roboto/files/roboto-latin-700-normal.woff2') format('woff2');
+                font-weight: 700;
+            }
+            @font-face {
+                font-family: 'Roboto';
+                src: url('../node_modules/@fontsource/roboto/files/roboto-latin-900-normal.woff2') format('woff2');
+                font-weight: 900;
+            }
+            :root {
+                --ink: #211c17;
+                --pink: #ff90e8;
+                --pink-tint: #ffb3ef;
+                --yellow: #ffc900;
+                --cream: #faf4f0;
+            }
+            * {
+                box-sizing: border-box;
+                margin: 0;
+            }
+            html,
+            body {
+                width: 1024px;
+                height: 500px;
+                overflow: hidden;
+            }
+            body {
+                position: relative;
+                background: var(--pink);
+                color: var(--ink);
+                font-family: 'Roboto', sans-serif;
+            }
+            .blob {
+                position: absolute;
+                border-radius: 9999px;
+                background: var(--pink-tint);
+            }
+            .copy {
+                position: absolute;
+                left: 64px;
+                top: 0;
+                bottom: 0;
+                width: 620px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+            .wordmark {
+                font-family: 'Gluten', sans-serif;
+                font-size: 30px;
+                letter-spacing: 0.02em;
+            }
+            h1 {
+                margin-top: 18px;
+                font-family: 'Gluten', sans-serif;
+                font-weight: 400;
+                font-size: 64px;
+                line-height: 1.04;
+            }
+            h1 .mark {
+                display: inline-block;
+                margin-top: 6px;
+                padding: 2px 14px 0;
+                background: var(--yellow);
+                border: 4px solid var(--ink);
+                border-radius: 14px;
+                box-shadow: 5px 5px 0 var(--ink);
+                white-space: nowrap;
+            }
+            .lede {
+                margin-top: 26px;
+                font-size: 26px;
+                font-weight: 700;
+                line-height: 1.3;
+            }
+            .chips {
+                display: flex;
+                gap: 12px;
+                margin-top: 22px;
+            }
+            .chip {
+                padding: 8px 18px;
+                background: var(--cream);
+                border: 3px solid var(--ink);
+                border-radius: 9999px;
+                box-shadow: 3px 3px 0 var(--ink);
+                font-size: 19px;
+                font-weight: 900;
+            }
+            .disc {
+                position: absolute;
+                right: 60px;
+                top: 50%;
+                width: 260px;
+                height: 260px;
+                transform: translateY(-50%) rotate(-8deg);
+                filter: drop-shadow(8px 8px 0 var(--ink));
+            }
+        </style>
+    </head>
+    <body>
+        <div class="blob" style="width: 420px; height: 420px; top: -170px; right: -110px"></div>
+        <div class="blob" style="width: 360px; height: 360px; bottom: -210px; left: 300px"></div>
+
+        <main class="copy">
+            <div class="wordmark">PEANUT SPLIT</div>
+            <h1>Split bills<br /><span class="mark">with your group</span></h1>
+            <p class="lede">Share one link. Everyone adds what they paid.</p>
+            <div class="chips">
+                <span class="chip">No signup</span>
+                <span class="chip">Scan receipts</span>
+            </div>
+        </main>
+
+        <img class="disc" src="../src/assets/logos/split-mark.svg" alt="" />
+    </body>
+</html>
