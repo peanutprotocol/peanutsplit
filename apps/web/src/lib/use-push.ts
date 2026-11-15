@@ -5,7 +5,6 @@ import { api } from './api'
 import { vapidPublicKey } from './flags'
 import { identityGeneration, memberStorageKey, readIdentity } from './identity'
 import { dropNativeRoomSubscription, useNativePush } from './native/use-native-push'
-import { IS_NATIVE_APP } from './platform'
 import { completeRoomUpdates, muteRoomUpdates, roomUpdatesStorageKey } from './room-updates'
 import {
     derivePushStatus,
@@ -407,9 +406,12 @@ function useWebPush(slug: string): PushControls {
 
 /**
  * The store app uses native push (APNs or FCM) instead of Web Push. The constant is fixed per build,
- * so a component always calls the same hook and the hook order never changes at runtime.
+ * so a component always calls the same hook and the hook order never changes at runtime. The inline
+ * env literal (not IS_NATIVE_APP) lets webpack fold the choice and drop the native hook from the web
+ * build; see host.ts.
  */
-export const usePush: (slug: string) => PushControls = IS_NATIVE_APP ? useNativePush : useWebPush
+export const usePush: (slug: string) => PushControls =
+    process.env.NEXT_PUBLIC_NATIVE_BUILD === '1' ? useNativePush : useWebPush
 
 export const dropRoomSubscription: (slug: string, memberId: string, memberToken: string) => Promise<void> =
-    IS_NATIVE_APP ? dropNativeRoomSubscription : dropWebRoomSubscription
+    process.env.NEXT_PUBLIC_NATIVE_BUILD === '1' ? dropNativeRoomSubscription : dropWebRoomSubscription
