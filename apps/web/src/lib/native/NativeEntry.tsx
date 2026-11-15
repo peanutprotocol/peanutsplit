@@ -50,8 +50,8 @@ export function NativeEntry(): null {
                 const slug = target && 'path' in target ? roomSlugOfNativePath(target.path) : null
                 if (slug) track('app_room_opened', roomProps(slug, { via: 'launch' }))
             }
-            // Task 3A: a cold push tap (decision.step === 'push') sends its opened beacon and
-            // app_room_opened { via: 'push' } here.
+            // A cold push tap (decision.step === 'push') needs nothing here: awaitColdPushTap()
+            // already sent its opened beacon and app_room_opened { via: 'push' }.
         })
     }, [router])
 
