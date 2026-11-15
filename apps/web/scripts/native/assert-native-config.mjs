@@ -33,10 +33,11 @@ const read = (file) => readFileSync(path.join(root, file), 'utf8')
 // --- A minimal XML plist reader (dict, array, string, integer, real, true, false) ----------------
 
 function parsePlist(xml) {
+    // Comments, the XML declaration and the doctype are matched as tokens and dropped, so a comment
+    // that contains '<' or '>' never splits into stray tokens.
     const tokens = xml
-        .replace(/<\?xml[^>]*>|<!DOCTYPE[^>]*>|<!--[\s\S]*?-->/g, '')
-        .match(/<[^>]+>|[^<]+/g)
-        .filter((token) => token.trim() !== '')
+        .match(/<!--[\s\S]*?-->|<[^>]+>|[^<]+/g)
+        .filter((token) => token.trim() !== '' && !/^<(!--|\?xml|!DOCTYPE)/.test(token))
     let at = 0
     const decode = (text) =>
         text
@@ -59,7 +60,7 @@ function parsePlist(xml) {
         if (tag === '<dict/>') return {}
         if (tag === '<string/>') return ''
         if (tag === '<string>') return text('</string>')
-        if (tag === '<integer>' || tag === '<real>') return Number(text(tag.replace('<', '</')))
+        if (tag === '<integer>' || tag === '<real>') return Number(text(`</${tag.slice(1)}`))
         if (tag === '<array>') {
             const list = []
             while (tokens[at] !== '</array>') list.push(value())
@@ -236,7 +237,7 @@ function buildConfigurations(pbxproj) {
     ].map(([, name, body]) => ({ name, body, target: body.includes('INFOPLIST_FILE') }))
 }
 const setting = (body, key) =>
-    body.match(new RegExp(`^\\s*"?${key.replace(/[[\]*]/g, '\\$&')}"? = ("?)(.*?)\\1;$`, 'm'))?.[2]
+    body.match(new RegExp(`^\\s*"?${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"? = ("?)(.*?)\\1;$`, 'm'))?.[2]
 
 function checkXcodeProject() {
     const pbxproj = read(`${IOS}/App.xcodeproj/project.pbxproj`)

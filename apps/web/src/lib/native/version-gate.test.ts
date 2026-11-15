@@ -117,7 +117,8 @@ describe('gateFallbackUrl', () => {
 
     it('never returns a store host', () => {
         for (const url of [gateFallbackUrl('/room/', '?slug=a-b'), gateFallbackUrl('/app/', '')]) {
-            expect(new URL(url).hostname).not.toMatch(/apple\.com|google\.com/)
+            expect(['apps.apple.com', 'play.google.com']).not.toContain(new URL(url).hostname)
+            expect(origin(url)).toBe(siteUrl)
         }
     })
 })
