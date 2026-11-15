@@ -4,16 +4,21 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from './api'
 import { vapidPublicKey } from './flags'
 import { identityGeneration, memberStorageKey, readIdentity } from './identity'
+import { dropNativeRoomSubscription, useNativePush } from './native/use-native-push'
+import { IS_NATIVE_APP } from './platform'
 import { completeRoomUpdates, muteRoomUpdates, roomUpdatesStorageKey } from './room-updates'
 import {
     derivePushStatus,
     isIOSDevice,
     isStandaloneDisplay,
     urlBase64ToUint8Array,
+    type PushControls,
     type PushEnvironment,
-    type PushStatus,
     type SettledPushStatus,
+    type SubscribeOutcome,
 } from './push-status'
+
+export type { PushControls, SubscribeOutcome }
 
 /**
  * Notification opt-in for one device in ONE room.
@@ -29,11 +34,6 @@ import {
  * and the calls that must stay in lock-step with the server.
  */
 
-/** What a subscribe attempt produced. Mapped straight onto analytics by the
- *  caller, which is why "the user said no" is a return value and not an error:
- *  it is an answer, and nothing went wrong. */
-export type SubscribeOutcome = 'subscribed' | 'denied' | 'failed'
-
 const PUSH_SUBSCRIPTION_CHANGE_EVENT = 'ps:push-subscription-change'
 // Every room and surface shares one browser endpoint. Only one control may
 // change it at a time, including while a permission dialog is open.
@@ -41,15 +41,6 @@ let activeMutation: symbol | null = null
 
 const announceSubscriptionChange = (): void => {
     if (typeof window !== 'undefined') window.dispatchEvent?.(new Event(PUSH_SUBSCRIPTION_CHANGE_EVENT))
-}
-
-export interface PushControls {
-    status: PushStatus
-    /** Last failure, untranslated. The surface turns it into a sentence with
-     *  `useErrorMessage`; a lib module has no business holding UI copy. */
-    error: unknown
-    subscribe: (memberId: string, memberToken: string) => Promise<SubscribeOutcome>
-    unsubscribe: (memberId: string, memberToken: string) => Promise<boolean>
 }
 
 /** The synchronous half of the environment. `hasRoomSubscription` is the
@@ -226,13 +217,14 @@ export async function addRoomSubscription(slug: string, memberId: string, member
 }
 
 /**
- * Remove this device's subscription for one room.
+ * Remove this device's subscription for one room. In the store app it removes the device token's
+ * row and the room's notification-key entry instead (`native/use-native-push.ts`).
  *
  * Exported for `forget()` in `use-identity.ts`, which has to do this before it
  * deletes the token that authorises it. Throws when the server refuses, so the
  * UI only reports the room as off after its row is gone.
  */
-export async function dropRoomSubscription(slug: string, memberId: string, memberToken: string): Promise<void> {
+async function dropWebRoomSubscription(slug: string, memberId: string, memberToken: string): Promise<void> {
     const subscription = await currentSubscription()
     if (!subscription) return
 
@@ -247,7 +239,7 @@ export async function dropRoomSubscription(slug: string, memberId: string, membe
     announceSubscriptionChange()
 }
 
-export function usePush(slug: string): PushControls {
+function useWebPush(slug: string): PushControls {
     const [settled, setSettled] = useState<SettledPushStatus | null>(null)
     const [busy, setBusy] = useState(false)
     const [error, setError] = useState<unknown>(null)
@@ -412,3 +404,12 @@ export function usePush(slug: string): PushControls {
 
     return { status: busy || settled === null ? 'pending' : settled, error, subscribe, unsubscribe }
 }
+
+/**
+ * The store app uses native push (APNs or FCM) instead of Web Push. The constant is fixed per build,
+ * so a component always calls the same hook and the hook order never changes at runtime.
+ */
+export const usePush: (slug: string) => PushControls = IS_NATIVE_APP ? useNativePush : useWebPush
+
+export const dropRoomSubscription: (slug: string, memberId: string, memberToken: string) => Promise<void> =
+    IS_NATIVE_APP ? dropNativeRoomSubscription : dropWebRoomSubscription

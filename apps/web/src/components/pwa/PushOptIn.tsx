@@ -11,6 +11,7 @@ import { useErrorMessage } from '@/lib/error-messages'
 import type { MemberIdentity } from '@/lib/identity'
 import { cancelPreparedInstallHandoff, prepareInstallHandoff } from '@/lib/install-handoff'
 import { openInstallSurface } from '@/lib/install-surface'
+import { IS_NATIVE_APP } from '@/lib/platform'
 import type { SettledPushStatus } from '@/lib/push-status'
 import { requestRoomUpdates } from '@/lib/room-updates'
 import { TOAST_MS } from '@/lib/toasts'
@@ -158,7 +159,8 @@ export function PushOptIn({ active = true, slug, roomName, identity, onSwitchPer
      */
     const provenIdentity = identity?.token ? identity : null
     const subscribed = displayed === 'subscribed'
-    const unavailableLine = displayed === 'denied' ? t('denied') : undefined
+    // The app has no way to open the phone's Settings in v1, so its line says where to go instead.
+    const unavailableLine = displayed === 'denied' ? (IS_NATIVE_APP ? t('deniedApp') : t('denied')) : undefined
 
     const toggle = async (next: boolean) => {
         if (!provenIdentity?.token) return

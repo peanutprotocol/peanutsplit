@@ -26,6 +26,21 @@ export type SettledPushStatus = Exclude<PushStatus, 'pending'>
  */
 export type DerivedPushStatus = Exclude<PushStatus, 'pending' | 'unknown'>
 
+/** What a subscribe attempt produced. Mapped straight onto analytics by the
+ *  caller, which is why "the user said no" is a return value and not an error:
+ *  it is an answer, and nothing went wrong. */
+export type SubscribeOutcome = 'subscribed' | 'denied' | 'failed'
+
+/** The per-room push hook's contract, shared by the web and the app implementations. */
+export interface PushControls {
+    status: PushStatus
+    /** Last failure, untranslated. The surface turns it into a sentence with
+     *  `useErrorMessage`; a lib module has no business holding UI copy. */
+    error: unknown
+    subscribe: (memberId: string, memberToken: string) => Promise<SubscribeOutcome>
+    unsubscribe: (memberId: string, memberToken: string) => Promise<boolean>
+}
+
 export interface PushEnvironment {
     hasNotification: boolean
     hasServiceWorker: boolean
@@ -49,7 +64,37 @@ export interface PushEnvironment {
     hasRoomSubscription: boolean
 }
 
-export function derivePushStatus(env: PushEnvironment): DerivedPushStatus {
+/**
+ * The store app's inputs. The app has no service worker or VAPID key: it asks the push plugin for
+ * the permission and the server for this room's row (ARCHITECTURE 10.1).
+ */
+export interface NativePushEnvironment {
+    native: true
+    /** `NATIVE_PUSH_ENABLED`: the build compiled the push client in. CI debug builds do not. */
+    pushEnabled: boolean
+    /**
+     * The device has a token and the server can deliver to it. False after a registration error,
+     * the registration timeout, or `503 NATIVE_PUSH_UNAVAILABLE` (no APNs or FCM credentials yet).
+     */
+    available: boolean
+    /** The plugin's permission state; `prompt` means the person has not been asked. */
+    permission: 'granted' | 'denied' | 'prompt'
+    /** The server has a row for (this device's token, this room). */
+    hasRoomSubscription: boolean
+}
+
+/**
+ * Decides the row's state. In the app it is only ever `unsupported` (no row), `denied`, `default`
+ * or `subscribed`: the app is installed by definition, so `ios-needs-pwa` cannot apply.
+ */
+export function derivePushStatus(env: PushEnvironment | NativePushEnvironment): DerivedPushStatus {
+    if ('native' in env) {
+        if (!env.pushEnabled || !env.available) return 'unsupported'
+        if (env.permission === 'denied') return 'denied'
+        // As on the web, a granted permission without this room's row is an ordinary 'default'.
+        if (env.permission === 'granted' && env.hasRoomSubscription) return 'subscribed'
+        return 'default'
+    }
     if (!env.hasServiceWorker || !env.hasVapidKey) return 'unsupported'
     // iOS exposes the push APIs in the installed app, not necessarily in the
     // browser that must explain how to install it.

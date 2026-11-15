@@ -4,6 +4,7 @@ import {
     isIOSDevice,
     isStandaloneDisplay,
     urlBase64ToUint8Array,
+    type NativePushEnvironment,
     type PushEnvironment,
 } from './push-status'
 
@@ -82,6 +83,43 @@ describe('derivePushStatus', () => {
      */
     it('is default when there is no row for this room', () => {
         expect(status({ permission: 'granted', hasRoomSubscription: false })).toBe('default')
+    })
+})
+
+describe('derivePushStatus in the store app', () => {
+    /** A release build with push compiled in, a token, and server credentials, never asked. */
+    const app: NativePushEnvironment = {
+        native: true,
+        pushEnabled: true,
+        available: true,
+        permission: 'prompt',
+        hasRoomSubscription: false,
+    }
+    const native = (overrides: Partial<NativePushEnvironment>) => derivePushStatus({ ...app, ...overrides })
+
+    it('hides the row (unsupported) whenever push is compiled out, whatever else is true', () => {
+        expect(native({ pushEnabled: false })).toBe('unsupported')
+        expect(native({ pushEnabled: false, permission: 'granted', hasRoomSubscription: true })).toBe('unsupported')
+        expect(native({ pushEnabled: false, permission: 'denied' })).toBe('unsupported')
+    })
+
+    it('hides the row without a token or server credentials', () => {
+        expect(native({ available: false })).toBe('unsupported')
+        expect(native({ available: false, permission: 'granted', hasRoomSubscription: true })).toBe('unsupported')
+    })
+
+    it('maps the permission and the room row with push on', () => {
+        expect(native({})).toBe('default')
+        expect(native({ permission: 'denied' })).toBe('denied')
+        expect(native({ permission: 'denied', hasRoomSubscription: true })).toBe('denied')
+        expect(native({ permission: 'granted' })).toBe('default')
+        expect(native({ permission: 'granted', hasRoomSubscription: true })).toBe('subscribed')
+    })
+
+    it('never answers ios-needs-pwa: the app is installed by definition', () => {
+        for (const permission of ['prompt', 'granted', 'denied'] as const)
+            for (const hasRoomSubscription of [false, true])
+                expect(native({ permission, hasRoomSubscription })).not.toBe('ios-needs-pwa')
     })
 })
 

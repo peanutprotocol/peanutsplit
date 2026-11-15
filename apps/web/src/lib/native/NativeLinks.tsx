@@ -4,6 +4,8 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { focusManager } from '@tanstack/react-query'
 import { roomProps, track } from '../analytics'
+import { NATIVE_PUSH_ENABLED } from '../platform'
+import { openWarmTap } from './cold-push-tap'
 import { loadHost } from './host'
 import { dispatchNativeLink, nativePathForUrl, roomSlugOfNativePath, type NativeNav } from './links'
 import { NATIVE_HOME } from './native-entry'
@@ -14,7 +16,7 @@ const isHomePath = (pathname: string): boolean => pathname === '/' || pathname =
 
 /**
  * Runtime listeners for the whole app (ARCHITECTURE 4.5), mounted once in NativeShell:
- * links that open the running app, the return to the foreground, and Android back.
+ * links that open the running app, notification taps, the return to the foreground, and Android back.
  */
 export function NativeLinks(): null {
     const router = useRouter()
@@ -61,8 +63,11 @@ export function NativeLinks(): null {
                     else if (canGoBack) window.history.back()
                     else router.replace(NATIVE_HOME)
                 }),
-                // Task 3A: the warm push tap listener (pushNotificationActionPerformed while the app
-                // runs) attaches here; NativeEntry claims the tap that launched the app.
+                // A notification tapped while the app runs. The tap that launched the app is
+                // NativeEntry's (cold-push-tap.ts); openWarmTap skips it. Push compiled out: nothing.
+                NATIVE_PUSH_ENABLED
+                    ? cap.push.onTap((data) => void openWarmTap(data, (path) => router.push(path)))
+                    : Promise.resolve(() => {}),
             ])
             if (disposed) attached.forEach((dispose) => dispose())
             else disposers = attached
