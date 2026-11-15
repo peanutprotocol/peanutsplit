@@ -7,6 +7,21 @@ export const NATIVE_HOME = '/app/'
 /** The rooms list itself: `/app/` without the redirect to the latest room. */
 export const NATIVE_ROOMS_LIST = '/app/?manage=1'
 
+/** On these screens Android back leaves the app instead of walking back into a room. */
+const isHomePath = (pathname: string): boolean => pathname === '/' || pathname === '/app' || pathname === '/app/'
+
+/**
+ * What Android back does. Without in-app history (every launcher open, cold link and cold push tap
+ * reaches the room through replace), back goes to the rooms list, not to `NATIVE_HOME`: that would
+ * redirect straight back into the same room, so back would never leave the app.
+ */
+export function backAction(pathname: string, canGoBack: boolean): 'minimize' | 'history-back' | { replace: string } {
+    if (isHomePath(pathname)) return 'minimize'
+    // Drawers are history entries (nuqs), so an open drawer closes first.
+    if (canGoBack) return 'history-back'
+    return { replace: NATIVE_ROOMS_LIST }
+}
+
 export interface EntryInputs {
     /** `window.__splitBootPath`: the location the WebView loaded before the boot script reset it to `/`. */
     bootPath: string | undefined

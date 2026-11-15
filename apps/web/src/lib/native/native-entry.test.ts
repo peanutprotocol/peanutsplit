@@ -183,3 +183,24 @@ describe('decideEntry', () => {
         expect(history).toEqual(['/app/'])
     })
 })
+
+describe('backAction (Android back)', () => {
+    it('leaves the app on the rooms home and the rooms list', async () => {
+        const { backAction } = await load()
+        expect(backAction('/', false)).toBe('minimize')
+        expect(backAction('/app/', false)).toBe('minimize')
+        expect(backAction('/app', true)).toBe('minimize')
+    })
+
+    it('walks back through in-app history from a room', async () => {
+        const { backAction } = await load()
+        expect(backAction('/room/', true)).toBe('history-back')
+    })
+
+    it('goes to the rooms list without the latest-room redirect when the room has no history', async () => {
+        const { backAction, NATIVE_ROOMS_LIST } = await load()
+        expect(backAction('/room/', false)).toEqual({ replace: '/app/?manage=1' })
+        // The next back from there leaves the app instead of looping into the same room.
+        expect(backAction(new URL(NATIVE_ROOMS_LIST, 'https://localhost').pathname, false)).toBe('minimize')
+    })
+})

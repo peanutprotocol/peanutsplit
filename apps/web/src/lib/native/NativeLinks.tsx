@@ -8,11 +8,8 @@ import { NATIVE_PUSH_ENABLED } from '../platform'
 import { openWarmTap } from './cold-push-tap'
 import { loadHost } from './host'
 import { dispatchNativeLink, nativePathForUrl, roomSlugOfNativePath, type NativeNav } from './links'
-import { NATIVE_HOME } from './native-entry'
+import { backAction } from './native-entry'
 import { checkVersionNow } from './version-gate'
-
-/** On these screens Android back leaves the app instead of walking back into a room. */
-const isHomePath = (pathname: string): boolean => pathname === '/' || pathname === '/app' || pathname === '/app/'
 
 /**
  * Runtime listeners for the whole app (ARCHITECTURE 4.5), mounted once in NativeShell:
@@ -58,10 +55,10 @@ export function NativeLinks(): null {
                 // Attaching this listener replaces Capacitor's default, which would walk back from
                 // the rooms home into the last room instead of leaving the app.
                 cap.app.onBackButton((canGoBack) => {
-                    if (isHomePath(window.location.pathname)) void cap.app.minimize()
-                    // Drawers are history entries (nuqs), so an open drawer closes first.
-                    else if (canGoBack) window.history.back()
-                    else router.replace(NATIVE_HOME)
+                    const action = backAction(window.location.pathname, canGoBack)
+                    if (action === 'minimize') void cap.app.minimize()
+                    else if (action === 'history-back') window.history.back()
+                    else router.replace(action.replace)
                 }),
                 // A notification tapped while the app runs. The tap that launched the app is
                 // NativeEntry's (cold-push-tap.ts); openWarmTap skips it. Push compiled out: nothing.

@@ -278,7 +278,8 @@ version you used.
 
 10. Android: open a drawer and press back. The drawer closes. Press back on the home screen. The app
     leaves. Start the app from a link, then press back. The app leaves the room, with no duplicate entry
-    of the same room.
+    of the same room. Open the app from the launcher (it shows the latest room), press back: **Your
+    rooms** shows. Press back again: the app leaves.
 11. Airplane mode, then a cold start. The recent room shows the offline line and **Your rooms**. Turn the
     network on. The room loads without a tap.
 12. Airplane mode in an open room: add an expense. Turn the network on. The expense syncs once; check it
