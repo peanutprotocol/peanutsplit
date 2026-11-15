@@ -1,6 +1,18 @@
 # Native migration — contingency plan
 
-**Status: not approved. Nothing here authorizes implementation.** `ROADMAP.md`
+> **Executed (2026-11-14).** Konrad reopened native apps on 2026-11-14 (`ROADMAP.md`). The apps are a
+> Capacitor shell around a bundled static export of `apps/web`. How they work now:
+> [`current/NATIVE.md`](current/NATIVE.md). What a person still does before submission:
+> [`NATIVE-HANDOFF.md`](NATIVE-HANDOFF.md). This file is historical decision context, not the current
+> design. Where the two differ, `current/NATIVE.md` wins.
+>
+> What the build kept from this plan: the WebView shell (step 1) and the native notification transport
+> (step 4, as APNs and FCM next to web push). What it did not build: any room or identity transfer
+> (steps 2 and 3). A fresh app is a new device; opening a room link and tapping a name restores identity,
+> as described below. The room-list risk stays as written: a room whose link exists nowhere else does not
+> reach the app.
+
+**Original status (2026-08-24): not approved. Nothing here authorized implementation.** `ROADMAP.md`
 lists native apps under "Deliberately not building"; this document exists so
 that if that decision is ever reopened, the shape of the work is already known
 and nobody re-derives it from the source under time pressure. Per `CLAUDE.md`,

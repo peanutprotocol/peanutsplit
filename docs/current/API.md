@@ -59,6 +59,56 @@ single-replica baseline.
 
 Rate limits are also per process. Scaling replicas multiplies allowances unless a shared store is added.
 
+## Cross-origin callers
+
+The iOS and Android apps load the product from inside the binary and call this API cross-origin (see
+[NATIVE.md](NATIVE.md)). `apps/web/src/lib/cors.ts`, applied in `apps/web/src/proxy.ts`, answers CORS
+for exactly two origins:
+
+| Origin                  | Caller                    |
+| ----------------------- | ------------------------- |
+| `capacitor://localhost` | the iOS app (WKWebView)   |
+| `https://localhost`     | the Android app (WebView) |
+
+- **Paths:** every `/api/**` route, plus the share-card images `/r/:slug/card/:kind` and
+  `/r/:slug/recap/card`.
+- **Excluded:** `/api/install-handoff` and `/api/rooms/:slug/install-handoff`. They are bound to a
+  `__Host-` cookie and check the exact request `Origin` themselves, so they stay same-origin only.
+- **Preflight in the proxy:** an `OPTIONS` request from an allowed origin gets `204` with
+  `Access-Control-Allow-Origin: <origin>`, `Access-Control-Allow-Methods: GET, POST, PATCH, DELETE`,
+  `Access-Control-Allow-Headers: Content-Type, X-Member-Token`, `Access-Control-Max-Age: 600` and
+  `Vary: Origin`. It never reaches a handler or a rate-limit bucket.
+- **Other methods** get `Access-Control-Allow-Origin: <origin>`,
+  `Access-Control-Expose-Headers: Content-Disposition` and `Vary: Origin`, also on error responses
+  (`403`, `429`, `500`), so the app reads a rate limit as `RATE_LIMITED`, not as a network error.
+- **No credentials:** never `Access-Control-Allow-Credentials`, never `*`. The apps send no cookie; the
+  member token travels in `X-Member-Token` or the body, as on web.
+- Any other origin gets no CORS headers, and the behaviour is the same as before.
+- `SPLIT_CORS_TEST_ORIGINS` (comma-separated) adds origins for the cross-origin e2e suite only. Never
+  set it in production. `*` and `null` in it are ignored.
+
+Two static files are public on purpose: `/app-config.json` (the app version gate) carries
+`Access-Control-Allow-Origin: *`, and `/.well-known/apple-app-site-association` is served as
+`application/json` with no redirect, as iOS requires.
+
+Native push uses the existing push-subscription routes. The body carries
+`{ transport: 'apns' | 'apns-sandbox' | 'fcm', token, memberId, memberToken }` in place of the web
+`endpoint` and `keys`. Without server credentials for that transport the route answers
+`503 NATIVE_PUSH_UNAVAILABLE`.
+
+## Backward compatibility with shipped app builds
+
+**API routes stay backward compatible with every shipped app build.** The store apps have no
+over-the-air updates. An old binary keeps calling the live API for months, and production changes with
+every push to `main`.
+
+- Add fields; do not remove or rename a field an app build reads or sends.
+- Keep accepting every request body a shipped build sends. A new required field needs a default.
+- Keep error codes stable; the app maps them to copy.
+- If a break cannot be avoided, raise `minBuild` for the affected platform in
+  `apps/web/public/app-config.json` in the same push. Builds below it show **Update Split** and a way to
+  open the room in the browser.
+
 ## Change rule
 
 When adding, removing, or changing a route:
@@ -66,4 +116,5 @@ When adding, removing, or changing a route:
 1. update validation and handler tests;
 2. run `pnpm docs:generate` and review the route diff;
 3. update credential, retention, idempotency, and feature-gate prose where behavior changed;
-4. treat any future stable external contract as a separately versioned design decision.
+4. check the change against [the compatibility rule](#backward-compatibility-with-shipped-app-builds);
+5. treat any future stable external contract as a separately versioned design decision.
