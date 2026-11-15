@@ -6,8 +6,9 @@ CI is green without any of them. How the apps work: [`current/NATIVE.md`](curren
 
 - Repository: `peanutprotocol/peanutsplit`. Branch: `native-apps`. Draft PR: #37 (`native-apps` →
   `main`, do not merge before step 9).
-- Server-prep draft PR: branch `native-server-prep` → `main`, whose title starts with "Native apps: server
-  prep (CORS, push transport)". It holds only the server parts that must be live before a store build is useful.
+- Server-prep draft PR: #38 (`native-server-prep` → `main`, title "Native apps: server prep (CORS, push
+  transport)"). It holds only the server parts that must be live before a store build is useful.
+  `local/split-native-app/tools/server-prep.sh` in mono rebuilds it from `native-apps`.
 - `main` gets exactly two merges before submission: the server-prep PR (step 1), then `native-apps`
   (step 9).
 - **UNVERIFIED** marks a fact that nobody could check from the repository, such as what exists in a
@@ -178,7 +179,10 @@ show any remaining problem in `.github/workflows/native-release.yml`.
 
 1. Confirm that `join_gate_shown` and `join_gate_completed` events arrive in PostHog. Decision 2's
    guardrail needs two weeks of them before the banner goes live.
-2. Set the Dokploy build argument `NEXT_PUBLIC_IOS_APP_STORE_ID` to the numeric App Store ID and
+2. In `apps/web/public/app-config.json`, replace `PLACEHOLDER` in `store.ios` with the numeric App Store
+   ID and push it to `main`. Until then, a raised `minBuild.ios` would show an **Update** button that
+   opens a dead store page.
+3. Set the Dokploy build argument `NEXT_PUBLIC_IOS_APP_STORE_ID` to the numeric App Store ID and
    redeploy. iPhone and iPad browsers then get the Smart App Banner on room pages and "Get the app" on
    `/app`. Android browsers keep the PWA install. There is no Android store ID.
 
@@ -277,9 +281,9 @@ version you used.
 **Navigation and offline**
 
 10. Android: open a drawer and press back. The drawer closes. Press back on the home screen. The app
-    leaves. Start the app from a link, then press back. The app leaves the room, with no duplicate entry
-    of the same room. Open the app from the launcher (it shows the latest room), press back: **Your
-    rooms** shows. Press back again: the app leaves.
+    leaves. With the app closed, open it from a room link, then press back: **Your rooms** shows, never
+    the same room again. Press back again: the app leaves. Open the app from the launcher (it shows the
+    latest room), press back: **Your rooms** shows. Press back again: the app leaves.
 11. Airplane mode, then a cold start. The recent room shows the offline line and **Your rooms**. Turn the
     network on. The room loads without a tap.
 12. Airplane mode in an open room: add an expense. Turn the network on. The expense syncs once; check it
