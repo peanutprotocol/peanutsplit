@@ -1229,7 +1229,8 @@
         "NO_RATE": "There is no rate between that currency and the room’s, so it cannot be converted. Use the room currency.",
         "MANUAL_FX_RATE_REQUIRED": "Enter a manual rate for this custom currency.",
         "MANUAL_FX_RATE_INVALID": "That manual rate is invalid or makes the converted amount round to zero.",
-        "MANUAL_FX_RATE_NOT_ALLOWED": "Manual rates are only available for custom expense currencies."
+        "MANUAL_FX_RATE_NOT_ALLOWED": "Manual rates are only available for custom expense currencies.",
+        "NATIVE_PUSH_UNAVAILABLE": "Notifications aren’t available yet."
     },
     "derivation": {
         "title": "How this adds up",

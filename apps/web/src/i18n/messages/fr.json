@@ -1229,7 +1229,8 @@
         "NO_RATE": "Il n’existe aucun taux de change entre cette devise et celle du groupe. Utilise la devise du groupe.",
         "MANUAL_FX_RATE_REQUIRED": "Saisis un taux manuel pour cette devise personnalisée.",
         "MANUAL_FX_RATE_INVALID": "Ce taux manuel est invalide ou arrondit le montant converti à zéro.",
-        "MANUAL_FX_RATE_NOT_ALLOWED": "Les taux manuels sont disponibles uniquement pour les devises de dépense personnalisées."
+        "MANUAL_FX_RATE_NOT_ALLOWED": "Les taux manuels sont disponibles uniquement pour les devises de dépense personnalisées.",
+        "NATIVE_PUSH_UNAVAILABLE": "Les notifications ne sont pas encore disponibles."
     },
     "derivation": {
         "title": "Comment ce solde est calculé",

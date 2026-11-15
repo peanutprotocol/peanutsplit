@@ -1229,7 +1229,8 @@
         "NO_RATE": "Für diese Währung gibt es keinen Wechselkurs zur Gruppenwährung. Verwende stattdessen die Gruppenwährung.",
         "MANUAL_FX_RATE_REQUIRED": "Gib für diese benutzerdefinierte Währung einen manuellen Kurs ein.",
         "MANUAL_FX_RATE_INVALID": "Dieser Kurs ist ungültig oder rundet den umgerechneten Betrag auf null.",
-        "MANUAL_FX_RATE_NOT_ALLOWED": "Manuelle Kurse sind nur bei benutzerdefinierten Ausgabenwährungen möglich."
+        "MANUAL_FX_RATE_NOT_ALLOWED": "Manuelle Kurse sind nur bei benutzerdefinierten Ausgabenwährungen möglich.",
+        "NATIVE_PUSH_UNAVAILABLE": "Benachrichtigungen sind noch nicht verfügbar."
     },
     "derivation": {
         "title": "So kommt dieser Betrag zustande",

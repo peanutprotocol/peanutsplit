@@ -1,0 +1,16 @@
+{
+    "applinks": {
+        "details": [
+            {
+                "appIDs": ["PW388G893L.com.peanutsplit.app"],
+                "components": [
+                    { "/": "/r/*/card/*", "exclude": true, "comment": "Share-card images open in the browser" },
+                    { "/": "/r/*/recap/card", "exclude": true, "comment": "Recap card image opens in the browser" },
+                    { "/": "/r/*/opengraph-image*", "exclude": true, "comment": "Link-preview image" },
+                    { "/": "/r/*/recap/opengraph-image*", "exclude": true, "comment": "Recap link-preview image" },
+                    { "/": "/r/*", "comment": "Every room link opens the app when it is installed" }
+                ]
+            }
+        ]
+    }
+}

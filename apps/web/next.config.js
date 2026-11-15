@@ -25,6 +25,10 @@ const nextConfig = {
     // and the proxy owns the general strip for everything else.
     skipTrailingSlashRedirect: true,
 
+    // Defined so Next inlines it: an undefined NEXT_PUBLIC_* survives as `process.env.X`, webpack
+    // cannot fold the guard in src/lib/native/host.ts, and the Capacitor chunk lands in this build.
+    env: { NEXT_PUBLIC_NATIVE_BUILD: '0' },
+
     /**
      * Two retirements, neither of them locale detection: nothing here reads `Accept-Language` or a
      * cookie, and no reader is ever moved off the language they asked for.
@@ -52,6 +56,27 @@ const nextConfig = {
             { source: '/guides', destination: '/blog', permanent: true },
             { source: '/es-419/guides', destination: '/es-419/blog', permanent: true },
             { source: '/pt-br/guides', destination: '/pt-br/blog', permanent: true },
+        ]
+    },
+
+    /**
+     * Two static files the store apps depend on. Both paths contain a dot, so src/proxy.ts's
+     * matcher skips them. iOS reads the association file only as JSON (it is served as
+     * application/octet-stream otherwise), and the apps fetch the version config cross-origin.
+     */
+    async headers() {
+        return [
+            {
+                source: '/.well-known/apple-app-site-association',
+                headers: [{ key: 'Content-Type', value: 'application/json' }],
+            },
+            {
+                source: '/app-config.json',
+                headers: [
+                    { key: 'Access-Control-Allow-Origin', value: '*' },
+                    { key: 'Cache-Control', value: 'public, max-age=300' },
+                ],
+            },
         ]
     },
 
