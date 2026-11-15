@@ -46,6 +46,11 @@ jobs:
 
       - run: pnpm bootstrap
 
+      # Source mode: pinned scheme and hostname, no server.url, status bar, AppDelegate push
+      # forwarding, plist keys, entitlements, privacy manifest, deployment target, allowBackup.
+      - name: Check the native project settings
+        run: node apps/web/scripts/native/assert-native-config.mjs
+
       # The self-test flag makes the debug APK and the simulator build log `SPLIT_CORS ok|blocked`
       # on boot. Only this job sets it; the release lane never does, so release bundles drop it.
       # The placeholder DATABASE_URL matches the Dockerfile: the build needs a value, not a database.
@@ -160,6 +165,57 @@ jobs:
           sys.exit(1 if bad else 0)
           PY
 
+      # The release manifest after every library merged into it: exactly what Split declares, plus
+      # the three that Firebase Cloud Messaging and AndroidX add for push. A new permission is a
+      # dependency change to review against the Play data-safety answers before it ships; the
+      # banned ones would contradict those answers outright.
+      - name: Check the merged manifest's permissions
+        working-directory: apps/web/android
+        run: |
+          python3 - <<'PY'
+          import glob, sys
+          import xml.etree.ElementTree as ET
+
+          NAME = "{http://schemas.android.com/apk/res/android}name"
+          BANNED = ("com.google.android.gms.permission.AD_ID", "android.permission.READ_MEDIA_",
+                    "android.permission.READ_EXTERNAL_STORAGE", "android.permission.FOREGROUND_SERVICE")
+          manifests = sorted(glob.glob("app/build/intermediates/merged_manifest*/release/**/AndroidManifest.xml", recursive=True))
+          if not manifests:
+              print("::error::No merged release manifest under app/build/intermediates.")
+              sys.exit(1)
+          bad = False
+          for path in manifests:
+              root = ET.parse(path).getroot()
+              package = root.get("package")
+              if not package:
+                  print(f"::error::{path} has no package attribute.")
+                  sys.exit(1)
+              found = {e.get(NAME) for tag in ("uses-permission", "uses-permission-sdk-23") for e in root.iter(tag)}
+              expected = {
+                  "android.permission.INTERNET",
+                  "android.permission.ACCESS_NETWORK_STATE",
+                  "android.permission.CAMERA",
+                  "android.permission.POST_NOTIFICATIONS",
+                  "android.permission.WAKE_LOCK",
+                  "com.google.android.c2dm.permission.RECEIVE",
+                  f"{package}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+              }
+              print(f"{path}:")
+              for name in sorted(found):
+                  print(f"  {name}")
+              for name in sorted(found):
+                  if name.startswith(BANNED):
+                      print(f"::error::Banned permission in the merged manifest: {name}")
+                      bad = True
+              for name in sorted(found - expected):
+                  print(f"::error::Unexpected permission in the merged manifest: {name}")
+                  bad = True
+              for name in sorted(expected - found):
+                  print(f"::error::Expected permission missing from the merged manifest: {name}")
+                  bad = True
+          sys.exit(1 if bad else 0)
+          PY
+
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: android
@@ -167,6 +223,81 @@ jobs:
             apps/web/android/app/build/outputs/apk/debug/*.apk
             apps/web/android/app/build/outputs/bundle/release/*.aab
           if-no-files-found: error
+          retention-days: 14
+
+  # The debug APK on an Android 15 emulator: launch, open a room link, press back, screenshots.
+  # Never gating (emulators on hosted runners are slow and flaky). The debug export calls the
+  # production API read-only, so the SPLIT_CORS line says `blocked` until server-prep is live.
+  android-smoke:
+    needs: android
+    if: github.ref != 'refs/heads/main' && (github.event_name != 'pull_request' || github.head_ref != 'native-apps')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: android
+          path: android-build
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      # The emulator action runs each `script` line as its own shell, so the steps live in a file.
+      # The package and launcher activity are read from the APK and the device, so a changed
+      # application ID (set-identifiers.mjs) needs no edit here.
+      - name: Write the smoke script
+        run: |
+          cat > "${RUNNER_TEMP}/android-smoke.sh" <<'SH'
+          set -uo pipefail
+          out="$1"
+          mkdir -p "${out}"
+          apk="$(find android-build -name '*.apk' | head -n 1)"
+          aapt2="$(ls "${ANDROID_HOME}"/build-tools/*/aapt2 | sort -V | tail -n 1)"
+          pkg="$("${aapt2}" dump packagename "${apk}")"
+          adb install -r "${apk}"
+          adb logcat -c
+          component="$(adb shell cmd package resolve-activity --brief "${pkg}" | tail -n 1 | tr -d '\r')"
+          echo "Launching ${component}"
+          adb shell am start -W -n "${component}"
+          sleep 15
+          adb exec-out screencap -p > "${out}/1-launch.png"
+          adb shell am start -W -a android.intent.action.VIEW \
+            -d 'https://peanutsplit.com/r/ski-trip-kunc-syrup-drum' -n "${component}"
+          sleep 10
+          adb exec-out screencap -p > "${out}/2-room-link.png"
+          adb shell input keyevent KEYCODE_BACK
+          sleep 3
+          adb exec-out screencap -p > "${out}/3-after-back.png"
+          adb logcat -d > "${out}/logcat.txt"
+          grep -h 'SPLIT_CORS' "${out}/logcat.txt" || echo '::warning::No SPLIT_CORS line in logcat.'
+          if grep -q 'Uncaught' "${out}/logcat.txt"; then
+            grep 'Uncaught' "${out}/logcat.txt" | head -n 20
+            echo '::error::The WebView logged an uncaught error.'
+            exit 1
+          fi
+          SH
+
+      - name: Launch on the emulator
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: bash "${{ runner.temp }}/android-smoke.sh" "${{ runner.temp }}/android-smoke"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: ${{ !cancelled() }}
+        with:
+          name: android-smoke
+          path: ${{ runner.temp }}/android-smoke
+          if-no-files-found: warn
           retention-days: 14
 
   ios:
@@ -228,6 +359,48 @@ jobs:
           -destination 'generic/platform=iOS' -archivePath build/ios/App.xcarchive
           CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" archive
 
+      # The Info.plist as built, for the simulator app and for the Release archive that ships.
+      - name: Check the built apps' settings
+        run: |
+          node apps/web/scripts/native/assert-native-config.mjs --app apps/web/build/sim/Build/Products/Debug-iphonesimulator/App.app
+          node apps/web/scripts/native/assert-native-config.mjs --app apps/web/build/ios/App.xcarchive/Products/Applications/App.app
+
+      # Not gating: the simulator build is unsigned and hosted simulators are slow. The console
+      # shows the CORS self-test line (`blocked` until server-prep is live on production).
+      - name: Launch in the simulator
+        continue-on-error: true
+        working-directory: apps/web
+        run: |
+          set -euo pipefail
+          out="${RUNNER_TEMP}/ios-smoke"
+          mkdir -p "${out}"
+          udid="$(xcrun simctl list devices available --json | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          print(next(d["udid"] for runtime in sorted(devices, reverse=True) if ".iOS-" in runtime
+                     for d in devices[runtime] if d["name"].startswith("iPhone")))
+          ')"
+          app=build/sim/Build/Products/Debug-iphonesimulator/App.app
+          bundle="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "${app}/Info.plist")"
+          xcrun simctl boot "${udid}" || true
+          xcrun simctl bootstatus "${udid}" -b
+          xcrun simctl install "${udid}" "${app}"
+          xcrun simctl launch --console-pty --terminate-running-process "${udid}" "${bundle}" > "${out}/console.log" 2>&1 &
+          launcher=$!
+          sleep 10
+          xcrun simctl io "${udid}" screenshot "${out}/launch.png"
+          sleep 5
+          kill "${launcher}" 2> /dev/null || true
+          grep -h 'SPLIT_CORS' "${out}/console.log" || echo '::warning::No SPLIT_CORS line in the simulator console.'
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: ${{ !cancelled() }}
+        with:
+          name: ios-smoke
+          path: ${{ runner.temp }}/ios-smoke
+          if-no-files-found: warn
+          retention-days: 14
+
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ios-sim-app
@@ -243,6 +416,119 @@ jobs:
           path: apps/web/ios/App/App.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
           if-no-files-found: warn
           retention-days: 30
+
+  # The bundled app against the web server, cross-origin, on Chromium and WebKit
+  # (playwright.native.config.ts, e2e-native/). The test export is built first: native:build
+  # builds inside .next and clears it afterwards, so the web build that serves the API comes after.
+  native-e2e:
+    if: github.ref != 'refs/heads/main' && (github.event_name != 'pull_request' || github.head_ref != 'native-apps')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      CI: true
+      DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
+      E2E_DATABASE_URL: postgresql://peanut:peanut@localhost:5432/peanut_split_dev
+      # Both builds call the API on the local web server, never production.
+      NEXT_PUBLIC_BASE_URL: http://localhost:3100
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: peanut
+          POSTGRES_PASSWORD: peanut
+          POSTGRES_DB: peanut_split_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U peanut"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      - run: corepack enable
+
+      - run: pnpm bootstrap
+
+      - run: pnpm --dir apps/web exec prisma migrate deploy
+
+      - name: Build the test export
+        run: pnpm --dir apps/web native:build
+
+      # Same product flags as production (the Dockerfile sets both). Its postbuild step,
+      # assert-pwa-build-boundary.mjs, fails on any Capacitor code in .next/static.
+      - name: Build the web app that serves the API
+        run: pnpm --dir apps/web build
+        env:
+          NEXT_PUBLIC_SPLIT_V2_ENABLED: '1'
+          NEXT_PUBLIC_FOSS_RELEASED: '1'
+
+      # The server is stopped again, so Playwright's own webServer can take the port.
+      - name: Check the app-association files
+        working-directory: apps/web
+        run: |
+          node_modules/.bin/next start --port 3100 > "${RUNNER_TEMP}/association-server.log" 2>&1 &
+          server=$!
+          for attempt in {1..60}; do
+            curl --fail --silent http://127.0.0.1:3100/healthcheck > /dev/null && break
+            sleep 1
+          done
+          status=0
+          node scripts/native/check-association.mjs http://localhost:3100 || status=$?
+          kill "${server}" 2> /dev/null || true
+          fuser -k 3100/tcp 2> /dev/null || true
+          [ "${status}" -eq 0 ] || cat "${RUNNER_TEMP}/association-server.log"
+          exit "${status}"
+
+      - run: pnpm --dir apps/web exec playwright install --with-deps chromium webkit
+
+      - name: Run the cross-origin suite
+        working-directory: apps/web
+        run: pnpm exec playwright test --config playwright.native.config.ts
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: ${{ !cancelled() }}
+        with:
+          name: native-e2e-report
+          path: |
+            apps/web/playwright-report
+            apps/web/test-results
+          if-no-files-found: ignore
+          retention-days: 14
+
+      # Negative control: with the app origin removed from the server's CORS list, E4 must fail on
+      # both engines. If it passes, the suite is not testing CORS at all.
+      - name: Check that E4 fails without CORS for the app origin
+        working-directory: apps/web
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ runner.temp }}/negative-control.json
+        run: |
+          export SPLIT_CORS_TEST_ORIGINS=
+          pnpm exec playwright test --config playwright.native.config.ts --grep 'E4:' --retries=0 \
+            --reporter=json --output "${RUNNER_TEMP}/negative-control-results" > /dev/null || true
+          node - "${PLAYWRIGHT_JSON_OUTPUT_FILE}" <<'EOF'
+          const fs = require('fs')
+          const report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'))
+          const results = []
+          const walk = (suite) => {
+            for (const spec of suite.specs ?? [])
+              if (spec.title.startsWith('E4:'))
+                for (const test of spec.tests) results.push({ project: test.projectName, status: test.status, error: test.results[0]?.error?.message ?? '' })
+            for (const child of suite.suites ?? []) walk(child)
+          }
+          for (const suite of report.suites ?? []) walk(suite)
+          for (const r of results) console.log(`${r.project}: ${r.status} ${r.error.split('\n')[0]}`)
+          const failedBoth = results.length === 2 && results.every((r) => r.status === 'unexpected')
+          if (!failedBoth) console.log('::error::E4 did not fail on both engines without CORS for the app origin.')
+          process.exit(failedBoth ? 0 : 1)
+          EOF
 
   # The three existing Playwright suites, once on the merge base with main and once on the pushed
   # commit. Each leg records results and never fails on a test: web-e2e-compare decides, so a
