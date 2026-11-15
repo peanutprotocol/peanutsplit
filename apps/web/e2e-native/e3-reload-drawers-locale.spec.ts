@@ -55,6 +55,8 @@ test('E3: drawers, a reload and a language switch all stay in the same room', as
         .click()
     await page.getByTestId('device-row').click()
     await expect(page.getByTestId('device-sheet')).toBeVisible()
+    // The store app is the installed app: no PWA install row ("Add Split to Home Screen").
+    await expect(page.getByTestId('device-sheet').locator('[data-testid^="install-row"]')).toHaveCount(0)
     await page.getByTestId('locale-de').click()
 
     await expect(page.locator('html')).toHaveAttribute('lang', 'de', { timeout: 15_000 })

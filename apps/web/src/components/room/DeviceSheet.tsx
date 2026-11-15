@@ -7,6 +7,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/u
 import { DrawerBody } from '@/components/ui/DrawerLayout'
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
 import { SettingToggle } from '@/components/ui/SettingToggle'
+import { IS_NATIVE_APP } from '@/lib/platform'
 import { triggerHaptic, useSettings } from '@/lib/use-settings'
 
 /**
@@ -46,8 +47,9 @@ export function DeviceSheet({
                     <CloseButton onClick={onClose} label={t('closeSheet')} data-testid="close-device-sheet" />
                 </DrawerHeader>
                 <DrawerBody>
-                    {/* Installing is per device by construction, so the sheet's label stays true. */}
-                    <InstallRow slug={slug} token={token} active={open} />
+                    {/* Installing is per device by construction, so the sheet's label stays true. The store
+                        app is the installed app: no install row, and no install_row_shown event. */}
+                    {!IS_NATIVE_APP && <InstallRow slug={slug} token={token} active={open} />}
                     <LocaleSwitcher label={tLocale('label')} />
                     <div className="flex flex-col gap-2">
                         <SettingToggle
