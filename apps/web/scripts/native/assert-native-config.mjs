@@ -157,6 +157,8 @@ async function checkCapacitorConfig() {
 const IOS = 'ios/App'
 const PORTRAIT = ['UIInterfaceOrientationPortrait']
 const CAMERA_TEXT = 'Split uses the camera to scan a receipt you choose to photograph.'
+// The share sheet offers 'Save Image' for a card PNG; without this key iOS kills the app on that tap.
+const PHOTO_ADD_TEXT = 'Split saves the image you choose to your photos.'
 
 function checkInfoPlist() {
     const plist = readPlist(path.join(root, IOS, 'App/Info.plist'))
@@ -165,6 +167,11 @@ function checkInfoPlist() {
         'Info.plist: NSCameraUsageDescription',
         plist.NSCameraUsageDescription === CAMERA_TEXT,
         plist.NSCameraUsageDescription
+    )
+    check(
+        'Info.plist: NSPhotoLibraryAddUsageDescription',
+        plist.NSPhotoLibraryAddUsageDescription === PHOTO_ADD_TEXT,
+        plist.NSPhotoLibraryAddUsageDescription
     )
     check(
         "Info.plist: CFBundleDisplayName is 'Split'",
@@ -351,6 +358,11 @@ async function checkBuiltApp(bundle) {
     )
     check('built Info.plist: ITSAppUsesNonExemptEncryption is false', plist.ITSAppUsesNonExemptEncryption === false)
     check('built Info.plist: NSCameraUsageDescription', plist.NSCameraUsageDescription === CAMERA_TEXT)
+    check(
+        'built Info.plist: NSPhotoLibraryAddUsageDescription',
+        plist.NSPhotoLibraryAddUsageDescription === PHOTO_ADD_TEXT,
+        plist.NSPhotoLibraryAddUsageDescription
+    )
     check('built Info.plist: MinimumOSVersion is 16.4', plist.MinimumOSVersion === '16.4', plist.MinimumOSVersion)
     check(
         'built Info.plist: iPhone only',
