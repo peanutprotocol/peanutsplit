@@ -219,6 +219,13 @@ This is a production write, so a person runs it.
 Use the release builds from step 8: TestFlight on an iPhone, the Play internal track on an Android 15
 phone and on one Android 13 or 14 phone. Do the device checks in section 3. Record each result.
 
+Android link checks (1, 5, 6) need step 9.6 done first: before that, peanutsplit.com serves a
+placeholder `assetlinks.json`. Android checks App Links once, at install, and does not retry. A phone
+that installed the internal-track build before 9.6 must reinstall it, or run
+`adb shell pm verify-app-links --re-verify com.peanutsplit.app`. Then confirm that
+`adb shell pm get-app-links com.peanutsplit.app` shows peanutsplit.com as `verified`. The iOS checks
+and the other Android checks can run right after step 8.
+
 ### K4. Fill both store consoles (90 min)
 
 1. Copy the texts from `apps/web/store/listing.md`, the privacy and data-safety answers from
@@ -246,17 +253,17 @@ version you used.
 
 **Links and launch**
 
-1. Tap a room link in Messages and in WhatsApp with the app installed. The app opens on that room. No
-   other room shows first, also on a cold start.
+1. Tap a room link in Messages and in WhatsApp with the app installed (Android: after step 9.6). The app
+   opens on that room. No other room shows first, also on a cold start.
 2. Do the same without the app. The web room opens, with no wall. iOS Safari shows the Smart App Banner
    with "Get" (only after step 10).
 3. In iOS Safari, open a room on peanutsplit.com with the app installed. The banner shows "Open". Tap it.
    The app opens on that room (only after step 10).
 4. In a fresh app, open a room that you joined in the browser. The name list shows. Tap your name. Your
    past reactions show as yours.
-5. Android with the old PWA also installed: tap a room link. Write down which one opens.
-6. Open a room link in the Instagram and Telegram in-app browsers with the app installed. The web room
-   works. Write down whether the app opened.
+5. Android with the old PWA also installed (after step 9.6): tap a room link. Write down which one opens.
+6. Open a room link in the Instagram and Telegram in-app browsers with the app installed (Android:
+   after step 9.6). The web room works. Write down whether the app opened.
 7. iPhone Safari, `/app` (after step 10): **Get the app** opens the store. After the tap, open a room
    again: no store card shows. Android Chrome and desktop Chrome still offer the PWA install.
 
