@@ -8,7 +8,9 @@ import { CloseButton } from '@/components/ui/CloseButton'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/Drawer'
 import { DrawerActions, DrawerBody } from '@/components/ui/DrawerLayout'
 import type { ApiRoomHistoryEvent, RoomState } from '@/lib/api-types'
+import { apiUrl } from '@/lib/platform'
 import { useRoomHistory } from '@/lib/queries'
+import { saveFile } from '@/lib/save-file'
 import { TOAST_MS } from '@/lib/toasts'
 import { HistoryStats } from './HistoryStats'
 
@@ -48,18 +50,11 @@ export function HistorySheet({
         setDownloading(true)
         setDownloadFailed(false)
         try {
-            const response = await fetch(`/api/rooms/${encodeURIComponent(slug)}/history/export`)
+            const response = await fetch(apiUrl(`/api/rooms/${encodeURIComponent(slug)}/history/export`))
             if (!response.ok) throw new Error(`History export failed with ${response.status}`)
-            const href = URL.createObjectURL(await response.blob())
-            const anchor = document.createElement('a')
-            anchor.href = href
-            anchor.download = filenameFrom(response)
-            document.body.append(anchor)
-            anchor.click()
-            anchor.remove()
-            // Firefox may still be consuming the object URL when click() returns.
-            window.setTimeout(() => URL.revokeObjectURL(href), 0)
-            toast.success(t('downloaded'), { duration: TOAST_MS.state })
+            // False only when the app's share sheet was closed: nothing was saved, so nothing to confirm.
+            if (await saveFile(await response.blob(), filenameFrom(response)))
+                toast.success(t('downloaded'), { duration: TOAST_MS.state })
         } catch {
             setDownloadFailed(true)
             toast.error(t('downloadFailed'), { duration: TOAST_MS.actionable })

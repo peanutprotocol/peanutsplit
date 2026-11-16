@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
+import { buttonClassName } from '@/components/ui/button-style'
 import { installMeasureProps, track } from '@/lib/analytics'
 import { copyText } from '@/lib/clipboard'
 import { readInstallRepairRoomUrl, shouldOfferStoredRoomUrl, type InstallSurfaceSource } from '@/lib/install-surface'
@@ -11,9 +12,11 @@ import {
     dismissInstallRepairNotice,
     isIOSHere,
     noteInstallDismissed,
+    noteStoreTapped,
     promptInstall,
     useInstallState,
 } from '@/lib/install'
+import { storeAppUrl } from '@/lib/store-app'
 import { useFeedback } from '@/lib/use-settings'
 import { BrowserInstallSteps } from './BrowserInstallSteps'
 import { IosInstallSteps } from './IosInstallSteps'
@@ -28,6 +31,7 @@ export function InstallAppSurface({ source, repair = false }: { source: InstallS
     const [roomUrl, setRoomUrl] = useState<string | null>(null)
     const [copyResult, setCopyResult] = useState<'copied' | 'failed' | null>(null)
     const browserIsAndroid = state !== null && typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)
+    const storeUrl = state === 'store' ? storeAppUrl() : null
 
     useEffect(() => {
         setRoomUrl(shouldOfferStoredRoomUrl(source, repair) ? readInstallRepairRoomUrl() : null)
@@ -184,6 +188,24 @@ export function InstallAppSurface({ source, repair = false }: { source: InstallS
                     >
                         {t('cta')}
                     </Button>
+                </>
+            ) : state === 'store' && storeUrl ? (
+                <>
+                    <h2 id="install-app-title" className="text-h5">
+                        {t('title')}
+                    </h2>
+                    <a
+                        href={storeUrl}
+                        onClick={() => {
+                            track('store_link_clicked', { platform: 'ios', source })
+                            noteStoreTapped()
+                        }}
+                        className={buttonClassName({ shadowSize: '4', className: 'mt-5 justify-center no-underline' })}
+                        data-testid="install-app-store"
+                    >
+                        {t('store.cta')}
+                    </a>
+                    <p className="mt-3 text-sm leading-5 text-grey-1">{t('store.note')}</p>
                 </>
             ) : state === 'ios' ? (
                 <>

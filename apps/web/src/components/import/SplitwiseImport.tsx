@@ -597,7 +597,7 @@ export function SplitwiseImport({ targetRoom }: { targetRoom?: ExistingRoomImpor
                     <Button
                         variant="stroke"
                         className="justify-center text-h6"
-                        onClick={() => router.push(`/r/${created.room.slug}`)}
+                        onClick={() => router.push(importedRoomPath(created.room.slug))}
                         data-testid="go-to-imported-room"
                     >
                         {t('ready.goToRoom')}

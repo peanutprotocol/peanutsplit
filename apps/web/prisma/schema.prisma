@@ -321,7 +321,14 @@ model FxRate {
 // somebody ELSE in the room writes. No accounts exist here, so the identity a
 // subscription carries is the per-room member it was registered as.
 
-/// One delivery channel: this browser, acting as this member, in this room.
+/// One delivery channel: this browser or app install, acting as this member, in
+/// this room.
+///
+/// `transport` says who delivers it. `webpush` rows hold a push-service URL in
+/// `endpoint` plus the browser's `p256dh` and `auth` keys. Native app rows
+/// (`apns`, `apns-sandbox`, `fcm`) hold `<transport>:<device token>` in
+/// `endpoint` and no keys, so the uniqueness, the per-room cap and the status
+/// check below carry over unchanged.
 ///
 /// The key is (endpoint, roomId), not endpoint alone. A browser has exactly one
 /// push endpoint, so a phone that joins two rooms would collide on a globally
@@ -334,9 +341,10 @@ model PushSubscription {
   id         String   @id @default(uuid())
   roomId     String
   memberId   String
-  endpoint   String // push-service URL; the host is allowlisted at write time
-  p256dh     String
-  auth       String
+  transport  String   @default("webpush")
+  endpoint   String // webpush: allowlisted push-service URL; native: "<transport>:<token>"
+  p256dh     String? // webpush only
+  auth       String? // webpush only
   userAgent  String?
   createdAt  DateTime @default(now())
   lastSeenAt DateTime @default(now())

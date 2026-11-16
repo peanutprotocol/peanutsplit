@@ -11,6 +11,8 @@ import { Providers } from '@/lib/providers'
 import { SITE_DESCRIPTION, siteSchema } from '@/lib/seo'
 import { siteUrl } from '@/lib/site'
 import { appleStartupImages } from '@/lib/splash'
+import { smartAppBannerContent } from '@/lib/store-app'
+import { ROOM_SLUG_HEADER } from '@/proxy'
 import '../../styles/globals.css'
 import '../../styles/desktop-frame.css'
 
@@ -75,6 +77,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     const [requestHeaders, requestLocale] = await Promise.all([headers(), getLocale()])
     const locale = asLocale(requestLocale)
     const canonicalPwa = isCanonicalPwaRequest(requestHeaders)
+    // The proxy sets this header only on room and recap pages and strips any caller-supplied copy.
+    const roomSlug = requestHeaders.get(ROOM_SLUG_HEADER)
+    const smartAppBanner = roomSlug ? smartAppBannerContent(roomSlug) : null
     return (
         <html lang={HREFLANG[locale]} translate="no" style={{ colorScheme: 'light' }} suppressHydrationWarning>
             <head>
@@ -82,6 +87,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     standard translate="no" document attribute. Split owns the product locale, so
                     keep Chrome from offering a second translation layer after a locale reload. */}
                 <meta name="google" content="notranslate" />
+                {/* Apple's Smart App Banner, room pages only, once the App Store ID is set. Literal
+                    head markup for the same reason as the PWA tags below: Safari reads it only
+                    from the initial head, and the Metadata API streams after <body> here. */}
+                {smartAppBanner ? <meta name="apple-itunes-app" content={smartAppBanner} /> : null}
                 {/* Next streams Metadata API output after <body> on dynamic room routes. Browsers
                     ignore a manifest discovered there, which made the room surface ineligible for
                     installation. These product-only tags must be literal initial-head markup; the

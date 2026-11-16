@@ -1,0 +1,15 @@
+{
+    "extends": "./tsconfig.json",
+    "exclude": [
+        "node_modules",
+        "src/app/sw.ts",
+        ".next",
+        ".next*",
+        "e2e*",
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "ios",
+        "android",
+        "resources"
+    ]
+}

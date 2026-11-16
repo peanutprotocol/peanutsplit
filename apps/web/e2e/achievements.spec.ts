@@ -166,14 +166,20 @@ test('the crew moment is a keepsake, not roster completion or an invitation prom
     await page.evaluate(
         () => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
     )
-    await page.getByTestId('share-card-crew').click()
-    await expect
-        .poll(() =>
-            page.evaluate(
-                () => (window as Window & { __achievementSharePayload?: ShareData }).__achievementSharePayload
+    // `cardReady` can be the shelf tile's request; the button fetches its own copy of the card and
+    // a tap before that copy lands shares nothing. Tap again until the button holds the card.
+    await expect(async () => {
+        await page.getByTestId('share-card-crew').click()
+        await expect
+            .poll(
+                () =>
+                    page.evaluate(
+                        () => (window as Window & { __achievementSharePayload?: ShareData }).__achievementSharePayload
+                    ),
+                { timeout: 2_000 }
             )
-        )
-        .toBeTruthy()
+            .toBeTruthy()
+    }).toPass({ timeout: 15_000 })
     const payload = await page.evaluate(
         () => (window as Window & { __achievementSharePayload?: ShareData }).__achievementSharePayload
     )

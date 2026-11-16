@@ -7,13 +7,19 @@
  *
  * POST, and the endpoint is never a query parameter: an FCM or WNS endpoint
  * embeds the device's registration token, and a URL would copy it into every
- * access log, proxy trace and Referer header on the way.
+ * access log, proxy trace and Referer header on the way. An app sends its
+ * `transport` and device token instead, for the same reason in the body.
+ *
+ * An app asks this before it shows its notification row, so a transport with
+ * no server credentials answers 503 NATIVE_PUSH_UNAVAILABLE here too, and the
+ * row stays hidden.
  */
 import { prisma } from '@/server/db'
 import { readJson, respond } from '@/server/http'
 import { assertProvenMember, loadRoom } from '@/server/roomState'
 import { enforceRateLimit, meterRoomLookup, WRITE_LIMIT } from '@/server/rateLimit'
 import { pushStatusSchema } from '@/server/validation'
+import { assertNativePushAvailable } from '@/server/push-native/config'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,6 +30,7 @@ export const POST = (request: Request, ctx: Ctx) =>
         enforceRateLimit(request, WRITE_LIMIT, 'push-status')
         const { slug } = await ctx.params
         const body = pushStatusSchema.parse(await readJson(request))
+        assertNativePushAvailable(body.transport)
         // A guessed slug 404s here and a real slug with a bad token 403s, which is
         // a room-existence oracle. Its own 120/hour bucket would have widened the
         // 30/hour the miss limiter exists to enforce, so the miss goes there.

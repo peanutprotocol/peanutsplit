@@ -60,13 +60,37 @@ export field or ID-addressed route changes.
 - FX: the supplied Compose baseline is static and makes no request. Outside that baseline, an unset
   mode enables outbound refreshes and the code currently falls back to
   `https://api.peanut.me/fx/rates` unless `SPLIT_FX_ENDPOINT` is explicit.
-- Push: endpoints and encrypted notification payloads go to allowlisted browser push services.
+- Push: endpoints and encrypted notification payloads go to allowlisted browser push services. For the
+  store apps, device tokens and readable payloads go to Apple Push Notification service and Firebase
+  Cloud Messaging (see [Store apps](#store-apps)).
 - Receipt parsing: an image goes to OpenRouter or Gemini when explicitly configured and enabled.
 - Analytics/error reporting: client events go to configured PostHog/Sentry endpoints; room secrets and money must not.
 
 Self-hosters become responsible for their own legal notices, data-processing choices, retention,
 backups, access logs, subprocessors, and user requests. The repository does not provide a complete
 privacy/compliance program.
+
+## Store apps
+
+The iOS and Android apps call the API from the origins `capacitor://localhost` and `https://localhost`,
+and the server answers CORS for exactly those two, without credentials (`apps/web/src/lib/cors.ts`; the
+full contract is in [API.md](API.md#cross-origin-callers)). This grants nothing that `curl` with the room
+slug cannot already do. No API route accepts an ambient credential: there is no session cookie, the
+slug in the path is the capability, and a member token travels in a header or the body. A page on
+another origin still gets no CORS answer, and the CORS answer never includes
+`Access-Control-Allow-Credentials` or `*`. The cookie-bound install handoff is excluded and stays
+same-origin only.
+
+Native push payloads carry the room's `analyticsKey` and a send ID, never the slug. Web push payloads
+are encrypted end to end to the browser, but APNs and FCM payloads are readable by Apple and Google.
+The slug is the room's bearer credential, so it must not pass through them. The app maps the
+`analyticsKey` back to a slug from device storage. The notification title and body still contain the
+room name, member names and amounts, as web push does; that is a product decision recorded in
+[`docs/NATIVE-HANDOFF.md`](../NATIVE-HANDOFF.md) (decision 3).
+
+In the app, member tokens and the room list live in WebView localStorage under a pinned origin and are
+mirrored into the platform's app preferences store, so WebView data eviction does not lose them. They
+stay on the device and in the user's own OS backup.
 
 ## Deployment assumptions
 

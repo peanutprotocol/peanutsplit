@@ -332,24 +332,27 @@ for (const file of sourceFiles(srcRoot)) {
 // ---------------------------------------------------------------- document policy
 
 const layoutPath = 'src/app/(product-shell)/layout.tsx'
+// The app export has its own root layout (it owns its <html>), so it carries the same
+// single document-level policy as the product layout.
+const documentRoots = new Set([layoutPath, 'src/app/(native)/layout.native.tsx'])
 const translationPolicyViolations = []
 for (const file of sourceFiles(srcRoot)) {
     const path = relative(appRoot, file)
     const source = stripComments(readFileSync(file, 'utf8'))
     const notranslateOccurrences = source.match(/notranslate/g) ?? []
     const googlePageOptOut = '<meta name="google" content="notranslate" />'
-    if (path !== layoutPath && notranslateOccurrences.length > 0) {
+    if (!documentRoots.has(path) && notranslateOccurrences.length > 0) {
         translationPolicyViolations.push(`${path} uses notranslate outside the product document root`)
     }
-    if (path === layoutPath && (notranslateOccurrences.length !== 1 || !source.includes(googlePageOptOut))) {
+    if (documentRoots.has(path) && (notranslateOccurrences.length !== 1 || !source.includes(googlePageOptOut))) {
         translationPolicyViolations.push(`${path} must contain exactly one literal Google page-level opt-out`)
     }
 
     const attributes = [...source.matchAll(/translate\s*=\s*['"]no['"]/g)]
-    if (path !== layoutPath && attributes.length > 0) {
+    if (!documentRoots.has(path) && attributes.length > 0) {
         translationPolicyViolations.push(`${path} suppresses translation below the document root`)
     }
-    if (path === layoutPath && attributes.length !== 1) {
+    if (documentRoots.has(path) && attributes.length !== 1) {
         translationPolicyViolations.push(`${path} must contain exactly one translate="no" policy`)
     }
 }

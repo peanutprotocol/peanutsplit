@@ -5,11 +5,16 @@
  * and nowhere else — that is the whole reason the copy is not inlined at the
  * three call sites that produce it.
  *
- * Amounts and member names ARE allowed in a payload: it is encrypted end-to-end
- * to a device that already holds the room link and can read all of it in the
- * app anyway. The room SLUG is the thing to be careful with — it is the room's
- * access control, so it appears only in the click-through `url`, never in a log
- * line or an analytics property.
+ * Amounts and member names ARE allowed in a Web Push payload: it is encrypted
+ * end-to-end to a device that already holds the room link and can read all of
+ * it in the app anyway. The room SLUG is the thing to be careful with — it is
+ * the room's access control, so it appears only in the click-through `url`,
+ * never in a log line or an analytics property.
+ *
+ * App notifications (APNs and FCM) are readable by Apple and Google, so they
+ * never carry the slug at all: `server/push-native/payload.ts` builds them from
+ * the title and body here plus the room's `analyticsKey`, using the three
+ * constants at the end of this file.
  */
 import { formatMoney } from '@/lib/money'
 
@@ -109,3 +114,16 @@ export function allSettledPayload(input: { room: RoomRef; roomId: string; sendId
         sendId: input.sendId,
     }
 }
+
+/**
+ * The body of every app notification. `null` sends the same text as Web Push,
+ * names and amounts included (the decided default; Apple and Google can read
+ * it). Set it to `NATIVE_GENERIC_BODY` to keep names and amounts off their
+ * servers — a one-line change, nothing else reads the body.
+ */
+export const NATIVE_PUSH_BODY: string | null = null
+
+/** Replaces an app notification's title or body that would contain the slug,
+ *  for instance a room named exactly like its own link. */
+export const NATIVE_GENERIC_TITLE = 'Split'
+export const NATIVE_GENERIC_BODY = 'New activity in your room.'

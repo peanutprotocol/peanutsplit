@@ -19,7 +19,9 @@
 
 import { useSyncExternalStore } from 'react'
 import { track } from './analytics'
+import { IS_NATIVE_APP } from './platform'
 import { isIOSDevice, isStandaloneDisplay } from './push-status'
+import { storeAppUrl } from './store-app'
 
 /** Not in lib.dom yet. */
 export interface BeforeInstallPromptEvent extends Event {
@@ -27,9 +29,13 @@ export interface BeforeInstallPromptEvent extends Event {
     userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
-export type InstallState = 'installed' | 'promptable' | 'dismissed' | 'ios' | 'waiting' | 'repair'
+export type InstallState = 'installed' | 'promptable' | 'dismissed' | 'ios' | 'waiting' | 'repair' | 'store'
 
 export interface InstallEnvironment {
+    /** The store app's own WebView. It is the installed app, so no install surface may render. */
+    isNativeApp: boolean
+    /** This browser is offered the App Store app instead of the PWA (`store-app.ts`: iPhone and iPad only). */
+    hasStoreApp: boolean
     isStandalone: boolean
     isIOS: boolean
     /** A live `beforeinstallprompt` event we are still allowed to replay. */
@@ -52,6 +58,9 @@ export interface InstallEnvironment {
 }
 
 export function deriveInstallState(env: InstallEnvironment): InstallState {
+    // Every install surface already hides on `installed`. Without this, the iOS WebView would
+    // render the Add-to-Home-Screen steps inside the App Store app.
+    if (env.isNativeApp) return 'installed'
     // A prompt accepted in this tab is strongest: do not immediately offer it again while the
     // browser finishes installing.
     if (env.installedHere) return 'installed'
@@ -65,6 +74,8 @@ export function deriveInstallState(env: InstallEnvironment): InstallState {
         if (env.isRoomPath && !env.hasCanonicalLaunchMarker) return 'repair'
         return 'installed'
     }
+    // After the standalone block, so an installed iOS PWA keeps `installed` and `repair`.
+    if (env.hasStoreApp) return 'store'
     if (env.hasPrompt) return 'promptable'
     if (env.promptSpent) return 'dismissed'
     if (env.isIOS) return 'ios'
@@ -84,6 +95,11 @@ const DISMISSED_AT_KEY = 'ps:pwa-dismissed-at'
 const SNOOZED_UNTIL_KEY = 'ps:pwa-snoozed-until'
 export const CANONICAL_LAUNCH_MARKER_KEY = 'ps:pwa-canonical-launch:v1'
 const REPAIR_NOTICE_DISMISSED_KEY = 'ps:pwa-repair-notice-dismissed:v1'
+/**
+ * When this device last tapped a store link. The browser cannot see a store install, so without
+ * this the automatic surfaces would offer the app again on every later visit.
+ */
+export const STORE_TAPPED_AT_KEY = 'ps:pwa-store-tapped-at:v1'
 export const INSTALL_SNOOZE_CHANGE_EVENT = 'ps:install-snooze-change'
 
 const announceSnoozeChange = (): void => {
@@ -106,6 +122,8 @@ export const installBackoffMs = (dismissCount: number): number =>
 
 export const isInstallSnoozed = (): boolean => {
     try {
+        const storeTappedAt = readInt(STORE_TAPPED_AT_KEY)
+        if (storeTappedAt > 0 && Date.now() - storeTappedAt < MAX_BACKOFF_MS) return true
         const count = readInt(DISMISS_COUNT_KEY)
         if (count === 0) return false
         return Date.now() - readInt(DISMISSED_AT_KEY) < installBackoffMs(count)
@@ -124,6 +142,19 @@ export const noteInstallDismissed = (): number => {
         return next
     } catch {
         return 1
+    }
+}
+
+/**
+ * A store tap is not a refusal, so the dismiss count stays as it is. It quiets the automatic
+ * surfaces for 30 days; the Device row stays as the manual path.
+ */
+export const noteStoreTapped = (): void => {
+    try {
+        window.localStorage.setItem(STORE_TAPPED_AT_KEY, String(Date.now()))
+        announceSnoozeChange()
+    } catch {
+        // Storage denied: the offer may return on a later visit, which is the safe failure.
     }
 }
 
@@ -256,6 +287,8 @@ export function hasCanonicalStandaloneLaunch(): boolean {
 
 function readEnvironment(): InstallEnvironment {
     return {
+        isNativeApp: IS_NATIVE_APP,
+        hasStoreApp: storeAppUrl() !== null,
         isStandalone: isStandaloneHere(),
         isIOS: isIOSHere(),
         hasPrompt: deferred !== null,

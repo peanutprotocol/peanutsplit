@@ -12,6 +12,7 @@ import { api, isApiError, type InstallHandoffPayload } from './api'
 import { track } from './analytics'
 import { clearIdentity, readIdentity, writeIdentity } from './identity'
 import { readRecentRooms, rememberRoom, roomSlugFromLink } from './recent-rooms'
+import { IS_NATIVE_APP } from './platform'
 import { isStandaloneDisplay } from './push-status'
 import { readRoomUpdates, requestRoomUpdates } from './room-updates'
 
@@ -129,6 +130,9 @@ export function prepareInstallHandoff(
     token?: string | null,
     options: { notifications?: boolean } = {}
 ): Promise<PreparedInstallHandoff | null> {
+    // The store app is already installed and the handoff endpoints are same-origin cookie routes
+    // the app cannot reach, so there is nothing to prepare.
+    if (IS_NATIVE_APP) return Promise.resolve(null)
     const intent = beginPrepareIntent()
     if (!intent) return Promise.resolve(null)
 
@@ -164,7 +168,7 @@ export function prepareInstallHandoff(
  * flight. Re-check the generation under the same origin-wide lock before
  * clearing/ACKing, so cancellation can never consume a newer room's intent. */
 export function cancelPreparedInstallHandoff(prepared: PreparedInstallHandoff): Promise<void> {
-    if (typeof window === 'undefined') return Promise.resolve()
+    if (IS_NATIVE_APP || typeof window === 'undefined') return Promise.resolve()
     return withPrepareLock(async () => {
         if (!isLatestPrepareIntent(prepared.intent)) return
         clearPreparedReadyMarker()
@@ -269,6 +273,8 @@ export async function restorePreparedInstallHandoff(
     signal?: AbortSignal,
     client: InstallHandoffClient = api.installHandoff
 ): Promise<InstallHandoffBootResult> {
+    // A store app launch is never a Safari Home Screen install, so no handoff waits for it.
+    if (IS_NATIVE_APP) return { status: 'not-needed' }
     if (typeof document === 'undefined' || !isStandaloneInstallLaunch() || !hasPreparedInstallHandoff(document.cookie))
         return { status: 'not-needed' }
 

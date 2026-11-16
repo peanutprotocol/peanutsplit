@@ -29,6 +29,10 @@ const QUIET_MS = 1_500
 
 type AutoInstallDelivery = 'browser_prompt' | 'browser_steps' | 'ios_steps'
 
+/**
+ * `store` has no delivery on purpose: on room pages the Smart App Banner is the store offer, so the
+ * plain earned card renders nothing and a room never shows two store offers at once.
+ */
 const deliveryFor = (state: ReturnType<typeof useInstallState>): AutoInstallDelivery | null => {
     if (state === 'promptable') return 'browser_prompt'
     if (state === 'waiting' || state === 'dismissed') return 'browser_steps'

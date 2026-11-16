@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useSyncExternalStore } from 'react'
+import { IS_NATIVE_APP } from './platform'
 import { playSound, warmAudio, type SoundName } from './sounds'
 
 const STORAGE_KEY = 'ps:settings'
@@ -9,10 +10,46 @@ export interface Settings {
     soundEnabled: boolean
     hapticsEnabled: boolean
     animationsEnabled: boolean
+    /** The person allowed receipt photos to go to the AI model. Read only in the store app. */
+    scanConsent: boolean
 }
 
-/** All ON — the palette is the product, and it is quiet by design. */
-const DEFAULTS: Settings = { soundEnabled: true, hapticsEnabled: true, animationsEnabled: true }
+/** All feedback ON — the palette is the product, and it is quiet by design. AI consent starts OFF:
+ *  it is only ever given by a tap. */
+const DEFAULTS: Settings = { soundEnabled: true, hapticsEnabled: true, animationsEnabled: true, scanConsent: false }
+
+/**
+ * Whether the scan must ask before the photo leaves the device.
+ *
+ * App only (Apple 5.1.2(i) asks for explicit consent before personal data goes to a third-party
+ * AI). The web flow keeps its passive provider note and no extra tap until Konrad decides
+ * otherwise (decision 8.3 #12 in the native-app plan).
+ */
+export function scanConsentNeeded(
+    settings: Pick<Settings, 'scanConsent'>,
+    nativeApp: boolean = IS_NATIVE_APP
+): boolean {
+    return nativeApp && !settings.scanConsent
+}
+
+/** Stored JSON to settings. Missing or non-boolean fields take the default, so a value written
+ *  before a setting existed never turns into `false` by accident. */
+export function parseSettings(raw: string | null): Settings {
+    if (!raw) return DEFAULTS
+    try {
+        const parsed = JSON.parse(raw) as Partial<Record<keyof Settings, unknown>> | null
+        const read = (key: keyof Settings): boolean =>
+            typeof parsed?.[key] === 'boolean' ? (parsed[key] as boolean) : DEFAULTS[key]
+        return {
+            soundEnabled: read('soundEnabled'),
+            hapticsEnabled: read('hapticsEnabled'),
+            animationsEnabled: read('animationsEnabled'),
+            scanConsent: read('scanConsent'),
+        }
+    } catch {
+        return DEFAULTS
+    }
+}
 
 /**
  * A tiny external store rather than context: the settings are read from the
@@ -29,18 +66,9 @@ function hydrate(): void {
     if (hydrated || typeof window === 'undefined') return
     hydrated = true
     try {
-        const raw = window.localStorage.getItem(STORAGE_KEY)
-        if (!raw) return
-        const parsed = JSON.parse(raw) as Partial<Settings>
-        current = {
-            soundEnabled: parsed.soundEnabled ?? DEFAULTS.soundEnabled,
-            hapticsEnabled: parsed.hapticsEnabled ?? DEFAULTS.hapticsEnabled,
-            // Absent for everyone who used the app before this setting existed —
-            // they get the default, not `false`.
-            animationsEnabled: parsed.animationsEnabled ?? DEFAULTS.animationsEnabled,
-        }
+        current = parseSettings(window.localStorage.getItem(STORAGE_KEY))
     } catch {
-        // Corrupt or blocked storage just means defaults. Never throw here.
+        // Blocked storage just means defaults. Never throw here.
     }
 }
 
@@ -89,7 +117,11 @@ export function useSettings() {
         write({ ...current, animationsEnabled: value })
     }, [])
 
-    return { settings, setSoundEnabled, setHapticsEnabled, setAnimationsEnabled }
+    const setScanConsent = useCallback((value: boolean) => {
+        write({ ...current, scanConsent: value })
+    }, [])
+
+    return { settings, setSoundEnabled, setHapticsEnabled, setAnimationsEnabled, setScanConsent }
 }
 
 /** Semantic haptics, mapped one-to-one to the cues. Durations are deliberately

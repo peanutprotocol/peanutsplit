@@ -13,17 +13,12 @@ import type { RoomState } from '@/lib/api-types'
 import { existingRoomImportPath } from '@/lib/import-routes'
 import { isCatalogCode } from '@/lib/money'
 import { exportFilename, roomCsv, roomJson } from '@/lib/room-export'
+import { saveFile } from '@/lib/save-file'
 
 function download(contents: string, filename: string, type: string) {
-    const href = URL.createObjectURL(new Blob([contents], { type }))
-    const anchor = document.createElement('a')
-    anchor.href = href
-    anchor.download = filename
-    document.body.append(anchor)
-    anchor.click()
-    anchor.remove()
-    // Firefox may still be consuming the object URL when click() returns.
-    window.setTimeout(() => URL.revokeObjectURL(href), 0)
+    // The sheet has no error line, and on web this never rejects. In the app a failed share sheet
+    // leaves the export button as it was, which is all the person needs to try again.
+    saveFile(new Blob([contents], { type }), filename).catch(() => {})
 }
 
 /**

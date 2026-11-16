@@ -11,6 +11,7 @@
 import { useEffect, useState } from 'react'
 import { copyImage } from '@/lib/clipboard'
 import type { RecapShareTier } from '@/lib/recap'
+import { saveFile } from '@/lib/save-file'
 
 /**
  * Fetch the PNG on mount and keep the `File`.
@@ -95,11 +96,10 @@ export async function shareImageFile(file: File): Promise<RecapShareTier | null>
 
     if (await copyImage(file)) return 'clipboard'
 
-    const objectUrl = URL.createObjectURL(file)
-    const anchor = document.createElement('a')
-    anchor.href = objectUrl
-    anchor.download = file.name
-    anchor.click()
-    URL.revokeObjectURL(objectUrl)
-    return 'download'
+    try {
+        return (await saveFile(file, file.name)) ? 'download' : null
+    } catch {
+        // Only the app's share sheet can fail here. Every rung is spent; the card stays on screen.
+        return null
+    }
 }

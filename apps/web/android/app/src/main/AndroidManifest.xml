@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+    <!--
+        allowBackup stays on, on purpose (INTERACTION 2.7): the room list and member tokens live
+        only on the device, and the OS backup is the only way to recover them on a new phone. The
+        backup belongs to the person, like browser data; nothing reaches Split's servers.
+    -->
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!--
+                App Link for room links. Apex host only: on Android 11 and older one host that fails
+                verification fails them all. pathPrefix cannot exclude the card and preview-image
+                paths below API 35, so those open the app too, which maps them to the room
+                (src/lib/native/link-contract.test.ts).
+            -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="peanutsplit.com" android:pathPrefix="/r/" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+
+    <!-- Permissions -->
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Receipt scan: the WebView's getUserMedia, asked at the first scan only. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Without this, CAMERA implies a required camera and Play hides the app on phones without one. -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <!-- Android 13+ prompt, asked only when someone turns on notifications for a room. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Firebase adds the advertising ID; Split shows no ads and tracks nobody. -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
+</manifest>

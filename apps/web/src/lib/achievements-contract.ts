@@ -7,7 +7,12 @@
  *
  * No React, no Node, no Prisma. This file is imported by client components and by the Satori
  * pipeline alike.
+ *
+ * Its one import, `platform.ts`, is pure too: it puts the card path on the API origin in the store
+ * app, whose bundle has no card routes, and leaves it relative on web.
  */
+
+import { apiUrl } from './platform'
 
 /**
  * What a card can be.
@@ -72,10 +77,10 @@ export interface AlterEgoCardParams {
  */
 export function achievementCardPath(slug: string, kind: CardKind, params?: AlterEgoCardParams): string {
     const base = `/r/${slug}/card/${kind}`
-    if (kind !== 'alterego' || !params) return base
+    if (kind !== 'alterego' || !params) return apiUrl(base)
     const query = new URLSearchParams({ a: params.award, p: params.persona })
     if (params.palette) query.set('c', params.palette)
-    return `${base}?${query.toString()}`
+    return apiUrl(`${base}?${query.toString()}`)
 }
 
 /** No slug in a filename — it would put the credential in a Downloads folder, a screenshot of a

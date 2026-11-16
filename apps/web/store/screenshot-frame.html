@@ -1,0 +1,159 @@
+<!doctype html>
+<!--
+    The frame for the store screenshots (local/split-native-app/store-r2/SPEC.md section 2).
+    e2e-native/store-screenshots.spec.ts opens this file once per store size, calls
+    window.render(cfg) for each screen and writes store/assets/screenshots/<set>/<file>.jpg.
+    A flat brand background, one headline and one sub-line in the landing page voice, and a raw
+    capture of the real app in a neutral ink frame. No device hardware and no OS chrome, so
+    neither store sees another platform. Relative links only; the spec aborts every other request.
+-->
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Peanut Split screenshot frame</title>
+        <style>
+            @font-face {
+                font-family: 'Roboto Flex';
+                src: url('../node_modules/@fontsource-variable/roboto-flex/files/roboto-flex-latin-full-normal.woff2')
+                    format('woff2');
+                font-weight: 100 1000;
+                font-stretch: 25% 151%;
+            }
+            :root {
+                --ink: #211c17;
+            }
+            * {
+                box-sizing: border-box;
+                margin: 0;
+            }
+            html,
+            body {
+                overflow: hidden;
+            }
+            body {
+                position: relative;
+                color: var(--ink);
+                font-family: 'Roboto Flex', sans-serif;
+            }
+            .headline {
+                position: absolute;
+                font-weight: 1000;
+                line-height: 0.95;
+                font-stretch: 50%;
+                letter-spacing: -0.045em;
+                text-transform: uppercase;
+            }
+            .headline mark {
+                color: var(--ink);
+                padding-inline: 0.08em;
+                border-radius: 0;
+            }
+            .subline {
+                position: absolute;
+                font-weight: 700;
+                line-height: 1.25;
+                font-stretch: 100%;
+            }
+            .frame {
+                position: absolute;
+                overflow: hidden;
+                background: #fff;
+                border: 3px solid var(--ink);
+                box-shadow: 8px 8px 0 var(--ink);
+            }
+            .frame img {
+                position: absolute;
+                left: 0;
+                display: block;
+                width: 100%;
+                height: auto;
+            }
+        </style>
+    </head>
+    <body>
+        <h1 class="headline"></h1>
+        <p class="subline"></p>
+        <div class="frame"><img alt="" /></div>
+        <script>
+            /**
+             * Lays out one screenshot and resolves with the measurements the spec checks.
+             * cfg: { background, markColour, headlineHtml, subline, capture, anchor: 'top' | 'bottom',
+             *        layout: { width, height, margin, headlineTop, headlineSize, gap, sublineSize,
+             *                  frameTop, frameWidth, frameBottom, radius } }
+             */
+            window.render = async (cfg) => {
+                const { layout } = cfg
+                document.documentElement.style.width = document.body.style.width = `${layout.width}px`
+                document.documentElement.style.height = document.body.style.height = `${layout.height}px`
+                document.body.style.background = cfg.background
+
+                const headline = document.querySelector('.headline')
+                headline.innerHTML = cfg.headlineHtml
+                Object.assign(headline.style, {
+                    left: `${layout.margin}px`,
+                    width: `${layout.width - 2 * layout.margin}px`,
+                    top: `${layout.headlineTop}px`,
+                    fontSize: `${layout.headlineSize}px`,
+                })
+                for (const mark of headline.querySelectorAll('mark')) mark.style.background = cfg.markColour
+
+                const subline = document.querySelector('.subline')
+                subline.textContent = cfg.subline
+                Object.assign(subline.style, {
+                    left: `${layout.margin}px`,
+                    width: `${layout.width - 2 * layout.margin}px`,
+                    fontSize: `${layout.sublineSize}px`,
+                })
+
+                const frame = document.querySelector('.frame')
+                const image = frame.querySelector('img')
+                image.src = cfg.capture
+                await image.decode()
+                await document.fonts.ready
+
+                subline.style.top = `${layout.headlineTop + headline.offsetHeight + layout.gap}px`
+
+                const innerWidth = layout.frameWidth - 6
+                const innerHeight = layout.frameBottom - layout.frameTop - 6
+                const scaledHeight = (innerWidth * image.naturalHeight) / image.naturalWidth
+                const trimmed = scaledHeight < innerHeight
+                const frameHeight = trimmed ? scaledHeight + 6 : layout.frameBottom - layout.frameTop
+                const frameTop = trimmed
+                    ? layout.frameTop + (layout.frameBottom - layout.frameTop - frameHeight) / 2
+                    : layout.frameTop
+                Object.assign(frame.style, {
+                    left: `${(layout.width - layout.frameWidth) / 2}px`,
+                    top: `${frameTop}px`,
+                    width: `${layout.frameWidth}px`,
+                    height: `${frameHeight}px`,
+                    borderRadius: `${layout.radius}px`,
+                })
+                image.style.top = cfg.anchor === 'top' ? '0' : ''
+                image.style.bottom = cfg.anchor === 'bottom' ? '0' : ''
+
+                const textBox = (element) => {
+                    const range = document.createRange()
+                    range.selectNodeContents(element)
+                    const box = range.getBoundingClientRect()
+                    return { left: box.left, right: box.right, top: box.top, bottom: box.bottom }
+                }
+                return {
+                    headline: {
+                        ...textBox(headline),
+                        height: headline.offsetHeight,
+                        lineHeight: layout.headlineSize * 0.95,
+                    },
+                    subline: {
+                        ...textBox(subline),
+                        height: subline.offsetHeight,
+                        lineHeight: layout.sublineSize * 1.25,
+                    },
+                    frame: frame.getBoundingClientRect().toJSON(),
+                    image: { naturalWidth: image.naturalWidth, complete: image.complete },
+                    text: `${headline.textContent} ${subline.textContent}`,
+                }
+            }
+        </script>
+    </body>
+</html>

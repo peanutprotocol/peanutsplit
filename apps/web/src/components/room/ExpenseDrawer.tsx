@@ -385,6 +385,12 @@ export function ExpenseDrawer({
             return
         }
 
+        // Cache Storage exists only in a secure context with a service worker behind it. The store
+        // app's WebView may not expose it, and a stray `?shared=1` there must not throw.
+        if (typeof caches === 'undefined') {
+            onSharedReceiptConsumed?.()
+            return
+        }
         const drop = () => {
             void discardSharedReceipt(caches)
             onSharedReceiptConsumed?.()

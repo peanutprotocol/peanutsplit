@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { HAPTIC_MS, HAPTIC_PATTERNS, IOS_PATTERN_OFFSETS_MS } from './use-settings'
+import { HAPTIC_MS, HAPTIC_PATTERNS, IOS_PATTERN_OFFSETS_MS, parseSettings, scanConsentNeeded } from './use-settings'
 
 /**
  * The haptic tables, asserted as data.
@@ -65,5 +65,47 @@ describe('iOS pattern emulation', () => {
                 previous = offset
             }
         }
+    })
+})
+
+describe('stored settings', () => {
+    const defaults = { soundEnabled: true, hapticsEnabled: true, animationsEnabled: true, scanConsent: false }
+
+    it('falls back to the defaults for missing, corrupt or non-object storage', () => {
+        expect(parseSettings(null)).toEqual(defaults)
+        expect(parseSettings('{not json')).toEqual(defaults)
+        expect(parseSettings('null')).toEqual(defaults)
+    })
+
+    it('keeps the feedback choices of someone who stored settings before AI consent existed', () => {
+        // The shape every device wrote before this field: no scanConsent at all.
+        expect(parseSettings('{"soundEnabled":false,"hapticsEnabled":true,"animationsEnabled":false}')).toEqual({
+            ...defaults,
+            soundEnabled: false,
+            animationsEnabled: false,
+        })
+    })
+
+    it('reads a stored consent back, and never treats a non-boolean as consent', () => {
+        expect(parseSettings('{"scanConsent":true}').scanConsent).toBe(true)
+        expect(parseSettings('{"scanConsent":false}').scanConsent).toBe(false)
+        expect(parseSettings('{"scanConsent":"yes"}').scanConsent).toBe(false)
+        expect(parseSettings('{"scanConsent":1}').scanConsent).toBe(false)
+    })
+})
+
+describe('AI consent before a receipt scan', () => {
+    it('asks in the store app until the person allows it', () => {
+        expect(scanConsentNeeded({ scanConsent: false }, true)).toBe(true)
+        expect(scanConsentNeeded({ scanConsent: true }, true)).toBe(false)
+    })
+
+    it('never asks on the web, whatever is stored', () => {
+        expect(scanConsentNeeded({ scanConsent: false }, false)).toBe(false)
+        expect(scanConsentNeeded({ scanConsent: true }, false)).toBe(false)
+    })
+
+    it('follows the build: this test runs as the web build', () => {
+        expect(scanConsentNeeded({ scanConsent: false })).toBe(false)
     })
 })

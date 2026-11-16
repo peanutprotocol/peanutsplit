@@ -1,5 +1,6 @@
 node_modules/
 .next/
+.next-native/
 out/
 build/
 .pnpm-store/
@@ -25,3 +26,6 @@ test-results/
 .vscode/
 local/
 *.tsbuildinfo
+
+# Raw store captures and the review contact sheet (e2e-native/store-screenshots.spec.ts)
+store/captures/

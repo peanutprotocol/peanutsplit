@@ -10,6 +10,7 @@
  */
 
 import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE_SECONDS, type Locale } from '@/i18n/locales'
+import { IS_NATIVE_APP } from './platform'
 
 /**
  * One year, re-asserted on every boot. Safari's Intelligent Tracking Prevention caps
@@ -19,6 +20,16 @@ import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE_SECONDS, type Locale } from '@/i18
  */
 export function writeLocaleCookie(locale: Locale): void {
     if (typeof document === 'undefined') return
+    if (IS_NATIVE_APP) {
+        // The app has no server to read a cookie. NativeIntlProvider reads the choice from
+        // localStorage under the cookie's name before the first paint (ARCHITECTURE 6).
+        try {
+            localStorage.setItem(LOCALE_COOKIE, locale)
+        } catch {
+            // Blocked storage: the app falls back to the device language on the next launch.
+        }
+        return
+    }
     // `SameSite=Lax` and no `Secure`: the cookie carries a UI preference, and dropping `Secure`
     // is what lets it work on plain-http local dev without a second code path.
     document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=${LOCALE_COOKIE_MAX_AGE_SECONDS}; SameSite=Lax`

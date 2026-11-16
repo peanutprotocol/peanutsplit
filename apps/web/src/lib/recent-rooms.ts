@@ -11,6 +11,7 @@
 import { memberStorageKey } from '@/lib/identity'
 import { roomInstallStorageKey } from '@/lib/install-funnel'
 import { roomUpdatesStorageKey } from '@/lib/room-updates'
+import { roomPath } from '@/lib/platform'
 
 export const RECENT_ROOMS_KEY = 'ps:recent'
 export const RECENT_ROOMS_LIMIT = 12
@@ -148,13 +149,13 @@ export function readRecentRooms(): RecentRoom[] {
  *
  * localStorage belongs to the browser, not to us: a person, extension or stale
  * build can put any string in `slug`. Keep that untrusted value out of navigation
- * by applying the same permanent room-slug contract used for pasted links, then
- * encode the path segment even though today's contract contains only URL-safe
- * characters.
+ * by applying the same permanent room-slug contract used for pasted links;
+ * `roomPath` then encodes the slug even though today's contract contains only
+ * URL-safe characters.
  */
 export function mostRecentRoomPath(): string | null {
     const room = readRecentRooms().find((candidate) => ROOM_SLUG.test(candidate.slug))
-    return room ? `/r/${encodeURIComponent(room.slug)}` : null
+    return room ? roomPath(room.slug) : null
 }
 
 /**

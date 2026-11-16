@@ -3,7 +3,7 @@
 <!-- GENERATED FILE. Run `pnpm docs:generate`; do not hand-edit. -->
 
 Source: `apps/web/prisma/schema.prisma`  
-Input SHA-256: `a486551b2365dab7eb7a451ee4c0ccb8944a51f9e163bac5fddc0eb8bd7dd4b1`
+Input SHA-256: `bc2551cdab23f0df1ed0eb246f33278628f3bc137acf01bf5de44d82091d3d6b`
 
 PostgreSQL namespace: `split`  
 Models: 15  
@@ -206,19 +206,20 @@ Split modes: `EQUAL`, `EXACT`, `PERCENTAGE`, `SHARES`
 
 ## PushSubscription
 
-| Field        | Prisma type | Attributes                                                         |
-| ------------ | ----------- | ------------------------------------------------------------------ |
-| `id`         | `String`    | @id @default(uuid())                                               |
-| `roomId`     | `String`    | —                                                                  |
-| `memberId`   | `String`    | —                                                                  |
-| `endpoint`   | `String`    | // push-service URL; the host is allowlisted at write time         |
-| `p256dh`     | `String`    | —                                                                  |
-| `auth`       | `String`    | —                                                                  |
-| `userAgent`  | `String?`   | —                                                                  |
-| `createdAt`  | `DateTime`  | @default(now())                                                    |
-| `lastSeenAt` | `DateTime`  | @default(now())                                                    |
-| `room`       | `Room`      | @relation(fields: [roomId], references: [id], onDelete: Cascade)   |
-| `member`     | `Member`    | @relation(fields: [memberId], references: [id], onDelete: Cascade) |
+| Field        | Prisma type | Attributes                                                              |
+| ------------ | ----------- | ----------------------------------------------------------------------- |
+| `id`         | `String`    | @id @default(uuid())                                                    |
+| `roomId`     | `String`    | —                                                                       |
+| `memberId`   | `String`    | —                                                                       |
+| `transport`  | `String`    | @default("webpush")                                                     |
+| `endpoint`   | `String`    | // webpush: allowlisted push-service URL; native: "<transport>:<token>" |
+| `p256dh`     | `String?`   | // webpush only                                                         |
+| `auth`       | `String?`   | // webpush only                                                         |
+| `userAgent`  | `String?`   | —                                                                       |
+| `createdAt`  | `DateTime`  | @default(now())                                                         |
+| `lastSeenAt` | `DateTime`  | @default(now())                                                         |
+| `room`       | `Room`      | @relation(fields: [roomId], references: [id], onDelete: Cascade)        |
+| `member`     | `Member`    | @relation(fields: [memberId], references: [id], onDelete: Cascade)      |
 
 ## NotificationSend
 

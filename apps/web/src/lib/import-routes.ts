@@ -1,4 +1,5 @@
-const roomBasePath = (slug: string): string => `/r/${encodeURIComponent(slug)}`
+import { roomPath } from './platform'
 
-export const existingRoomImportPath = (slug: string): string => `${roomBasePath(slug)}/import`
-export const importedRoomPath = (slug: string): string => roomBasePath(slug)
+// roomPath encodes the slug as one path segment on web and as the `slug` query value in the app.
+export const existingRoomImportPath = (slug: string): string => roomPath(slug, 'import')
+export const importedRoomPath = (slug: string): string => roomPath(slug)

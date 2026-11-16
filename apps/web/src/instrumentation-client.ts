@@ -11,6 +11,7 @@
  * silence rather than console noise.
  */
 import * as Sentry from '@sentry/nextjs'
+import { IS_NATIVE_APP, nativePlatform } from '@/lib/platform'
 import { redactField, redactRoomSlugs, redactTelemetryEvent } from '@/lib/redact'
 
 const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN
@@ -21,6 +22,9 @@ if (dsn) {
         // Errors only. Tracing would sample room URLs into transaction names and
         // buys nothing on a two-screen app; replay would record the room itself.
         tracesSampleRate: 0,
+        // The store apps share this file with the website (Next aliases it into the export too),
+        // so every event says which build it came from.
+        initialScope: { tags: { platform: IS_NATIVE_APP ? nativePlatform() : 'web' } },
         integrations: (defaults) =>
             defaults.filter((integration) => integration.name !== 'BrowserTracing' && integration.name !== 'Replay'),
 

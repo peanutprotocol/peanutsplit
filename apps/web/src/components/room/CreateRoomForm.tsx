@@ -13,6 +13,7 @@ import {
     composerSurfaceClassName,
 } from '@/components/ui/composer-style'
 import { Icon } from '@/components/ui/Icon'
+import { roomPath } from '@/lib/platform'
 import type { RoomPrefill } from '@/lib/room-prefill'
 import { readCurrencyChoice, rememberCurrencyChoice, useCurrencyHints } from '@/lib/use-currency-hint'
 import { useCurrencies } from '@/lib/queries'
@@ -103,7 +104,7 @@ export function CreateRoomForm({ prefill = {} }: { prefill?: RoomPrefill }) {
             memberNames: people.memberNames,
             template: prefill.template,
         })
-        if (state) router.push(`/r/${state.room.slug}`)
+        if (state) router.push(roomPath(state.room.slug))
     }
 
     return (

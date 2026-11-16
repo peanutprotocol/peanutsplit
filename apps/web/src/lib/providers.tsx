@@ -74,8 +74,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
         // before anyone opens a settings sheet. See `lib/install.ts`.
         captureInstallPrompt()
         // A shared receipt nobody came back for. Every normal exit discards it; this covers the
-        // ones nobody takes, so a photo cannot outlive the share that parked it.
-        void sweepSharedReceipt(caches)
+        // ones nobody takes, so a photo cannot outlive the share that parked it. WKWebView in the
+        // store app has no Cache Storage, and there is no share target there to park a photo.
+        if (typeof caches !== 'undefined') void sweepSharedReceipt(caches)
     }, [])
 
     // On mount and on every return to the app. Both events: `visibilitychange` covers a phone

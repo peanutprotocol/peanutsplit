@@ -9,7 +9,7 @@
  */
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const posthog = vi.hoisted(() => ({ capture: vi.fn(), init: vi.fn() }))
+const posthog = vi.hoisted(() => ({ capture: vi.fn(), init: vi.fn(), register: vi.fn() }))
 vi.mock('posthog-js', () => ({ default: posthog }))
 
 const priorKey = process.env.NEXT_PUBLIC_POSTHOG_KEY

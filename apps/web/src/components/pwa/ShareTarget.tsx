@@ -15,6 +15,9 @@ import { themeFor } from '@/lib/themes'
 
 type Phase = 'checking' | 'unavailable' | 'expired' | 'empty' | 'pick'
 
+/** The store app's WKWebView has no Cache Storage, and no share target parks a photo there. */
+const parkedReceiptStorage = (): CacheStorage | null => (typeof caches === 'undefined' ? null : caches)
+
 /**
  * Where a photo shared in from the OS lands.
  *
@@ -44,18 +47,19 @@ export function ShareTarget({ enabled }: { enabled: boolean }) {
         }
 
         void (async () => {
+            const storage = parkedReceiptStorage()
             if (!enabled) {
-                await discardSharedReceipt(caches)
+                if (storage) await discardSharedReceipt(storage)
                 settle('unavailable', 'unavailable')
                 return
             }
-            if (!(await hasSharedReceipt(caches))) {
+            if (!storage || !(await hasSharedReceipt(storage))) {
                 settle('expired', 'expired')
                 return
             }
             const recent = readRecentRooms()
             if (recent.length === 0) {
-                await discardSharedReceipt(caches)
+                await discardSharedReceipt(storage)
                 settle('empty', 'no_rooms')
                 return
             }
@@ -80,7 +84,8 @@ export function ShareTarget({ enabled }: { enabled: boolean }) {
     useEffect(() => {
         if (phase !== 'pick') return
         return () => {
-            if (!handedOff.current) void discardSharedReceipt(caches)
+            const storage = parkedReceiptStorage()
+            if (!handedOff.current && storage) void discardSharedReceipt(storage)
         }
     }, [phase])
 

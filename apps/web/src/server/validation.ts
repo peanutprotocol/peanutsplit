@@ -15,6 +15,8 @@ import {
     MAX_MEMBERS,
     MAX_NAME_CHARS,
 } from '@/lib/splitwise-csv'
+import type { NativePushTransport } from '@/lib/api-types'
+import { NATIVE_PUSH_TRANSPORTS } from '@/server/push-native/config'
 
 /**
  * A currency code — one of the 162 real ones, or a ticker somebody invented.
@@ -274,28 +276,72 @@ const pushKey = z
     .regex(/^[A-Za-z0-9_\-=]+$/, 'must be base64')
 const memberSecret = z.string().min(1).max(200)
 
-export const pushSubscribeSchema = z.object({
-    endpoint: pushEndpoint,
-    keys: z.object({ p256dh: pushKey, auth: pushKey }),
-    memberId: id,
-    memberToken: memberSecret,
-    userAgent: z.string().trim().max(512).nullish(),
-})
+const nativeTransport = z.enum(NATIVE_PUSH_TRANSPORTS)
+/**
+ * An APNs device token is hex; an FCM registration token is URL-safe base64
+ * with colons. The charset matters beyond tidiness: the APNs token becomes part
+ * of the HTTP/2 `:path`, so a slash or a question mark must never get through.
+ */
+const nativeToken = z
+    .string()
+    .trim()
+    .min(1)
+    .max(1024)
+    .regex(/^[A-Za-z0-9_:-]+$/, 'must be a device token')
+const isTokenShapeFor = (body: { transport: NativePushTransport; token: string }) =>
+    body.transport === 'fcm' || /^[0-9A-Fa-f]+$/.test(body.token)
+const nativeEndpoint = (body: { transport: NativePushTransport; token: string }) => `${body.transport}:${body.token}`
 
-export const pushUnsubscribeSchema = z.object({
-    endpoint: pushEndpoint,
-    memberId: id,
-    memberToken: memberSecret,
-})
+/**
+ * Both bodies normalise to one channel shape: `transport` plus the `endpoint`
+ * that is stored and looked up. A native token is stored as
+ * `<transport>:<token>`, so `(endpoint, roomId)` uniqueness, the per-room cap
+ * and the status lookup work the same for every transport. A web body can never
+ * produce that shape: its URL must pass the https allowlist in the route.
+ */
+const webChannel = { endpoint: pushEndpoint }
+const nativeChannel = { transport: nativeTransport, token: nativeToken }
+const membership = { memberId: id, memberToken: memberSecret }
+const tokenShapeError = { message: 'must be an APNs device token', path: ['token'] }
 
-/** Asking whether THIS room is on for this endpoint. Same three fields as the
- *  unsubscribe, and deliberately its own schema: the question is a read, and it
- *  must stay free to gain a field without widening what a delete accepts. */
-export const pushStatusSchema = z.object({
-    endpoint: pushEndpoint,
-    memberId: id,
-    memberToken: memberSecret,
-})
+export const pushSubscribeSchema = z.union([
+    z
+        .object({
+            ...webChannel,
+            keys: z.object({ p256dh: pushKey, auth: pushKey }),
+            ...membership,
+            userAgent: z.string().trim().max(512).nullish(),
+        })
+        // A web body without keys fails here and then fails the native branch
+        // too (no transport), so it is still a 400.
+        .transform((body) => ({ ...body, transport: 'webpush' as const })),
+    z
+        .object({ ...nativeChannel, ...membership, userAgent: z.string().trim().max(512).nullish() })
+        .refine(isTokenShapeFor, tokenShapeError)
+        .transform(({ token, ...body }) => ({
+            ...body,
+            endpoint: nativeEndpoint({ transport: body.transport, token }),
+            keys: null,
+        })),
+])
+
+const pushChannelSchema = z.union([
+    z.object({ ...webChannel, ...membership }).transform((body) => ({ ...body, transport: 'webpush' as const })),
+    z
+        .object({ ...nativeChannel, ...membership })
+        .refine(isTokenShapeFor, tokenShapeError)
+        .transform(({ token, ...body }) => ({
+            ...body,
+            endpoint: nativeEndpoint({ transport: body.transport, token }),
+        })),
+])
+
+export const pushUnsubscribeSchema = pushChannelSchema
+
+/** Asking whether THIS room is on for this channel. Same fields as the
+ *  unsubscribe today, under its own name: the question is a read, and it must
+ *  stay free to gain a field without widening what a delete accepts. */
+export const pushStatusSchema = pushChannelSchema
 
 /** What the service worker beacons back on a tap or a swipe-away. Every field is
  *  optional-ish because the worker is fire-and-forget and must never be the

@@ -12,6 +12,7 @@ export {
     FALLBACK_POLL_MS,
     LIVE_POLL_MS,
     ROOM_FETCH_TIMEOUT_MS,
+    roomReadBlocked,
     useCurrencies,
     useModelStatus,
     useRoomHistory,

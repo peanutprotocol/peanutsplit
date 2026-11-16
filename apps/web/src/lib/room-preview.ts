@@ -1,14 +1,42 @@
 /**
  * The social image attached by chat apps after they inspect a room URL.
  *
- * The URL is deliberately not built here, and must not be. `opengraph-image.tsx`
- * is a Next file convention, and Next — not this app — decides what to serve it
- * under: the route group in the path earns the route a build-scoped hash suffix
- * (`/r/<slug>/opengraph-image-<hash>`), and the tag Next writes can carry a
- * cache-busting query on top of it. Neither part is derivable from the slug, so
- * the only honest source for the URL is the tag Next already put in the document.
+ * On web the URL is deliberately not built here. `opengraph-image.tsx` is a Next
+ * file convention, and Next — not this app — decides what to serve it under: the
+ * route group in the path earns the route a hash suffix
+ * (`/r/<slug>/opengraph-image-<hash>`), and the tag Next writes carries a
+ * cache-busting query on top of it. The tag Next already put in the document is
+ * the exact URL a crawler will ask for, query included, so web reads that.
  * Hand-building `/r/<slug>/opengraph-image` is what used to 404 in production.
+ *
+ * The store app has no room `<head>` to ask: its page is a bundled file. There
+ * `roomPreviewImagePath` derives the path the way Next derives it (see there), and
+ * the warm is an opaque request through `apiUrl`.
  */
+
+import { djb2Hash } from 'next/dist/shared/lib/hash'
+import { apiUrl, IS_NATIVE_APP } from './platform'
+
+/**
+ * The room route's source segment, as the app directory spells it. Next names the room's
+ * `opengraph-image` after a hash of exactly this string because it contains the `(product-shell)`
+ * route group. `room-preview.test.ts` checks that the file exists here and that Next's own route
+ * builder produces the same URL, so moving the route fails a test instead of warming a 404.
+ */
+const ROOM_SEGMENT = '/(product-shell)/r/[slug]'
+
+/**
+ * `/r/<slug>/opengraph-image-<suffix>`: the path Next serves the room's unfurl image at.
+ *
+ * The suffix is Next's `getMetadataRouteSuffix`: the first six base-36 digits of `djb2Hash` over
+ * the parent segment. It depends on the route's location in the source tree, not on the build.
+ * Next adds a `?<contenthash>` of the image file to the `<head>` tag. That part is not derivable
+ * here; the route is matched on the path alone, so the request without it renders the same card.
+ */
+export function roomPreviewImagePath(slug: string): string {
+    const suffix = djb2Hash(ROOM_SEGMENT).toString(36).slice(0, 6)
+    return `/r/${encodeURIComponent(slug)}/opengraph-image-${suffix}`
+}
 
 /** Just enough of `Document` to find the tag and to know where it was served from. */
 interface PreviewDocument {
@@ -62,7 +90,21 @@ export async function prewarmRoomPreview(
     fetcher: typeof fetch = globalThis.fetch,
     doc: PreviewDocument | undefined = globalThis.document
 ): Promise<boolean> {
-    if (!slug || typeof fetcher !== 'function' || !doc) return false
+    if (!slug || typeof fetcher !== 'function') return false
+
+    if (IS_NATIVE_APP) {
+        // `no-cors`: the image route sends no CORS header and the app does not need to read the
+        // bytes. The server renders the card either way, which is the warming. `no-store` keeps
+        // the WebView from answering the request out of its own cache instead of asking.
+        try {
+            await fetcher(apiUrl(roomPreviewImagePath(slug)), { mode: 'no-cors', cache: 'no-store' })
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    if (!doc) return false
 
     const image = advertisedPreviewUrl(slug, doc)
     if (!image) return false

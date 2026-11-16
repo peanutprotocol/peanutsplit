@@ -1,0 +1,491 @@
+# Signed store builds of the apps: TestFlight for iOS, the Play internal track for Android.
+# Design: local/split-native-app ARCHITECTURE 14.4; the steps that need accounts are in
+# docs/NATIVE-HANDOFF.md. The unsigned builds and all tests are in native.yml.
+#
+# Trigger: push a tag `native-v<major>.<minor>.<patch>` on the commit to ship. A tag push runs
+# the workflow file of the tagged commit, so this works before native-apps is merged to main.
+#
+# The workflow is dormant until the secrets exist. One export job builds the web bundle for
+# both platforms. The iOS and Android jobs are separate jobs, not a matrix, and neither needs
+# the other, so a failure in one never cancels the other. Each platform job first checks only
+# its own secrets and lists the missing names, so one platform ships as soon as its secrets
+# are in place. Promotion to production and submission for review stay manual in the consoles.
+name: Native release
+
+on:
+  push:
+    tags: ['native-v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      build_number: ${{ steps.build_number.outputs.value }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      # Production state the store reviewers depend on (CORS for the app origins, the two
+      # association files, receipt scan). A warning here: the build does not need it, but it
+      # must be green before submission (HANDOFF K5). The script needs no dependencies.
+      - name: Check production readiness for review (warning only)
+        continue-on-error: true
+        run: node apps/web/scripts/native/check-review-readiness.mjs
+
+      - run: corepack enable
+
+      - run: pnpm bootstrap
+
+      # One build number for both stores: whole minutes since 2026-01-01, so it only grows.
+      # Computed once here so the iOS and Android builds of one tag carry the same number.
+      - name: Compute the build number
+        id: build_number
+        run: echo "value=$(node apps/web/scripts/native/version-code.mjs)" >> "$GITHUB_OUTPUT"
+
+      - name: Check the native project settings
+        run: node apps/web/scripts/native/assert-native-config.mjs
+
+      # NODE_ENV is set on this step only: on the install step it would skip devDependencies.
+      # Push is always compiled in; until the server has push credentials it answers 503 and
+      # the app hides the notification row. The PostHog and Sentry values are the public client
+      # values the live web bundle already ships; a repo variable of the same name overrides
+      # each. The CORS self-test flag of native.yml is never set here, so the release bundle
+      # contains no self-test. The placeholder DATABASE_URL matches the Dockerfile.
+      - name: Build the static export
+        run: pnpm --dir apps/web native:build
+        env:
+          NODE_ENV: production
+          NEXT_PUBLIC_BASE_URL: https://peanutsplit.com
+          NEXT_PUBLIC_SPLIT_APNS_ENV: production
+          NEXT_PUBLIC_NATIVE_PUSH: '1'
+          NEXT_PUBLIC_POSTHOG_KEY: ${{ vars.NEXT_PUBLIC_POSTHOG_KEY || 'phc_sgS6DahQFBXTEuLjLZA7F5NBLQeN8e3uRJskMcQo6jyU' }}
+          NEXT_PUBLIC_POSTHOG_HOST: ${{ vars.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com' }}
+          NEXT_PUBLIC_SENTRY_DSN: ${{ vars.NEXT_PUBLIC_SENTRY_DSN || 'https://46a188ac2e047dcfecb20ec0068fd75f@o4505827429187584.ingest.us.sentry.io/4511812348870656' }}
+          DATABASE_URL: postgresql://build:build@localhost:5432/build
+
+      - name: Write the job summary
+        env:
+          BUILD_NUMBER: ${{ steps.build_number.outputs.value }}
+        run: |
+          {
+            echo "push compiled in: yes"
+            echo "build number: ${BUILD_NUMBER}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-release-export
+          path: apps/web/.next-native
+          # `.next-native` itself starts with a dot; without this the upload finds no files.
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+  ios:
+    needs: export
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      # First, so a missing secret fails in seconds. Prints names only, never values.
+      - name: Check the iOS release secrets
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          IOS_DIST_CERT_P12_BASE64: ${{ secrets.IOS_DIST_CERT_P12_BASE64 }}
+          IOS_DIST_CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
+        run: |
+          missing=()
+          for name in APPLE_TEAM_ID IOS_DIST_CERT_P12_BASE64 IOS_DIST_CERT_PASSWORD \
+            IOS_PROVISIONING_PROFILE_BASE64 ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_CONTENT; do
+            [ -n "${!name}" ] || missing+=("${name}")
+          done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::Missing iOS release secrets: ${missing[*]}. See docs/NATIVE-HANDOFF.md step 5."
+            exit 1
+          fi
+          echo "All iOS release secrets are set."
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      # MARKETING_VERSION comes from the tag; App Store Connect accepts only numbers and dots.
+      - name: Read the version from the tag
+        id: version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if ! [[ "${TAG}" =~ ^native-v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "::error::Tag ${TAG} is not native-v<major>.<minor>.<patch>."
+            exit 1
+          fi
+          echo "name=${TAG#native-v}" >> "$GITHUB_OUTPUT"
+
+      - uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1
+        with:
+          xcode-version: latest-stable
+
+      # App Store uploads need Xcode 26 and the iOS 26 SDK since 28 Apr 2026.
+      - name: Require Xcode 26 or later
+        run: |
+          xcodebuild -version
+          major="$(xcodebuild -version | awk 'NR == 1 { split($2, v, "."); print v[1] }')"
+          if [ "${major}" -lt 26 ]; then
+            echo "::error::Xcode ${major} is too old. App Store uploads need Xcode 26 or later."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      - run: corepack enable
+
+      - run: pnpm bootstrap
+
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: native-release-export
+          path: apps/web/.next-native
+
+      - name: Copy the export into the iOS project
+        working-directory: apps/web
+        run: NODE_ENV=production pnpm exec cap sync ios
+
+      # The archive signs with the team in the Release configuration of project.pbxproj. A
+      # different team in the secret would fail the export later with a less clear error.
+      - name: Check that the project uses the team of the secrets
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          team="$(node -e '
+            const text = require("fs").readFileSync("apps/web/ios/App/App.xcodeproj/project.pbxproj", "utf8")
+            const release = text.match(/\/\* Release \*\/ = \{\s*isa = XCBuildConfiguration;\s*buildSettings = \{[^}]*?INFOPLIST_FILE[^}]*?\};/)
+            console.log(release?.[0].match(/DEVELOPMENT_TEAM = (\w+);/)?.[1] ?? "")
+          ')"
+          if [ "${team}" != "${APPLE_TEAM_ID}" ]; then
+            echo "::error::DEVELOPMENT_TEAM in the App Release configuration does not match APPLE_TEAM_ID. Run scripts/native/set-identifiers.mjs (HANDOFF step 2)."
+            exit 1
+          fi
+
+      - name: Install the Apple Distribution certificate
+        uses: apple-actions/import-codesign-certs@5142e029c445c10ffc7149d172e540235a065466 # v7
+        with:
+          p12-file-base64: ${{ secrets.IOS_DIST_CERT_P12_BASE64 }}
+          p12-password: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+
+      # The profile's name and UUID are read from the profile itself, so they need no secret.
+      # A profile without aps-environment = production builds an app that can never register
+      # for push while every step stays green.
+      - name: Install the provisioning profile
+        id: profile
+        env:
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          profile="${RUNNER_TEMP}/release.mobileprovision"
+          printf '%s' "${IOS_PROVISIONING_PROFILE_BASE64}" | base64 --decode > "${profile}"
+          security cms -D -i "${profile}" > "${RUNNER_TEMP}/release-profile.plist"
+          uuid="$(/usr/libexec/PlistBuddy -c 'Print :UUID' "${RUNNER_TEMP}/release-profile.plist")"
+          name="$(/usr/libexec/PlistBuddy -c 'Print :Name' "${RUNNER_TEMP}/release-profile.plist")"
+          aps="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:aps-environment' "${RUNNER_TEMP}/release-profile.plist" 2> /dev/null || true)"
+          if [ "${aps}" != "production" ]; then
+            echo "::error::The provisioning profile has aps-environment '${aps:-missing}', expected production. Enable Push Notifications on the App ID, regenerate the profile and update IOS_PROVISIONING_PROFILE_BASE64."
+            exit 1
+          fi
+          # The Release configuration names the profile it signs with; both must agree.
+          if ! grep -qF "PROVISIONING_PROFILE_SPECIFIER = \"${name}\";" apps/web/ios/App/App.xcodeproj/project.pbxproj; then
+            echo "::error::The profile is named '${name}', but the App Release configuration names a different profile."
+            exit 1
+          fi
+          mkdir -p "${HOME}/Library/MobileDevice/Provisioning Profiles"
+          cp "${profile}" "${HOME}/Library/MobileDevice/Provisioning Profiles/${uuid}.mobileprovision"
+          echo "name=${name}" >> "$GITHUB_OUTPUT"
+          echo "Installed provisioning profile ${name} (${uuid})."
+
+      # Signing lives only in the App target's Release configuration in project.pbxproj. It is
+      # not passed on the command line: settings given there also apply to the Swift package
+      # targets, which reject a provisioning profile and fail the archive. The command line sets
+      # only the two version numbers, which Info.plist reads.
+      - name: Archive
+        working-directory: apps/web
+        env:
+          VERSION_NAME: ${{ steps.version.outputs.name }}
+          BUILD_NUMBER: ${{ needs.export.outputs.build_number }}
+        run: >-
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release
+          -destination 'generic/platform=iOS' -archivePath build/ios/App.xcarchive
+          MARKETING_VERSION="${VERSION_NAME}" CURRENT_PROJECT_VERSION="${BUILD_NUMBER}" archive
+
+      - name: Export the IPA
+        working-directory: apps/web
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          PROFILE_NAME: ${{ steps.profile.outputs.name }}
+        run: |
+          options_dir="$(mktemp -d "${RUNNER_TEMP}/export-options.XXXXXX")"
+          EXPORT_OPTIONS_PATH="${options_dir}/ExportOptions.plist" node scripts/native/render-export-options.mjs
+          xcodebuild -exportArchive -archivePath build/ios/App.xcarchive -exportPath build/ios \
+            -exportOptionsPlist "${options_dir}/ExportOptions.plist"
+
+      # Checks the signed app that goes to the store, not the project: production push,
+      # the associated domain for room links, the versions and the Info.plist keys.
+      - name: Check the signed app
+        working-directory: apps/web
+        env:
+          VERSION_NAME: ${{ steps.version.outputs.name }}
+          BUILD_NUMBER: ${{ needs.export.outputs.build_number }}
+        run: |
+          check_dir="$(mktemp -d "${RUNNER_TEMP}/ipa-check.XXXXXX")"
+          unzip -q build/ios/App.ipa -d "${check_dir}"
+          app="${check_dir}/Payload/App.app"
+          codesign -d --entitlements :- "${app}" > "${check_dir}/entitlements.plist" 2> /dev/null
+          python3 - "${check_dir}/entitlements.plist" "${app}/Info.plist" <<'PY'
+          import os, plistlib, sys
+
+          with open(sys.argv[1], "rb") as f:
+              entitlements = plistlib.load(f)
+          with open(sys.argv[2], "rb") as f:
+              info = plistlib.load(f)
+          problems = []
+          if entitlements.get("aps-environment") != "production":
+              problems.append(f"aps-environment is {entitlements.get('aps-environment')!r}, expected 'production'")
+          if "applinks:peanutsplit.com" not in entitlements.get("com.apple.developer.associated-domains", []):
+              problems.append("associated domains do not include applinks:peanutsplit.com")
+          if info.get("CFBundleShortVersionString") != os.environ["VERSION_NAME"]:
+              problems.append(f"CFBundleShortVersionString is {info.get('CFBundleShortVersionString')!r}")
+          if info.get("CFBundleVersion") != os.environ["BUILD_NUMBER"]:
+              problems.append(f"CFBundleVersion is {info.get('CFBundleVersion')!r}")
+          for problem in problems:
+              print(f"::error::Signed app: {problem}")
+          sys.exit(1 if problems else 0)
+          PY
+          node scripts/native/assert-native-config.mjs --app "${app}"
+          echo "Signed app: aps-environment production, applinks:peanutsplit.com, version ${VERSION_NAME} (${BUILD_NUMBER})."
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ios-release-ipa
+          path: apps/web/build/ios/App.ipa
+          if-no-files-found: error
+          retention-days: 30
+
+      # App Store Connect rejects a second upload of the same build number, so the retry can
+      # never publish twice. The processing poll is skipped: its token expires mid-wait and
+      # fails a run whose upload worked.
+      - name: Upload to TestFlight
+        id: testflight
+        continue-on-error: true
+        uses: apple-actions/upload-testflight-build@1ad58030672057aa084b4e96beb6f7a8c627f9e6 # v5
+        with:
+          app-path: apps/web/build/ios/App.ipa
+          issuer-id: ${{ secrets.ASC_ISSUER_ID }}
+          api-key-id: ${{ secrets.ASC_KEY_ID }}
+          api-private-key: ${{ secrets.ASC_KEY_CONTENT }}
+          wait-for-processing: 'false'
+
+      - name: Wait before retrying the TestFlight upload
+        if: steps.testflight.outcome == 'failure'
+        run: sleep 30
+
+      - name: Retry the TestFlight upload
+        if: steps.testflight.outcome == 'failure'
+        uses: apple-actions/upload-testflight-build@1ad58030672057aa084b4e96beb6f7a8c627f9e6 # v5
+        with:
+          app-path: apps/web/build/ios/App.ipa
+          issuer-id: ${{ secrets.ASC_ISSUER_ID }}
+          api-key-id: ${{ secrets.ASC_KEY_ID }}
+          api-private-key: ${{ secrets.ASC_KEY_CONTENT }}
+          wait-for-processing: 'false'
+
+  android:
+    needs: export
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      # First, so a missing secret fails in seconds. Prints names only, never values.
+      # google-services.json is required: release builds always compile push in.
+      - name: Check the Android release secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          missing=()
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS \
+            ANDROID_KEY_PASSWORD PLAY_SERVICE_ACCOUNT_JSON GOOGLE_SERVICES_JSON_BASE64; do
+            [ -n "${!name}" ] || missing+=("${name}")
+          done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::Missing Android release secrets: ${missing[*]}. See docs/NATIVE-HANDOFF.md step 5."
+            exit 1
+          fi
+          echo "All Android release secrets are set."
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      # versionName comes from the tag. The Play package name is the appId in
+      # capacitor.config.ts, so set-identifiers.mjs needs no edit here.
+      - name: Read the version from the tag
+        id: version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if ! [[ "${TAG}" =~ ^native-v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "::error::Tag ${TAG} is not native-v<major>.<minor>.<patch>."
+            exit 1
+          fi
+          echo "name=${TAG#native-v}" >> "$GITHUB_OUTPUT"
+          echo "package=$(sed -n "s/.*appId: '\([^']*\)'.*/\1/p" apps/web/capacitor.config.ts)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      - run: corepack enable
+
+      - run: pnpm bootstrap
+
+      # Capacitor 8 needs Java 21.
+      - uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: native-release-export
+          path: apps/web/.next-native
+
+      # NODE_ENV=production turns WebView debugging off in capacitor.config.ts.
+      - name: Copy the export into the Android project
+        working-directory: apps/web
+        run: NODE_ENV=production pnpm exec cap sync android
+
+      # build.gradle signs the release bundle only when keystore.properties exists, and applies
+      # the Firebase plugin only when google-services.json exists. Backslashes are doubled
+      # because Java properties files treat them as escapes.
+      - name: Write the upload keystore and google-services.json
+        working-directory: apps/web/android
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          umask 077
+          printf '%s' "${ANDROID_KEYSTORE_BASE64}" | base64 --decode > release.keystore
+          {
+            echo "storeFile=release.keystore"
+            echo "storePassword=${ANDROID_KEYSTORE_PASSWORD//\\/\\\\}"
+            echo "keyAlias=${ANDROID_KEY_ALIAS//\\/\\\\}"
+            echo "keyPassword=${ANDROID_KEY_PASSWORD//\\/\\\\}"
+          } > keystore.properties
+          printf '%s' "${GOOGLE_SERVICES_JSON_BASE64}" | base64 --decode > app/google-services.json
+
+      # The export always compiles push in. Without a valid google-services.json for this
+      # package, Firebase is not set up and the app crashes when a room screen registers for
+      # push. Checked here, before the build, so such a bundle never reaches a store.
+      - name: Check google-services.json
+        working-directory: apps/web/android
+        env:
+          PACKAGE: ${{ steps.version.outputs.package }}
+        run: |
+          python3 - app/google-services.json <<'PY'
+          import json, os, sys
+
+          try:
+              with open(sys.argv[1]) as f:
+                  config = json.load(f)
+          except ValueError:
+              print("::error::google-services.json is not valid JSON. Check GOOGLE_SERVICES_JSON_BASE64.")
+              sys.exit(1)
+          packages = [c.get("client_info", {}).get("android_client_info", {}).get("package_name") for c in config.get("client", [])]
+          if os.environ["PACKAGE"] not in packages:
+              print(f"::error::google-services.json has no Android client for {os.environ['PACKAGE']} (found {packages}).")
+              sys.exit(1)
+          print(f"google-services.json has a client for {os.environ['PACKAGE']}.")
+          PY
+
+      - name: Build the signed release bundle
+        working-directory: apps/web/android
+        env:
+          VERSION_NAME: ${{ steps.version.outputs.name }}
+          VERSION_CODE: ${{ needs.export.outputs.build_number }}
+        run: ./gradlew :app:bundleRelease
+
+      # The upload certificate's SHA-256 is public. It goes into assetlinks.json next to the
+      # Play App Signing fingerprint (HANDOFF step 9). No certificate means an unsigned bundle.
+      - name: Check the bundle signature
+        working-directory: apps/web/android
+        run: |
+          fingerprint="$(keytool -printcert -jarfile app/build/outputs/bundle/release/app-release.aab | awk '/SHA256:/ && !found { print $2; found = 1 }')"
+          if [ -z "${fingerprint}" ]; then
+            echo "::error::app-release.aab is not signed."
+            exit 1
+          fi
+          echo "upload key SHA-256: ${fingerprint}" >> "$GITHUB_STEP_SUMMARY"
+
+      # Always kept: the first release goes into Play Console by hand (HANDOFF step 8).
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: android-release-aab
+          path: apps/web/android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 30
+
+      # The Play API cannot create an app or publish to a draft app, so the upload waits for
+      # the repo variable PLAY_API_UPLOAD=1, set after the first manual upload. Play rejects a
+      # second upload of the same versionCode, so the retry can never publish twice.
+      - name: Upload to the Play internal track
+        id: play
+        if: vars.PLAY_API_UPLOAD == '1'
+        continue-on-error: true
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ steps.version.outputs.package }}
+          releaseFiles: apps/web/android/app/build/outputs/bundle/release/app-release.aab
+          tracks: internal
+          status: completed
+
+      - name: Wait before retrying the Play upload
+        if: steps.play.outcome == 'failure'
+        run: sleep 30
+
+      - name: Retry the Play upload
+        if: steps.play.outcome == 'failure'
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ steps.version.outputs.package }}
+          releaseFiles: apps/web/android/app/build/outputs/bundle/release/app-release.aab
+          tracks: internal
+          status: completed
+
+      - name: Note a skipped Play upload
+        if: vars.PLAY_API_UPLOAD != '1'
+        run: |
+          echo "::notice::Play upload skipped: PLAY_API_UPLOAD is not 1. Upload the android-release-aab artifact in Play Console (HANDOFF step 8)."
+          echo "Play upload skipped (PLAY_API_UPLOAD is not 1); the AAB is in the android-release-aab artifact." >> "$GITHUB_STEP_SUMMARY"

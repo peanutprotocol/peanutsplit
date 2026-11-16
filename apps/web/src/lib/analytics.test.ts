@@ -3,6 +3,7 @@ import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 const posthog = vi.hoisted(() => ({
     capture: vi.fn(),
     init: vi.fn(),
+    register: vi.fn(),
 }))
 
 vi.mock('posthog-js', () => ({ default: posthog }))
@@ -106,6 +107,25 @@ describe('privacy-safe analytics', () => {
         expect(properties).toEqual({ items: 3 })
         expect(JSON.stringify(properties)).not.toContain('ski-trip-x7k2m9')
         expect(properties).not.toHaveProperty('room')
+    })
+})
+
+describe('join-gate analytics', () => {
+    // JoinGate sends exactly these two payloads. They are the Smart App Banner guardrail, so they must
+    // count joins per room without ever carrying the room's credential or the name someone picked.
+    it('sends the room pseudonym and the join path, never the slug', async () => {
+        const { rememberRoomKey, roomProps, track } = await import('./analytics')
+        const slug = 'ski-trip-kunc-syrup-drum'
+        rememberRoomKey(slug, 'rk_join_gate')
+
+        track('join_gate_shown', roomProps(slug))
+        track('join_gate_completed', { ...roomProps(slug), via: 'claim' })
+
+        expect(posthog.capture.mock.calls).toEqual([
+            ['join_gate_shown', { room: 'rk_join_gate' }],
+            ['join_gate_completed', { room: 'rk_join_gate', via: 'claim' }],
+        ])
+        expect(JSON.stringify(posthog.capture.mock.calls)).not.toContain(slug)
     })
 })
 
@@ -306,5 +326,69 @@ describe('achievement measurement', () => {
         expect(CARD_TYPE).not.toHaveProperty('recap')
         expect(CARD_TYPE).not.toHaveProperty('invite')
         expect(new Set(Object.values(CARD_TYPE))).toEqual(new Set(ACHIEVEMENT_TYPES))
+    })
+})
+
+describe('store-app analytics', () => {
+    const NATIVE_ONLY = [
+        'disable_external_dependency_loading',
+        'disable_surveys',
+        'disable_conversations',
+        'disable_product_tours',
+        'advanced_disable_flags',
+    ]
+
+    it('never lets PostHog load remote code in the app', async () => {
+        const { analyticsInitOptions } = await import('./analytics')
+        const native = analyticsInitOptions(true)
+        expect(native).toMatchObject({
+            disable_external_dependency_loading: true,
+            disable_surveys: true,
+            disable_conversations: true,
+            disable_product_tours: true,
+            advanced_disable_flags: true,
+        })
+        // The privacy settings every build relies on stay in the app build too.
+        expect(native).toMatchObject({ autocapture: false, capture_pageview: false, mask_all_text: true })
+    })
+
+    it('keeps the web config exactly as before', async () => {
+        const { analyticsInitOptions } = await import('./analytics')
+        const web = analyticsInitOptions(false)
+        for (const key of NATIVE_ONLY) expect(web, key).not.toHaveProperty(key)
+        expect(Object.keys(web).sort()).toEqual(
+            [
+                'api_host',
+                'autocapture',
+                'before_send',
+                'capture_pageleave',
+                'capture_pageview',
+                'custom_campaign_params',
+                'disable_session_recording',
+                'mask_all_text',
+                'persistence',
+                'save_referrer',
+            ].sort()
+        )
+    })
+
+    it('labels web events with surface web and web init options', async () => {
+        vi.stubEnv('NEXT_PUBLIC_NATIVE_BUILD', '0')
+        const { initAnalytics } = await import('./analytics')
+        initAnalytics()
+        vi.unstubAllEnvs()
+        expect(posthog.register.mock.calls).toEqual([[{ surface: 'web' }]])
+        expect(posthog.init.mock.calls[0][1]).not.toHaveProperty('disable_external_dependency_loading')
+    })
+
+    it('labels app events with the native platform and passes the app options to posthog.init', async () => {
+        vi.stubEnv('NEXT_PUBLIC_NATIVE_BUILD', '1')
+        vi.stubGlobal('Capacitor', { getPlatform: () => 'android' })
+        const { initAnalytics } = await import('./analytics')
+        initAnalytics()
+        vi.unstubAllEnvs()
+        vi.unstubAllGlobals()
+        expect(posthog.register.mock.calls).toEqual([[{ surface: 'android' }]])
+        expect(posthog.init.mock.calls[0][1]).toMatchObject({ disable_external_dependency_loading: true })
     })
 })

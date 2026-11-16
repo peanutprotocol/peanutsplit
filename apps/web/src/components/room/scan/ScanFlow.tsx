@@ -42,7 +42,8 @@ import { roomProps, track } from '@/lib/analytics'
 import { useErrorMessage } from '@/lib/error-messages'
 import type { ExpenseFormValues } from '@/lib/expense-form'
 import { decimalsOf, formatAmountInput } from '@/lib/money'
-import { useFeedback } from '@/lib/use-settings'
+import { scanConsentNeeded, useFeedback, useSettings } from '@/lib/use-settings'
+import { ScanConsentSheet } from '../ScanConsentSheet'
 import { ScanAssign } from './ScanAssign'
 import { ScanCamera } from './ScanCamera'
 import { ScanReview } from './ScanReview'
@@ -93,6 +94,10 @@ export function ScanFlow({
     const locale = useLocale()
     const errorMessage = useErrorMessage()
     const feedback = useFeedback()
+    const { settings, setScanConsent } = useSettings()
+    /** In the store app the photo may leave the device only after an explicit Allow. While this is
+     *  true the overlay shows the question instead of the camera, and the read effect stays idle. */
+    const awaitingConsent = scanConsentNeeded(settings)
 
     const [file, setFile] = useState<File | null>(initialFile)
     const [phase, setPhase] = useState<Phase>(initialFile ? 'scanning' : 'camera')
@@ -251,7 +256,7 @@ export function ScanFlow({
     }, [mounted, cancel])
 
     useEffect(() => {
-        if (!file) return
+        if (!file || awaitingConsent) return
         let cancelled = false
 
         /** Started at most once per photo, however many times this effect runs. */
@@ -322,7 +327,7 @@ export function ScanFlow({
         // identity would mean re-scanning the same photo — the one thing this
         // effect must never do.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [file, slug, token])
+    }, [file, slug, token, awaitingConsent])
 
     const decimals = decimalsOf(state.currency, currencies)
 
@@ -354,12 +359,14 @@ export function ScanFlow({
             // see the note at the top of the file.
             tabIndex={-1}
             className={
-                phase === 'camera'
+                phase === 'camera' && !awaitingConsent
                     ? 'pointer-events-auto fixed inset-0 z-[60] overflow-hidden bg-n-1 outline-none'
                     : 'pointer-events-auto fixed inset-0 z-[60] overflow-y-auto overscroll-contain bg-background outline-none'
             }
         >
-            {phase === 'camera' ? (
+            {awaitingConsent ? (
+                <ScanConsentSheet onAllow={() => setScanConsent(true)} onNotNow={cancel} />
+            ) : phase === 'camera' ? (
                 <ScanCamera onCancel={cancel} onFile={chooseFile} />
             ) : (
                 <div className="mx-auto flex min-h-full w-full max-w-xl flex-col gap-5 px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]">

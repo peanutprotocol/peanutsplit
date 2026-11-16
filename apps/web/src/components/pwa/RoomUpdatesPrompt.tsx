@@ -5,10 +5,17 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
+import { buttonClassName } from '@/components/ui/button-style'
 import { BTN_MEDIUM } from '@/components/ui/control'
 import { roomProps, track } from '@/lib/analytics'
 import { useErrorMessage } from '@/lib/error-messages'
-import { INSTALL_SNOOZE_CHANGE_EVENT, isInstallSnoozed, noteInstallDismissed, useInstallState } from '@/lib/install'
+import {
+    INSTALL_SNOOZE_CHANGE_EVENT,
+    isInstallSnoozed,
+    noteInstallDismissed,
+    noteStoreTapped,
+    useInstallState,
+} from '@/lib/install'
 import { MATURE_RETURN_MS } from '@/lib/install-funnel'
 import { cancelPreparedInstallHandoff, prepareInstallHandoff } from '@/lib/install-handoff'
 import { openInstallSurface } from '@/lib/install-surface'
@@ -20,6 +27,7 @@ import {
 } from '@/lib/room-updates'
 import { TOAST_MS } from '@/lib/toasts'
 import { useMotionAllowed } from '@/lib/use-motion'
+import { storeAppUrl } from '@/lib/store-app'
 import { usePush } from '@/lib/use-push'
 import { useFeedback } from '@/lib/use-settings'
 import { InstallPrompt, type InstallPromptProps } from './InstallPrompt'
@@ -297,6 +305,9 @@ export function RoomUpdatesPrompt({
         )
 
     const ios = offered.current === 'ios'
+    // Notifications on iOS Safari need an installed app. Once the store app exists, that is the App
+    // Store app rather than the Add-to-Home-Screen handoff.
+    const storeUrl = ios && installState === 'store' ? storeAppUrl() : null
     const label = t('notifyMe', { room: roomName })
 
     return (
@@ -319,7 +330,29 @@ export function RoomUpdatesPrompt({
                         data-motion-surface
                     >
                         <DeviceSetupCard>
-                            {ios ? (
+                            {storeUrl ? (
+                                <>
+                                    <a
+                                        href={storeUrl}
+                                        onClick={() => {
+                                            track(
+                                                'store_link_clicked',
+                                                roomProps(slug, { platform: 'ios', source: 'room_updates' })
+                                            )
+                                            noteStoreTapped()
+                                        }}
+                                        className={buttonClassName({
+                                            size: 'medium',
+                                            shadowSize: '3',
+                                            className: `${BTN_MEDIUM} justify-center no-underline`,
+                                        })}
+                                        data-testid="room-updates-store"
+                                    >
+                                        {tInstall('store.cta')}
+                                    </a>
+                                    <p className="text-sm leading-5 text-grey-1">{tInstall('store.note')}</p>
+                                </>
+                            ) : ios ? (
                                 <Button
                                     variant="primary"
                                     size="medium"

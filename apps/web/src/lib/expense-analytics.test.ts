@@ -6,7 +6,7 @@ import { replayQueuedExpense } from './queries/offline'
 import { queueSnapshot, setQueuePerformer, setQueueStorage } from './offline-queue'
 import { roomKey } from './queries/core'
 
-const posthog = vi.hoisted(() => ({ capture: vi.fn(), init: vi.fn() }))
+const posthog = vi.hoisted(() => ({ capture: vi.fn(), init: vi.fn(), register: vi.fn() }))
 vi.mock('posthog-js', () => ({ default: posthog }))
 
 const slug = 'private-trip-link'

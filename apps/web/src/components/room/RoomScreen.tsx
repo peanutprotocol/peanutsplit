@@ -26,7 +26,7 @@ import {
 } from '@/lib/install-funnel'
 import { useQueuedWrites } from '@/lib/offline-queue'
 import { isPendingExpenseId, isRoomSettled, savedExpenses } from '@/lib/pending'
-import { useCurrencies, useRoomState } from '@/lib/queries'
+import { roomReadBlocked, useCurrencies, useRoomState } from '@/lib/queries'
 import { rememberRoom } from '@/lib/recent-rooms'
 import { roomEmblemDoodle } from '@/lib/room-emblem'
 import { resolveRoomGuidance } from '@/lib/room-guidance'
@@ -62,7 +62,9 @@ import { ShareDrawer } from './ShareDrawer'
 export function RoomScreen({ slug }: { slug: string }) {
     const t = useTranslations('room.actions')
     const tStates = useTranslations('room.states')
-    const { data: state, error, isPending, isFetching, isRefetchError, refetch } = useRoomState(slug)
+    const { data: state, error, fetchStatus, isPending, isFetching, isRefetchError, refetch } = useRoomState(slug)
+    // Stable, so the offline error state's `online` listener is not re-bound on every render.
+    const retryRoom = useCallback(() => void refetch(), [refetch])
     const { data: currencies } = useCurrencies()
     const { identity, loaded, claim, forget } = useRoomIdentity(slug)
     const [displacedIdentity, setDisplacedIdentity] = useState<MemberIdentity | null>(null)
@@ -438,13 +440,21 @@ export function RoomScreen({ slug }: { slug: string }) {
         if (!params.shared) return
         if (params.add && !isApiError(error, 'NOT_FOUND')) return
         void (async () => {
-            await discardSharedReceipt(caches)
+            // The store app's WKWebView has no Cache Storage, so it never holds a parked photo.
+            if (typeof caches !== 'undefined') await discardSharedReceipt(caches)
             await consumeSharedReceipt()
         })()
     }, [consumeSharedReceipt, error, params.add, params.shared])
 
     if (isApiError(error, 'NOT_FOUND')) return <RoomNotFound slug={slug} addExpense={params.add} />
-    if (error && !state) return <RoomErrorState onRetry={() => void refetch()} />
+    if (roomReadBlocked({ data: state, error, fetchStatus })) {
+        // Only a definite `false` counts: `navigator.onLine` can claim a connection on a captive
+        // portal, but it never claims none while one exists. A cold start in airplane mode, a tap
+        // from the room list and a push open all end here. A read that started after an `offline`
+        // event is paused rather than failed, so it lands here with no error.
+        const offline = typeof navigator !== 'undefined' && navigator.onLine === false
+        return <RoomErrorState offline={offline} onRetry={retryRoom} />
+    }
 
     const closeDrawers = () => setParams({ add: null, expense: null, settle: null })
 

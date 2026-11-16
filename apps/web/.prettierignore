@@ -5,3 +5,7 @@ pnpm-lock.yaml
 next-env.d.ts
 docs/
 src/generated/seo/
+ios/
+android/
+.next-native/
+resources/

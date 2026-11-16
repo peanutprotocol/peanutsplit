@@ -31,6 +31,7 @@ import type {
     SettlementInput,
 } from './api-types'
 import type { FeedbackReportInput, FeedbackReportResult } from './feedback-contract'
+import { apiUrl, IS_NATIVE_APP } from './platform'
 
 /** Every non-2xx response, plus transport failures, surfaces as this. */
 export class ApiRequestError extends Error {
@@ -96,6 +97,14 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     const headers: Record<string, string> = {}
     if (body !== undefined) headers['Content-Type'] = 'application/json'
     if (token) headers['X-Member-Token'] = token
+    // A browser sends its own Accept-Language; the app's WebView sends the phone's, which can
+    // differ from the language Split shows. The server picks link-preview copy for a new room from
+    // this header, so the app names the UI locale that NativeIntlProvider wrote to <html lang>.
+    // CORS-safelisted, so it adds no preflight header.
+    if (IS_NATIVE_APP) {
+        const lang = typeof document === 'undefined' ? '' : document.documentElement.lang
+        if (lang) headers['Accept-Language'] = lang
+    }
 
     const timeoutController = timeoutMs === undefined ? null : new AbortController()
     let timedOut = false
@@ -117,7 +126,9 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     let response: Response
     let text: string
     try {
-        response = await fetch(path, {
+        // Only here, never in the path builders: the offline queue stores and validates the
+        // relative endpoint, so the origin is added at the moment of sending.
+        response = await fetch(apiUrl(path), {
             method,
             headers,
             body: body === undefined ? undefined : JSON.stringify(body),
@@ -451,7 +462,7 @@ export const api = {
 
         /** Whether this endpoint is registered for THIS room. POST because the
          *  endpoint carries a device token that must never reach a URL. */
-        status: (slug: string, input: { endpoint: string; memberId: string; memberToken: string }) =>
+        status: (slug: string, input: PushUnsubscribeInput) =>
             request<{ subscribed: boolean }>(`/api/rooms/${encode(slug)}/push-subscriptions/status`, {
                 method: 'POST',
                 body: input,

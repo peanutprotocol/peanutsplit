@@ -7,6 +7,20 @@ deliberately not built — with enough context to pick any item up cold.
 
 Owner of record for each open item is in brackets. Last full update: 2026-08-12.
 
+## In progress — native iOS and Android apps [Konrad]
+
+- Konrad's instruction of 2026-11-14 reopened native apps: ship Peanut Split to the App Store and
+  Google Play, built with Capacitor ("don't overcomplicate; I don't expect many UX differences
+  between the two"). This item authorizes that work; it moved here from "Deliberately not building".
+- Branch `native-apps` holds the apps: one codebase, a static export of the app surface bundled in
+  each binary, no over-the-air updates. The room link stays the only link, and the apps stay
+  accountless. No room or identity transfer between browser and app: `docs/NATIVE-MIGRATION.md`'s
+  transfer code is not built.
+- How it works: [`docs/current/NATIVE.md`](docs/current/NATIVE.md). What Hugo and Konrad still do
+  before submission (accounts, secrets, production env, store consoles):
+  [`docs/NATIVE-HANDOFF.md`](docs/NATIVE-HANDOFF.md). Store texts and declarations:
+  `apps/web/store/`.
+
 ## Open — SEO issues tracker from the 2026-08-14 audit [Konrad]
 
 - A 14-agent audit (every finding reproduced by an independent verifier) confirmed 49
@@ -805,11 +819,7 @@ the one-month kill condition can't justify. The bunq/Tricount post-mortem in
   flat rooms are the design (see SPEC).
 - **Budgets, analytics dashboards, AI chat agent** — a second product inside
   Split.
-- **Native apps, monetization features** — out of scope for the bet. If native
-  is ever reopened, the migration cost is already mapped in
-  `docs/NATIVE-MIGRATION.md` (server schema unaffected; the room list in
-  `ps:recent` is the only unrecoverable state; a transfer code is a copy, not
-  a sync, and has no lost-device recovery). That document authorizes nothing.
+- **Monetization features** — out of scope for the bet.
 
 ## Known debt
 

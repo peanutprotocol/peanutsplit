@@ -48,6 +48,11 @@ ARG NEXT_PUBLIC_POSTHOG_HOST
 ENV NEXT_PUBLIC_POSTHOG_HOST=$NEXT_PUBLIC_POSTHOG_HOST
 ARG NEXT_PUBLIC_VAPID_PUBLIC_KEY
 ENV NEXT_PUBLIC_VAPID_PUBLIC_KEY=$NEXT_PUBLIC_VAPID_PUBLIC_KEY
+# The iOS app's numeric App Store ID. Empty keeps every store offer (Smart App Banner, "Get the app")
+# off, so the web behaves as before until the app is live. Android has no store ID on purpose:
+# Android browsers keep the PWA install, which keeps every room.
+ARG NEXT_PUBLIC_IOS_APP_STORE_ID=
+ENV NEXT_PUBLIC_IOS_APP_STORE_ID=$NEXT_PUBLIC_IOS_APP_STORE_ID
 RUN pnpm build
 
 # ---- runtime ----------------------------------------------------------------
