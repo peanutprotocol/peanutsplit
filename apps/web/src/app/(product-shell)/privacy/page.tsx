@@ -276,11 +276,12 @@ export default function PrivacyPage() {
                         Photographs of receipts
                     </h2>
                     <p className="mt-4 text-base leading-7">
-                        If you photograph a receipt to fill in an expense, the image is sent once to a language-model
-                        provider to be read, and the answer comes back as text. Split does not keep the photograph:
-                        there is no column, bucket or temporary file for it, and neither the image nor anything read off
-                        it is written to a log. The provider is required to be one that retains nothing and trains on
-                        nothing. The feature is off entirely unless the operator has configured it.
+                        If you photograph a receipt to fill in an expense, the image is sent once to Google Gemini,
+                        through OpenRouter, to be read, and the answer comes back as text. Split does not keep the
+                        photograph: there is no column, bucket or temporary file for it, and neither the image nor
+                        anything read off it is written to a log. The provider is required to be one that retains
+                        nothing and trains on nothing. The feature is off entirely unless the operator has configured
+                        it.
                     </p>
                 </section>
 
@@ -298,7 +299,8 @@ export default function PrivacyPage() {
                         <li>PostHog &mdash; product analytics;</li>
                         <li>Sentry &mdash; error reports;</li>
                         <li>
-                            a language-model provider &mdash; receipt photographs, held for the length of one request;
+                            Google Gemini, through OpenRouter &mdash; receipt photographs, held for the length of one
+                            request;
                         </li>
                         <li>
                             your browser vendor&rsquo;s push service &mdash; it delivers a notification you asked for,
