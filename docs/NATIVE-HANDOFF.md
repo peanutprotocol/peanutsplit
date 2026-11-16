@@ -22,8 +22,8 @@ Hands-on total: about 5.5 hours. Hugo does about 4 hours; Konrad or Hugo does th
 ### Step 1. Merge the server-prep PR (30 min)
 
 1. Review the `native-server-prep` draft PR with Konrad. Konrad reviews the privacy page change
-   (`apps/web/src/app/(product-shell)/privacy/page.tsx`): it is a legal text. Konrad also decides whether
-   the page names Google Gemini and OpenRouter for receipt scans, as the app's consent sheet does. Set
+   (`apps/web/src/app/(product-shell)/privacy/page.tsx`): it is a legal text. The page names Google
+   Gemini and OpenRouter for receipt scans, as the app's consent sheet does (decision 13). Set
    the page's effective date at merge.
 2. Confirm the AASA app ID `PW388G893L.com.peanutsplit.app` in
    `apps/web/public/.well-known/apple-app-site-association` against decision 1. If the team differs,
@@ -327,12 +327,16 @@ The defaults hold and the build does not wait for them. Each change is small.
 8. **Approve the screenshots, the feature graphic and the icon** in `apps/web/store/assets/` (brand-asset
    rule).
 9. **v1 without the recap screen and without offline last-known balances** (default).
-10. **Licence:** yes or no on store distribution of the AGPL codebase, and whether the app links to
-    `/source`. The evidence is in section 5.
+10. **Licence: decided 2026-11-15, yes.** Konrad approved distributing the AGPL codebase through the
+    App Store and Google Play, and the app may link to `/source`. The store description links to
+    `https://peanutsplit.com/source`. The evidence is in section 5.
 11. **Listing languages:** English only in v1 (default). es-419 and pt-br listings later.
 12. **The one-time AI consent before the first receipt scan:** in the app only (default since
     2026-11-14), or on the web too. Apple requires it for the app. Nothing requires it on the web, where
     it would add one tap, once per browser, to the first scan.
+13. **AI provider on the privacy page: decided 2026-11-15.** The privacy page names the provider that
+    reads receipt photos: Google Gemini, through OpenRouter, as the app's consent sheet does. The store
+    description names it too.
 
 ## 5. Licence evidence for decision 10
 
@@ -385,4 +389,5 @@ software. These licences are from the packages' own metadata, not from a generat
 **What the evidence supports.** Every authored line is Squirrel Labs-owned, and no third-party copyleft
 code ships in the binary. So the store terms conflict only with terms Squirrel Labs grants to others,
 not with terms it is bound by. That supports **yes**. For `/source`: the app has no link to it in v1.
-Adding one is optional goodwill, not a requirement that this evidence shows. Konrad decides both.
+Adding one is optional goodwill, not a requirement that this evidence shows. Konrad decided both on
+2026-11-15: yes to store distribution, and the app may link to `/source` (decision 10).
