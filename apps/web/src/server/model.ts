@@ -30,6 +30,10 @@
  *   fallback only when `SPLIT_GEMINI_PAID_TIER_CONFIRMED=1`. Unpaid Gemini may
  *   use inputs to improve products, so a bare key must never reveal the feature.
  *
+ * The privacy page, the in-app scan consent and the store listing all name "Google Gemini, through
+ * OpenRouter". Running production on the Gemini-direct fallback, or pointing the model env vars at
+ * another provider, makes those texts untrue: change them first.
+ *
  * Neither key is a first-class state: the capability probe says
  * `enabled: false`, the UI hides the scanner, and a POST that arrives anyway
  * answers 503. Nothing half-works.
