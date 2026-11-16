@@ -1,5 +1,6 @@
 /**
- * Web-push fan-out for room events.
+ * Push fan-out for room events: Web Push for browsers, APNs and FCM for the
+ * store apps (`server/push-native/`).
  *
  * The product rule is one line: you get a notification when SOMEBODY ELSE in a
  * room you opted into writes something. Everything below exists to make that
@@ -13,8 +14,11 @@
  *      entering a trip's worth of receipts in one sitting is one session, not
  *      twenty events.
  *
- * With no VAPID keys configured the whole module is inert — it warns once and
- * every send returns `disabled`. That is the local-dev and self-hoster default.
+ * Each transport turns on with its own credentials: VAPID keys for Web Push,
+ * the APNs key for iOS, the FCM service account for Android. Rows of a
+ * transport without credentials are skipped. With none configured the whole
+ * module is inert — it warns once and every send returns `disabled`. That is
+ * the local-dev and self-hoster default.
  */
 import { Prisma, type PushSubscription as PushSubscriptionRow } from '@prisma/client'
 import webpush, { type RequestOptions, WebPushError } from 'web-push'
@@ -29,6 +33,10 @@ import {
 } from '@/server/notifyCopy'
 import type { RoomWithRelations } from '@/server/roomState'
 import type { RoomState } from '@/lib/api-types'
+import { sendApns } from '@/server/push-native/apns'
+import { apnsCredentials, fcmCredentials, type ApnsCredentials, type FcmCredentials } from '@/server/push-native/config'
+import { sendFcm } from '@/server/push-native/fcm'
+import { toNativeNotification, type NativeNotification } from '@/server/push-native/payload'
 
 /** A 20-expense entry session must not fire 20 pushes. Post-delivery coalescing
  *  (one tag per room) would collapse them on the device, but they would still
@@ -130,6 +138,8 @@ export async function claimSend(
 
 interface SendRoomEventInput {
     room: RoomWithRelations
+    /** The room id app notifications carry instead of the slug. */
+    analyticsKey: string
     template: NotificationTemplate
     /** Whoever caused the event — excluded from delivery. Null when the writer
      *  sent no member token, in which case everyone subscribed gets it. */
@@ -139,13 +149,36 @@ interface SendRoomEventInput {
     buildPayload: (sendId: string) => PushPayload
 }
 
+interface Senders {
+    webPush: boolean
+    apns: ApnsCredentials | null
+    fcm: FcmCredentials | null
+}
+
+function configuredSenders(): Senders {
+    return { webPush: vapidReady(), apns: apnsCredentials(), fcm: fcmCredentials() }
+}
+
+function deliverableTransports(senders: Senders): string[] {
+    return [
+        ...(senders.webPush ? ['webpush'] : []),
+        ...(senders.apns ? ['apns', 'apns-sandbox'] : []),
+        ...(senders.fcm ? ['fcm'] : []),
+    ]
+}
+
 export async function sendRoomEvent(input: SendRoomEventInput): Promise<SendOutcome> {
-    if (!vapidReady()) return { status: 'disabled' }
+    const senders = configuredSenders()
+    const transports = deliverableTransports(senders)
+    if (transports.length === 0) return { status: 'disabled' }
 
     const { room, template, actorMemberId } = input
     const targets = await prisma.pushSubscription.findMany({
         where: {
             roomId: room.id,
+            // A row nobody here can deliver to is not a target: counting it
+            // would burn the dedupe slot on a send that cannot happen.
+            transport: { in: transports },
             // Removal deletes subscriptions transactionally; this relation
             // filter is defense in depth for legacy/orphaned rows.
             member: { removedAt: null },
@@ -185,12 +218,17 @@ export async function sendRoomEvent(input: SendRoomEventInput): Promise<SendOutc
     if (claim === 'daily-cap') return { status: 'skipped', reason: 'daily-cap' }
     if (!claim) return { status: 'skipped', reason: 'already-sent' }
 
-    const payload = JSON.stringify(input.buildPayload(claim.id))
-    const options = requestOptions()
-    const results = await Promise.all(targets.map((target) => deliver(target, payload, options)))
+    const payload = input.buildPayload(claim.id)
+    const results = await deliverAll(
+        targets,
+        payload,
+        toNativeNotification(payload, { slug: room.slug, analyticsKey: input.analyticsKey }),
+        senders
+    )
 
     const dead = results.filter((r) => r.dead).map((r) => r.id)
-    // A 404/410 is the push service saying the browser threw this endpoint away.
+    // A 404/410 (or APNs BadDeviceToken, FCM UNREGISTERED) is the push service
+    // saying the browser or app threw this endpoint away.
     // Keeping it means retrying a corpse on every future event, forever.
     if (dead.length > 0) await prisma.pushSubscription.deleteMany({ where: { id: { in: dead } } })
 
@@ -216,7 +254,44 @@ interface DeliveryResult {
     statusCode?: number
 }
 
-async function deliver(target: PushSubscriptionRow, payload: string, options: RequestOptions): Promise<DeliveryResult> {
+type WebPushRow = PushSubscriptionRow & { transport: 'webpush'; p256dh: string; auth: string }
+
+const isWebPushRow = (row: PushSubscriptionRow): row is WebPushRow =>
+    row.transport === 'webpush' && row.p256dh !== null && row.auth !== null
+
+/** A native row's endpoint is `<transport>:<token>`. */
+const nativeToken = (row: PushSubscriptionRow) => row.endpoint.slice(row.transport.length + 1)
+
+async function deliverAll(
+    targets: PushSubscriptionRow[],
+    payload: PushPayload,
+    notification: NativeNotification,
+    senders: Senders
+): Promise<DeliveryResult[]> {
+    const web = targets.filter(isWebPushRow)
+    const apple = targets.filter((row) => row.transport === 'apns' || row.transport === 'apns-sandbox')
+    const google = targets.filter((row) => row.transport === 'fcm')
+    const webPayload = JSON.stringify(payload)
+    const options = requestOptions()
+    const [webResults, appleResults, googleResults] = await Promise.all([
+        Promise.all(web.map((target) => deliverWebPush(target, webPayload, options))),
+        senders.apns && apple.length > 0
+            ? sendApns(
+                  senders.apns,
+                  apple.map((row) => ({ token: nativeToken(row), sandbox: row.transport === 'apns-sandbox' })),
+                  notification
+              )
+            : [],
+        senders.fcm && google.length > 0 ? sendFcm(senders.fcm, google.map(nativeToken), notification) : [],
+    ])
+    return [
+        ...webResults,
+        ...appleResults.map((result, index) => ({ id: apple[index].id, ...result })),
+        ...googleResults.map((result, index) => ({ id: google[index].id, ...result })),
+    ]
+}
+
+async function deliverWebPush(target: WebPushRow, payload: string, options: RequestOptions): Promise<DeliveryResult> {
     try {
         await webpush.sendNotification(
             { endpoint: target.endpoint, keys: { p256dh: target.p256dh, auth: target.auth } },
@@ -255,6 +330,10 @@ export function notifyRoomWrite(input: {
     const { room, state, actorMemberId, event } = input
     const nameOf = (id: string | null | undefined) => room.members.find((m) => m.id === id)?.name ?? null
     const roomRef = { slug: room.slug, name: room.name, emoji: room.emoji, currency: room.currency }
+    // `toRoomState` always sets the key; the wire type is optional only so old
+    // cached client state parses. An empty key would open the app's home, never
+    // a wrong room.
+    const analyticsKey = state.room.analyticsKey ?? ''
 
     if (event.kind === 'expense_added') {
         const expense = room.expenses.find((e) => e.id === event.expenseId)
@@ -262,6 +341,7 @@ export function notifyRoomWrite(input: {
             fireAndForget(
                 sendRoomEvent({
                     room,
+                    analyticsKey,
                     template: 'expense_added',
                     actorMemberId,
                     eventId: expense.id,
@@ -284,6 +364,7 @@ export function notifyRoomWrite(input: {
             fireAndForget(
                 sendRoomEvent({
                     room,
+                    analyticsKey,
                     template: 'settlement_recorded',
                     actorMemberId,
                     eventId: settlement.id,
@@ -308,6 +389,7 @@ export function notifyRoomWrite(input: {
         fireAndForget(
             sendRoomEvent({
                 room,
+                analyticsKey,
                 template: 'all_settled',
                 actorMemberId,
                 buildPayload: (sendId) => allSettledPayload({ room: roomRef, roomId: room.id, sendId }),

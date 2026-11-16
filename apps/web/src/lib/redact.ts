@@ -8,8 +8,16 @@
  */
 
 /** `/r/ski-trip-x7k2m9` and `/api/rooms/ski-trip-x7k2m9/expenses` — the two
- *  shapes a slug ever appears in. */
+ *  path shapes a slug appears in. The native app adds a query shape, below. */
 const SLUG_PATHS = [/(\/r)\/[^/?#]+/g, /(\/api\/rooms)\/[^/?#]+/g]
+
+/**
+ * The native app's static export cannot have a dynamic `/r/<slug>` route, so its room pages carry the
+ * slug as a query parameter instead: `capacitor://localhost/room/?slug=<slug>&add=1`. Every `slug=`
+ * parameter is redacted, on any path, because a stray non-room `slug=` costing a little debugging
+ * detail is cheaper than a room credential reaching Sentry.
+ */
+const SLUG_QUERY = /([?&]slug=)[^&#\s"']+/g
 
 /**
  * The card query string, dropped whole.
@@ -25,6 +33,7 @@ const CARD_QUERY = /(\/card\/[a-z]+)\?[^#\s"']*/g
 export function redactRoomSlugs(value: string): string {
     let out = value
     for (const pattern of SLUG_PATHS) out = out.replace(pattern, '$1/[slug]')
+    out = out.replace(SLUG_QUERY, '$1[slug]')
     return out.replace(CARD_QUERY, '$1')
 }
 

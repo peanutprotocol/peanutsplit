@@ -1229,7 +1229,8 @@
         "NO_RATE": "Não há cotação entre essa moeda e a da sala, então não dá para converter. Use a moeda da sala.",
         "MANUAL_FX_RATE_REQUIRED": "Insira uma cotação manual para esta moeda personalizada.",
         "MANUAL_FX_RATE_INVALID": "Essa cotação manual é inválida ou faz o valor convertido arredondar para zero.",
-        "MANUAL_FX_RATE_NOT_ALLOWED": "As cotações manuais só estão disponíveis para moedas personalizadas do gasto."
+        "MANUAL_FX_RATE_NOT_ALLOWED": "As cotações manuais só estão disponíveis para moedas personalizadas do gasto.",
+        "NATIVE_PUSH_UNAVAILABLE": "As notificações ainda não estão disponíveis."
     },
     "derivation": {
         "title": "De onde vem esse número",

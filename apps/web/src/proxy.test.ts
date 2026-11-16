@@ -7,7 +7,7 @@ import { MARKETING_CACHE_CONTROL } from '@/lib/marketing-cache'
 import { siteUrl } from '@/lib/site'
 import { splitGuidePaths } from '@/lib/split-content/artifact'
 import { SPLIT_CONTENT_INDEX_RELEASED_PATHS } from '@/lib/split-content/index-release'
-import { config, proxy } from './proxy'
+import { config, proxy, ROOM_SLUG_HEADER } from './proxy'
 
 describe('proxy /new locale handoff', () => {
     it('matches identity-bearing files and APIs for alias canonicalisation', () => {
@@ -250,6 +250,175 @@ describe('proxy released and parked guide headers on the indexed deployment', ()
                     'noindex, nofollow, noarchive'
                 )
             }
+        }
+    })
+})
+
+describe('proxy CORS for the store apps', () => {
+    const APP_ORIGINS = ['capacitor://localhost', 'https://localhost']
+    const slug = 'ski-trip-kunc-syrup-drum'
+    const canonicalHost = new URL(siteUrl).host
+    const request = (path: string, init: { method?: string; origin?: string; host?: string } = {}) =>
+        new NextRequest(`https://renderer.internal${path}`, {
+            method: init.method ?? 'GET',
+            headers: {
+                'x-forwarded-host': init.host ?? canonicalHost,
+                ...(init.origin ? { origin: init.origin } : {}),
+            },
+        })
+    const corsHeaderNames = (response: Response) =>
+        [...response.headers.keys()].filter((name) => name.startsWith('access-control-'))
+
+    afterEach(() => {
+        vi.unstubAllEnvs()
+    })
+
+    it('answers a preflight from each app origin with 204 and exactly the agreed headers', () => {
+        for (const origin of APP_ORIGINS) {
+            const response = proxy(request('/api/currencies', { method: 'OPTIONS', origin }))
+
+            expect(response.status, origin).toBe(204)
+            expect(response.headers.get('access-control-allow-origin'), origin).toBe(origin)
+            expect(response.headers.get('access-control-allow-methods'), origin).toBe('GET, POST, PATCH, DELETE')
+            expect(response.headers.get('access-control-allow-headers'), origin).toBe('Content-Type, X-Member-Token')
+            expect(response.headers.get('access-control-max-age'), origin).toBe('600')
+            expect(response.headers.get('vary'), origin).toBe('Origin')
+            expect(corsHeaderNames(response).sort(), origin).toEqual([
+                'access-control-allow-headers',
+                'access-control-allow-methods',
+                'access-control-allow-origin',
+                'access-control-max-age',
+            ])
+            // A preflight is answered here; it must never reach a handler or a rate-limit bucket.
+            expect(response.headers.get('x-middleware-next'), origin).toBeNull()
+        }
+    })
+
+    it('lets a GET from an app origin through to the handler with the origin reflected', () => {
+        for (const origin of APP_ORIGINS) {
+            const response = proxy(request('/api/currencies', { origin }))
+
+            expect(response.status, origin).toBe(200)
+            expect(response.headers.get('x-middleware-next'), origin).toBe('1')
+            expect(response.headers.get('access-control-allow-origin'), origin).toBe(origin)
+            expect(response.headers.get('access-control-expose-headers'), origin).toBe('Content-Disposition')
+            expect(response.headers.get('vary'), origin).toBe('Origin')
+        }
+    })
+
+    it('includes the room card routes, which live outside /api', () => {
+        for (const path of [`/r/${slug}/card/settled`, `/r/${slug}/recap/card`]) {
+            const preflight = proxy(request(path, { method: 'OPTIONS', origin: 'capacitor://localhost' }))
+            expect(preflight.status, path).toBe(204)
+            expect(preflight.headers.get('access-control-allow-origin'), path).toBe('capacitor://localhost')
+
+            const get = proxy(request(path, { origin: 'https://localhost' }))
+            expect(get.status, path).toBe(200)
+            expect(get.headers.get('access-control-allow-origin'), path).toBe('https://localhost')
+        }
+    })
+
+    it("gives an unknown origin no CORS headers and today's behaviour", () => {
+        for (const method of ['OPTIONS', 'GET']) {
+            const response = proxy(request('/api/currencies', { method, origin: 'https://evil.example' }))
+
+            expect(response.status, method).toBe(200)
+            expect(response.headers.get('x-middleware-next'), method).toBe('1')
+            expect(corsHeaderNames(response), method).toEqual([])
+            expect(response.headers.get('vary'), method).toBeNull()
+        }
+    })
+
+    it('adds the e2e harness origin only while SPLIT_CORS_TEST_ORIGINS names it', () => {
+        expect(corsHeaderNames(proxy(request('/api/currencies', { origin: 'http://localhost:8779' })))).toEqual([])
+
+        vi.stubEnv('SPLIT_CORS_TEST_ORIGINS', 'http://localhost:8779')
+        const response = proxy(request('/api/currencies', { method: 'OPTIONS', origin: 'http://localhost:8779' }))
+        expect(response.status).toBe(204)
+        expect(response.headers.get('access-control-allow-origin')).toBe('http://localhost:8779')
+    })
+
+    it('keeps both install-handoff routes same-origin only', () => {
+        for (const path of ['/api/install-handoff', `/api/rooms/${slug}/install-handoff`]) {
+            for (const method of ['OPTIONS', 'POST']) {
+                const response = proxy(request(path, { method, origin: 'capacitor://localhost' }))
+                expect(response.status, `${method} ${path}`).toBe(200)
+                expect(corsHeaderNames(response), `${method} ${path}`).toEqual([])
+            }
+        }
+    })
+
+    it('still answers an alias host with only the 308, even from an app origin', () => {
+        for (const method of ['OPTIONS', 'GET']) {
+            const response = proxy(
+                request('/api/currencies', { method, origin: 'capacitor://localhost', host: 'split.peanut.me' })
+            )
+            expect(response.status, method).toBe(308)
+            expect(response.headers.get('location'), method).toBe(`${siteUrl}/api/currencies`)
+            expect(corsHeaderNames(response), method).toEqual([])
+        }
+    })
+
+    it('never allows credentials and never answers with a wildcard', () => {
+        for (const origin of APP_ORIGINS) {
+            for (const method of ['OPTIONS', 'GET', 'POST', 'PATCH', 'DELETE']) {
+                for (const path of ['/api/currencies', `/api/rooms/${slug}/expenses`, `/r/${slug}/recap/card`]) {
+                    const response = proxy(request(path, { method, origin }))
+                    expect(response.headers.get('access-control-allow-credentials'), `${method} ${path}`).toBeNull()
+                    expect(response.headers.get('access-control-allow-origin'), `${method} ${path}`).not.toBe('*')
+                }
+            }
+        }
+    })
+})
+
+describe('proxy room-slug header for the Smart App Banner', () => {
+    const slug = 'ski-trip-kunc-syrup-drum'
+    const forwardedSlug = (response: Response) => response.headers.get(`x-middleware-request-${ROOM_SLUG_HEADER}`)
+
+    it('names the room on the room page and its recap', () => {
+        for (const path of [`/r/${slug}`, `/r/${slug}/recap`]) {
+            const response = proxy(new NextRequest(`https://renderer.internal${path}`))
+            expect(response.status, path).toBe(200)
+            expect(forwardedSlug(response), path).toBe(slug)
+        }
+    })
+
+    it('is absent everywhere else, including other room paths and invalid slugs', () => {
+        for (const path of [
+            '/app',
+            '/new',
+            '/',
+            '/blog',
+            `/r/${slug}/import`,
+            `/r/${slug}/card/settled`,
+            `/r/${slug}/recap/card`,
+            '/r/not_a_valid_slug',
+            '/r/Ski-Trip-kunc-syrup-drum',
+        ]) {
+            const response = proxy(new NextRequest(`https://renderer.internal${path}`))
+            expect(forwardedSlug(response), path).toBeNull()
+        }
+    })
+
+    it('replaces a spoofed header on room pages and strips it everywhere else, APIs included', () => {
+        const spoofed = 'evil-room-kunc-syrup-drum'
+        const cases = [
+            [`/r/${slug}`, slug],
+            [`/r/${slug}/recap`, slug],
+            ['/app', null],
+            ['/guides/synthetic-guide', null],
+            [`/api/rooms/${slug}`, null],
+        ] as const
+
+        for (const [path, expected] of cases) {
+            const response = proxy(
+                new NextRequest(`https://renderer.internal${path}`, { headers: { [ROOM_SLUG_HEADER]: spoofed } })
+            )
+            expect(response.status, path).toBe(200)
+            // An overridden request header list that lacks the name is how Next drops it.
+            expect(response.headers.get('x-middleware-override-headers'), path).not.toBeNull()
+            expect(forwardedSlug(response), path).toBe(expected)
         }
     })
 })
