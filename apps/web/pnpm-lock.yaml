@@ -137,6 +137,9 @@ importers:
       '@capacitor/cli':
         specifier: 8.2.0
         version: 8.2.0
+      '@fontsource-variable/roboto-flex':
+        specifier: 5.3.0
+        version: 5.3.0
       '@playwright/test':
         specifier: ^1.63.0
         version: 1.63.0
@@ -487,6 +490,9 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
+
+  '@fontsource-variable/roboto-flex@5.3.0':
+    resolution: {integrity: sha512-bOxckUy0qXNRjhV6e4pcHGSvptix4ZRD1uaj5Za8h+p3qrb2GL4U4TQdpVmPSy0SmqwldfD+JJqEKdF68EyiAw==}
 
   '@fontsource/gluten@4.5.12':
     resolution: {integrity: sha512-/zJdLtSulaOunqllmksPzka6kch4IKZUywXsorVZTYSYYyvhIZHysI7J4NDRolrhlZScJi2vxlOVnrjmiufxbg==}
@@ -4152,6 +4158,8 @@ snapshots:
 
   '@esbuild/win32-x64@0.28.2':
     optional: true
+
+  '@fontsource-variable/roboto-flex@5.3.0': {}
 
   '@fontsource/gluten@4.5.12': {}
 

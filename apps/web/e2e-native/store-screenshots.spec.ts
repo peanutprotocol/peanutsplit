@@ -1,7 +1,7 @@
 import { mkdirSync } from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import type { APIRequestContext, Browser, BrowserContext, Page } from '@playwright/test'
+import type { APIRequestContext, Browser, BrowserContext, Locator, Page } from '@playwright/test'
 import sharp from 'sharp'
 import { uniqueClientIp } from '../e2e/fixtures'
 import { mockCamera, TINY_JPEG } from '../e2e-v2/helpers'
@@ -12,6 +12,10 @@ import { API_ORIGIN, APP_ORIGIN, expect, test } from './fixtures'
  * apps/web/store/screenshots.md). Not part of the cross-origin suite: it runs only with
  * STORE_SCREENSHOTS=1 and writes images into apps/web/store/assets/, which a person reviews and
  * commits. How to run it is in apps/web/store/assets/README.md.
+ *
+ * Two steps. The first captures the real app at two raw phone sizes into store/captures/
+ * (gitignored). The second puts each capture in store/screenshot-frame.html with a headline and
+ * renders the three store sizes, then a contact sheet for review.
  *
  * The app is the real static export talking to the real API server, so every screen is what a
  * phone shows. Two things are not real: the receipt-scan POST answers with the fixture below (no
@@ -28,13 +32,177 @@ test.describe.configure({ mode: 'serial' })
 const PRODUCT_ORIGIN = 'https://peanutsplit.com'
 const STORE = path.resolve(__dirname, '../store')
 const ASSETS = path.join(STORE, 'assets')
+const CAPTURES = path.join(STORE, 'captures')
 
-/** CSS viewport x 3 = the store's pixel size (screenshots.md, "Sizes"). */
-const SETS = [
-    { id: 'iphone-6.9', width: 440, height: 956, userAgent: 'iphone' },
-    { id: 'iphone-6.3', width: 402, height: 874, userAgent: 'iphone' },
-    { id: 'android-phone', width: 360, height: 640, userAgent: 'android' },
+/** The raw phones the app is captured on, at DSF 3. One raw set feeds one or more store sets. */
+const RAW_SETS = [
+    { id: 'iphone', width: 402, height: 874, userAgent: 'iphone' },
+    { id: 'android', width: 412, height: 892, userAgent: 'android' },
 ] as const
+type RawSet = (typeof RAW_SETS)[number]
+
+/**
+ * The store sizes: CSS canvas x 3 = the store's pixel size (screenshots.md, "Sizes"), and where
+ * the headline and the frame sit on that canvas (CSS px).
+ */
+const STORE_SETS = [
+    {
+        id: 'iphone-6.9',
+        raw: 'iphone',
+        layout: {
+            width: 440,
+            height: 956,
+            margin: 26,
+            headlineTop: 48,
+            headlineSize: 50,
+            gap: 13,
+            sublineSize: 22,
+            frameTop: 215,
+            frameWidth: 370,
+            frameBottom: 921,
+            radius: 34,
+        },
+    },
+    {
+        id: 'iphone-6.3',
+        raw: 'iphone',
+        layout: {
+            width: 402,
+            height: 874,
+            margin: 24,
+            headlineTop: 44,
+            headlineSize: 46,
+            gap: 12,
+            sublineSize: 20,
+            frameTop: 196,
+            frameWidth: 338,
+            frameBottom: 842,
+            radius: 34,
+        },
+    },
+    {
+        id: 'android-phone',
+        raw: 'android',
+        layout: {
+            width: 360,
+            height: 640,
+            margin: 20,
+            headlineTop: 28,
+            headlineSize: 40,
+            gap: 8,
+            sublineSize: 17,
+            frameTop: 150,
+            frameWidth: 290,
+            frameBottom: 620,
+            radius: 28,
+        },
+    },
+] as const satisfies readonly { id: string; raw: RawSet['id']; layout: Record<string, number> }[]
+type StoreSet = (typeof STORE_SETS)[number]
+
+/** The number of raw CSS rows the frame of a store set shows (the frame's border is 3 px). */
+export function windowRows(storeSet: StoreSet): number {
+    const { layout, raw } = storeSet
+    const rawWidth = RAW_SETS.find((set) => set.id === raw)!.width
+    return (layout.frameBottom - layout.frameTop - 6) / ((layout.frameWidth - 6) / rawWidth)
+}
+
+/**
+ * One raw set can feed two store sets with slightly different windows. Something that must show
+ * has to fit the smaller window; something that must stay hidden has to clear the larger one.
+ */
+function rowsFor(raw: RawSet): { visible: number; hidden: number } {
+    const rows = STORE_SETS.filter((set) => set.raw === raw.id).map(windowRows)
+    return { visible: Math.min(...rows), hidden: Math.max(...rows) }
+}
+
+const YELLOW = '#FFC900'
+const PINK = '#FF90E8'
+
+/**
+ * The five screenshots in upload order (the first three show in search results). The file names
+ * stay as check-assets.mjs expects. Headlines are landing page lines; `<mark>` is the highlight.
+ * Every headline has two lines, so the frame sits at the same height on every screen.
+ */
+const SHOTS = [
+    {
+        file: '4-share',
+        background: PINK,
+        markColour: YELLOW,
+        headlineHtml: 'ONE LINK.<br><mark>PICK YOUR NAME.</mark>',
+        subline: 'No signup. No password.',
+        anchor: 'bottom',
+    },
+    {
+        file: '2-add-expense',
+        background: YELLOW,
+        markColour: PINK,
+        headlineHtml: '<mark>EVERYONE</mark> ADDS<br>EXPENSES.',
+        subline: 'Who paid, how much, for whom.',
+        anchor: 'bottom',
+    },
+    {
+        file: '1-room',
+        background: '#EAFBEE',
+        markColour: YELLOW,
+        headlineHtml: 'WHO OWES WHAT.<br><mark>SORTED.</mark>',
+        subline: 'Every balance in one room.',
+        anchor: 'top',
+    },
+    {
+        file: '3-receipt-scan',
+        background: '#FAF4F0',
+        markColour: YELLOW,
+        headlineHtml: 'SCAN THE<br><mark>BILL.</mark>',
+        subline: 'Then tap who had what.',
+        anchor: 'bottom',
+    },
+    {
+        file: '5-home',
+        background: PINK,
+        markColour: YELLOW,
+        headlineHtml: 'SPLIT<br><mark>ANYTHING.</mark>',
+        subline: 'Trips, roommates, dinners.',
+        anchor: 'top',
+    },
+] as const
+
+/**
+ * Words no text on the canvas may hold: prices, promo words, store and OS names, and the
+ * BANNED_EVERYWHERE list of store/check-listing.mjs (copied: that script runs on import).
+ */
+const BANNED_ON_CANVAS = [
+    /\bfree\b/i,
+    /\bbest\b/i,
+    /#1\b/,
+    /\bdownload/i,
+    /\bno ads\b/i,
+    /[$€£]\s?\d|\d\s?[$€£]|\d+[.,]\d{2}\b/,
+    /\bapp ?store\b|\bgoogle\b|\bplay store\b|\biphone\b|\bipad\b|\bios\b|\bapple\b|\bandroid\b/i,
+    /\bcrypto\w*/i,
+    /\bwallets?\b/i,
+    /\bstablecoins?\b/i,
+    /\bUSDC\b/i,
+    /\bdigital dollars?\b/i,
+    /\bpayments?\b/i,
+    /\bsend(?:s|ing)? money\b/i,
+    /\btransfers?\b/i,
+    /\bbank(?:s|ing)?\b/i,
+    /\bPWA\b/i,
+    /\bweb ?apps?\b/i,
+    /\bworks? offline\b/i,
+    /\bopens? offline\b/i,
+    /(?<!@)\bPeanut\b(?! Split\b)/i,
+    /\bsplitwise\b/i,
+    /\btricount\b/i,
+    /\bsettle ?up\b/i,
+    /\bsplid\b/i,
+    /\bkittysplit\b/i,
+    /\bvenmo\b/i,
+    /\bpaypal\b/i,
+    /\brevolut\b/i,
+    /\bbunq\b/i,
+]
 
 const USER_AGENTS = {
     iphone: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148',
@@ -47,22 +215,25 @@ const USER_AGENTS = {
 const PEOPLE = ['Ana', 'Ben', 'Carla', 'Dev'] as const
 type Person = (typeof PEOPLE)[number]
 
-/** The trip room of screens 1-4: four people, five expenses, everyone with a balance. */
+/** The trip room of screens 1-4: four people, seven expenses (enough to fill the frame of screen 1),
+ *  everyone with a balance. */
 const TRIP = {
     name: 'Lisbon trip',
     expenses: [
+        { description: 'Airport taxi', amountMinor: '3420', paidBy: 'Ben' },
+        { description: 'Coffee and pastries', amountMinor: '1840', paidBy: 'Dev' },
         { description: 'Sunset boat tour', amountMinor: '14000', paidBy: 'Ana' },
         { description: 'Tram tickets', amountMinor: '2560', paidBy: 'Dev' },
         { description: 'Groceries', amountMinor: '3875', paidBy: 'Carla' },
         { description: 'Dinner in Alfama', amountMinor: '9640', paidBy: 'Ana' },
-        { description: 'Apartment', amountMinor: '48000', paidBy: 'Ben' },
+        { description: 'Guesthouse', amountMinor: '48000', paidBy: 'Ben' },
     ],
 } satisfies { name: string; expenses: { description: string; amountMinor: string; paidBy: Person }[] }
 
-/** The two other rooms on the home screen (screen 5). */
+/** The two other rooms on the home screen (screen 5): one per use case, each with its own doodle. */
 const OTHER_ROOMS = [
-    { name: 'Flat 4B', people: ['Ana', 'Ben', 'Carla'], expense: { description: 'Internet', amountMinor: '4500' } },
-    { name: 'Ski weekend', people: ['Ana', 'Dev'], expense: { description: 'Lift passes', amountMinor: '19800' } },
+    { name: 'Roommates', people: ['Ana', 'Ben', 'Carla'], expense: { description: 'Rent', amountMinor: '90000' } },
+    { name: 'Tuesday ramen', people: ['Ana', 'Ben', 'Dev'], expense: { description: 'Ramen', amountMinor: '5400' } },
 ] as const
 
 /** What the "model" reads off the receipt in screen 3. A dinner for the four of them. */
@@ -139,7 +310,7 @@ async function seedRoom(
  * recent list, reduced motion so no capture lands mid-animation, and nothing but the two local
  * servers reachable.
  */
-async function openPhone(browser: Browser, set: (typeof SETS)[number], rooms: Seeded[]): Promise<Page> {
+async function openPhone(browser: Browser, set: RawSet, rooms: Seeded[]): Promise<Page> {
     const context: BrowserContext = await browser.newContext({
         viewport: { width: set.width, height: set.height },
         deviceScaleFactor: 3,
@@ -225,10 +396,23 @@ async function capture(page: Page, file: string): Promise<void> {
     // Settle any layout shift from the last state change before the capture.
     await page.waitForTimeout(400)
     mkdirSync(path.dirname(file), { recursive: true })
-    await page.screenshot({ path: file, type: 'jpeg', quality: 90, animations: 'disabled', caret: 'hide' })
+    await page.screenshot({ path: file, type: 'png', animations: 'disabled', caret: 'hide' })
 }
 
-test('store screenshots: five screens at three sizes', async ({ browser, playwright }) => {
+async function box(locator: Locator): Promise<{ top: number; bottom: number }> {
+    const found = await locator.boundingBox({ timeout: 10_000 })
+    expect(found, `${locator} has no box`).not.toBeNull()
+    return { top: found!.y, bottom: found!.y + found!.height }
+}
+
+/** The element lies fully inside raw rows `from` to `to`, so the frame shows all of it. */
+async function expectWithinRows(locator: Locator, from: number, to: number): Promise<void> {
+    const { top, bottom } = await box(locator)
+    expect(top, `${locator} top`).toBeGreaterThanOrEqual(from)
+    expect(bottom, `${locator} bottom`).toBeLessThanOrEqual(to)
+}
+
+test('store screenshots: raw captures at two phone sizes', async ({ browser, playwright }) => {
     test.setTimeout(15 * 60_000)
     const api = await playwright.request.newContext({
         baseURL: API_ORIGIN,
@@ -243,39 +427,86 @@ test('store screenshots: five screens at three sizes', async ({ browser, playwri
     await api.dispose()
     const rooms = [trip, ...others]
 
-    for (const set of SETS) {
-        const out = (name: string) => path.join(ASSETS, 'screenshots', set.id, name)
+    for (const raw of RAW_SETS) {
+        const out = (name: string) => path.join(CAPTURES, raw.id, `${name}.png`)
+        const { visible, hidden } = rowsFor(raw)
+        const H = raw.height
 
-        // 1. The trip room with its balances and expenses.
+        // 1. The trip room with its balances and expenses (frame anchored at the top).
         {
-            const page = await openPhone(browser, set, rooms)
+            const page = await openPhone(browser, raw, rooms)
             await openTripRoom(page, trip.slug)
-            await capture(page, out('1-room.jpg'))
+            for (const card of await page.getByTestId('balance-card').all()) await expectWithinRows(card, 0, visible)
+            let shownRows = 0
+            for (const row of await page.getByTestId('expense-row').all()) {
+                if ((await box(row)).bottom <= visible) shownRows += 1
+            }
+            expect(shownRows).toBeGreaterThanOrEqual(4)
+            // "Settle up" is also a competitor's name: it stays below the frame's window.
+            for (const settle of await page.getByText('Settle up', { exact: true }).all()) {
+                if (await settle.isVisible()) expect((await box(settle)).top).toBeGreaterThanOrEqual(hidden)
+            }
+            await capture(page, out('1-room'))
             await page.context().close()
         }
 
-        // 2. The add-expense drawer mid-entry, with the split options open.
+        // 2. The add-expense drawer mid-entry, with the split editor open (anchored at the bottom).
         {
-            const page = await openPhone(browser, set, rooms)
+            const page = await openPhone(browser, raw, rooms)
             await openTripRoom(page, trip.slug)
             await page.getByTestId('open-add-expense').click()
             await expect(page.getByTestId('expense-drawer')).toBeVisible()
             await page.getByTestId('expense-amount').fill('64.80')
-            await page.getByTestId('expense-description').fill('Fado night')
+            await page.getByTestId('expense-description').fill('Museum tickets')
             await page.getByTestId('expense-split-summary').click()
             await expect(page.getByTestId('split-editor')).toBeVisible()
             await page.locator(':focus').evaluate((element) => (element as HTMLElement).blur())
-            // Opening the editor scrolls the drawer on a short screen; the amount stays in view.
-            await page.getByTestId('expense-drawer').evaluate((element) => {
-                for (const node of [element, ...element.querySelectorAll<HTMLElement>('*')]) node.scrollTop = 0
+            await page.waitForTimeout(300)
+            // Scroll the drawer so the last person row sits 12 px above the footer with the
+            // "Add €64.80 expense" button. The amount may scroll out; the button carries it.
+            const layout = await page.getByTestId('expense-drawer').evaluate((drawer) => {
+                const editor = drawer.querySelector<HTMLElement>('[data-testid="split-editor"]')!
+                const people = editor.querySelectorAll<HTMLElement>('ul[aria-label="Who shares this?"] > li')
+                const lastRow = people[people.length - 1]
+                const button = [...drawer.querySelectorAll<HTMLButtonElement>('button')].find((candidate) =>
+                    /^Add .+ expense$/.test(candidate.textContent?.trim() ?? '')
+                )!
+                // The footer is the button's outermost ancestor that does not hold the form.
+                let footer: HTMLElement = button
+                while (footer.parentElement && !footer.parentElement.contains(editor)) footer = footer.parentElement
+                let scroller: HTMLElement | null = editor.parentElement
+                while (scroller && scroller !== drawer) {
+                    const overflow = getComputedStyle(scroller).overflowY
+                    if ((overflow === 'auto' || overflow === 'scroll') && scroller.scrollHeight > scroller.clientHeight)
+                        break
+                    scroller = scroller.parentElement
+                }
+                if (scroller)
+                    scroller.scrollTop +=
+                        lastRow.getBoundingClientRect().bottom - (footer.getBoundingClientRect().top - 12)
+                const heading = editor.querySelector('h3')!
+                return {
+                    people: people.length,
+                    headingTop: heading.getBoundingClientRect().top,
+                    lastRowBottom: lastRow.getBoundingClientRect().bottom,
+                    footerTop: footer.getBoundingClientRect().top,
+                    buttonTop: button.getBoundingClientRect().top,
+                    buttonBottom: button.getBoundingClientRect().bottom,
+                }
             })
-            await capture(page, out('2-add-expense.jpg'))
+            expect(layout.people).toBe(PEOPLE.length)
+            await expect(page.getByText('Who shares this?', { exact: true })).toBeVisible()
+            expect(layout.headingTop).toBeGreaterThanOrEqual(H - visible)
+            expect(layout.lastRowBottom).toBeLessThanOrEqual(layout.footerTop)
+            expect(layout.buttonTop).toBeGreaterThanOrEqual(0)
+            expect(layout.buttonBottom).toBeLessThanOrEqual(H)
+            await capture(page, out('2-add-expense'))
             await page.context().close()
         }
 
         // 3. Receipt scan review, every item assigned. Only the scan POST is mocked.
         {
-            const page = await openPhone(browser, set, rooms)
+            const page = await openPhone(browser, raw, rooms)
             await mockCamera(page, 'ready')
             await page.route('**/api/rooms/*/receipt-parse', (route) =>
                 route.request().method() === 'POST' ? route.fulfill({ json: RECEIPT }) : route.fallback()
@@ -307,38 +538,181 @@ test('store screenshots: five screens at three sizes', async ({ browser, playwri
                 }
             }
             await expect(page.getByTestId('scan-unassigned')).toHaveCount(0)
-            // The third item at the top: the last items, the per-person totals and the button show.
-            await rows.nth(2).evaluate((element) => element.scrollIntoView({ block: 'start' }))
-            await capture(page, out('3-receipt-scan.jpg'))
+            // Scrolled to the end, so the per-person totals and "Use this split" show whole. When the
+            // top of the frame's window would cut an item card, scroll back until that card shows
+            // whole, as far as "Use this split" stays on screen ("Back to the items" may leave it).
+            const scanRows = rowsFor(raw)
+            const windowTop = H - scanRows.hidden
+            await page.getByTestId('scan-apply').evaluate(
+                (button, { top, height }) => {
+                    let scroller: HTMLElement | null = button.parentElement
+                    while (scroller) {
+                        const overflow = getComputedStyle(scroller).overflowY
+                        if (
+                            (overflow === 'auto' || overflow === 'scroll') &&
+                            scroller.scrollHeight > scroller.clientHeight
+                        )
+                            break
+                        scroller = scroller.parentElement
+                    }
+                    if (!scroller) return
+                    scroller.scrollTop = scroller.scrollHeight
+                    for (const card of document.querySelectorAll('[data-testid="scan-assign-row"]')) {
+                        const { top: cardTop, bottom } = card.getBoundingClientRect()
+                        if (cardTop >= top || bottom <= top) continue
+                        const room = height - 2 - button.getBoundingClientRect().bottom
+                        scroller.scrollTop -= Math.min(top + 8 - cardTop, room)
+                    }
+                },
+                { top: windowTop, height: H }
+            )
+            await page.waitForTimeout(300)
+            for (const card of await page.getByTestId('scan-assign-row').all()) {
+                const { top, bottom } = await box(card)
+                for (const edge of [H - scanRows.visible, windowTop])
+                    expect(top < edge && bottom > edge, `an item card is cut at row ${edge}`).toBe(false)
+            }
+            // The per-person totals block sits just above the button's group.
+            await expectWithinRows(
+                page.getByTestId('scan-apply').locator('xpath=../preceding-sibling::div[1]'),
+                H - scanRows.visible,
+                H
+            )
+            await expectWithinRows(page.getByTestId('scan-apply'), H - scanRows.visible, H)
+            await capture(page, out('3-receipt-scan'))
             await page.context().close()
         }
 
-        // 4. The share moment: the room link and its QR code.
+        // 4. The share moment: the room link and its QR code (anchored at the bottom).
         {
-            const page = await openPhone(browser, set, rooms)
+            const page = await openPhone(browser, raw, rooms)
             await openTripRoom(page, trip.slug)
             await page.getByTestId('share-room').click()
             await expect(page.getByTestId('room-qr')).toBeVisible({ timeout: 15_000 })
             await expect(page.getByTestId('room-link')).toContainText(`peanutsplit.com/r/${trip.slug}`)
-            await capture(page, out('4-share.jpg'))
+            await page.waitForTimeout(300)
+            await expectWithinRows(page.getByTestId('room-qr'), H - visible, H)
+            await expectWithinRows(page.getByTestId('room-link'), H - visible, H)
+            await expectWithinRows(page.getByRole('button', { name: 'Share room link', exact: true }), H - visible, H)
+            await capture(page, out('4-share'))
             await page.context().close()
         }
 
-        // 5. The app home with three recent rooms. `manage=1` keeps the list on screen instead
-        // of opening the most recent room.
+        // 5. The app home with three recent rooms, trimmed below "New split". `manage=1` keeps
+        // the list on screen instead of opening the most recent room.
         {
-            const page = await openPhone(browser, set, rooms)
+            const page = await openPhone(browser, raw, rooms)
             await page.goto('/app/?manage=1')
             await expect(page.getByTestId('app-home')).toBeVisible({ timeout: 15_000 })
             for (const room of rooms) await expect(page.getByText(room.name, { exact: true })).toBeVisible()
-            await capture(page, out('5-home.jpg'))
+            const newSplit = await box(page.getByTestId('app-new-split'))
+            // 24 px under "New split", but never into "Import from Splitwise" (12 px below it),
+            // which names a competitor.
+            const importTop = (await box(page.getByTestId('app-import'))).top
+            const trimmedHeight = Math.min(Math.ceil(newSplit.bottom) + 24, Math.floor(importTop))
+            await page.setViewportSize({ width: raw.width, height: trimmedHeight })
+            await page.waitForTimeout(300)
+            for (const room of rooms)
+                await expectWithinRows(page.getByText(room.name, { exact: true }), 0, trimmedHeight)
+            await expectWithinRows(page.getByText('Saved on this device.', { exact: true }), 0, trimmedHeight)
+            await expectWithinRows(page.getByTestId('app-new-split'), 0, trimmedHeight)
+            expect((await box(page.getByTestId('app-import'))).top).toBeGreaterThanOrEqual(trimmedHeight)
+            await capture(page, out('5-home'))
             await page.context().close()
         }
     }
 })
 
+test('store screenshots: framed at three store sizes, and the contact sheet', async ({ browser }) => {
+    test.setTimeout(5 * 60_000)
+    for (const storeSet of STORE_SETS) {
+        const raw = RAW_SETS.find((set) => set.id === storeSet.raw)!
+        const { layout } = storeSet
+        const context = await browser.newContext({
+            viewport: { width: layout.width, height: layout.height },
+            deviceScaleFactor: 3,
+            // The project's iPhone profile would lay the page out at 980 px and autosize its text.
+            isMobile: false,
+        })
+        const page = await context.newPage()
+        // A local file with relative links to the captures and the font; nothing else may load.
+        await page.route(/^(?!file:)/, (route) => route.abort())
+        await page.goto(pathToFileURL(path.join(STORE, 'screenshot-frame.html')).href)
+        for (const shot of SHOTS) {
+            const measured = await page.evaluate(
+                (cfg) => (window as unknown as { render: (cfg: unknown) => Promise<RenderResult> }).render(cfg),
+                { ...shot, capture: `captures/${raw.id}/${shot.file}.png`, layout }
+            )
+            const where = `${storeSet.id}/${shot.file}`
+            expect(
+                await page.evaluate(() => [...document.fonts].filter((font) => font.status !== 'loaded').length),
+                where
+            ).toBe(0)
+            expect(await page.evaluate(() => document.fonts.check("1000 48px 'Roboto Flex'")), where).toBe(true)
+            expect(measured.image.complete, where).toBe(true)
+            expect(measured.image.naturalWidth, where).toBe(raw.width * 3)
+            expect(measured.headline.height, `${where} headline lines`).toBeLessThanOrEqual(
+                2 * measured.headline.lineHeight + 1
+            )
+            expect(measured.subline.height, `${where} sub-line lines`).toBeLessThanOrEqual(
+                measured.subline.lineHeight + 1
+            )
+            for (const text of [measured.headline, measured.subline]) {
+                expect(text.left, `${where} left margin`).toBeGreaterThanOrEqual(layout.margin - 0.5)
+                expect(text.right, `${where} right margin`).toBeLessThanOrEqual(layout.width - layout.margin + 0.5)
+            }
+            expect(measured.subline.bottom, `${where} text above the frame`).toBeLessThanOrEqual(measured.frame.top)
+            for (const pattern of BANNED_ON_CANVAS) expect(measured.text, `${where} ${pattern}`).not.toMatch(pattern)
+            const file = path.join(ASSETS, 'screenshots', storeSet.id, `${shot.file}.jpg`)
+            mkdirSync(path.dirname(file), { recursive: true })
+            await page.screenshot({ path: file, type: 'jpeg', quality: 90 })
+        }
+        await context.close()
+    }
+
+    // One row per store set in upload order, longest side under 1600 px, for Konrad's review.
+    const rowHeight = 480
+    const gap = 16
+    const tiles = []
+    let sheetWidth = 0
+    for (const [row, storeSet] of STORE_SETS.entries()) {
+        let left = gap
+        for (const shot of SHOTS) {
+            const input = await sharp(path.join(ASSETS, 'screenshots', storeSet.id, `${shot.file}.jpg`))
+                .resize({ height: rowHeight })
+                .toBuffer({ resolveWithObject: true })
+            tiles.push({ input: input.data, left, top: gap + row * (rowHeight + gap) })
+            left += input.info.width + gap
+        }
+        sheetWidth = Math.max(sheetWidth, left)
+    }
+    const sheetHeight = gap + STORE_SETS.length * (rowHeight + gap)
+    expect(Math.max(sheetWidth, sheetHeight)).toBeLessThanOrEqual(1600)
+    await sharp({ create: { width: sheetWidth, height: sheetHeight, channels: 3, background: '#ffffff' } })
+        .composite(tiles)
+        .jpeg({ quality: 85 })
+        .toFile(path.join(CAPTURES, 'contact-sheet.jpg'))
+})
+
+interface TextBox {
+    left: number
+    right: number
+    top: number
+    bottom: number
+    height: number
+    lineHeight: number
+}
+interface RenderResult {
+    headline: TextBox
+    subline: TextBox
+    frame: { top: number; bottom: number; left: number; right: number }
+    image: { naturalWidth: number; complete: boolean }
+    text: string
+}
+
 test('store graphics: Play feature graphic and Play icon', async ({ browser }) => {
-    const context = await browser.newContext({ viewport: { width: 1024, height: 500 }, deviceScaleFactor: 1 })
+    // Rendered at 2x and scaled down: at 1x the condensed 72 px headline merges letters.
+    const context = await browser.newContext({ viewport: { width: 1024, height: 500 }, deviceScaleFactor: 2 })
     const page = await context.newPage()
     // A local file with relative links to the repo's own fonts and art; nothing else may load.
     await page.route(/^(?!file:)/, (route) => route.abort())
@@ -350,15 +724,35 @@ test('store graphics: Play feature graphic and Play icon', async ({ browser }) =
             true
         )
     }
+    // Play crops the edges on some surfaces: no text within 32 px of any edge.
+    const textBoxes = await page.locator('.copy').evaluate((copy) =>
+        [...copy.querySelectorAll<HTMLElement>('.wordmark, h1, .lede, .chip')].map((element) => {
+            const range = document.createRange()
+            range.selectNodeContents(element)
+            const rect = element.classList.contains('chip')
+                ? element.getBoundingClientRect()
+                : range.getBoundingClientRect()
+            return { name: element.className || element.tagName, ...rect.toJSON() }
+        })
+    )
+    for (const text of textBoxes) {
+        expect(text.left, text.name).toBeGreaterThanOrEqual(32)
+        expect(text.top, text.name).toBeGreaterThanOrEqual(32)
+        expect(text.right, text.name).toBeLessThanOrEqual(1024 - 32)
+        expect(text.bottom, text.name).toBeLessThanOrEqual(500 - 32)
+    }
     mkdirSync(ASSETS, { recursive: true })
-    await page.screenshot({ path: path.join(ASSETS, 'feature-graphic.jpg'), type: 'jpeg', quality: 92 })
+    await sharp(await page.screenshot({ type: 'png' }))
+        .resize(1024, 500, { kernel: 'lanczos3' })
+        .jpeg({ quality: 92 })
+        .toFile(path.join(ASSETS, 'feature-graphic.jpg'))
     await context.close()
 
-    // The app icon artwork as Play wants it: 512 px, opaque, PNG.
+    // The app icon artwork as Play wants it: 512 px, a 32-bit PNG that is fully opaque.
     await sharp(path.resolve(__dirname, '../resources/icon.png'))
         .resize(512, 512, { kernel: 'lanczos3' })
         .flatten({ background: '#FF90E8' })
-        .removeAlpha()
+        .ensureAlpha()
         .png({ compressionLevel: 9 })
         .toFile(path.join(ASSETS, 'play-icon.png'))
 })

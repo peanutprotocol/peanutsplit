@@ -86,6 +86,7 @@
     },
     "devDependencies": {
         "@capacitor/cli": "8.2.0",
+        "@fontsource-variable/roboto-flex": "5.3.0",
         "@playwright/test": "^1.63.0",
         "@types/node": "^22.20.4",
         "@types/react": "^19.3.0",

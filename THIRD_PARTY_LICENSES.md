@@ -6,7 +6,7 @@ Every installed dependency of Peanut Split and the license it ships under, acros
 lockfiles. Prose notices for the material that needs one — fonts, icon geometry, quoted
 competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-899 packages, 16 license classes.
+900 packages, 17 license classes.
 
 | License | Packages |
 | --- | ---: |
@@ -25,6 +25,7 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 | `LGPL-3.0-or-later` | 1 |
 | `MIT` | 747 |
 | `MPL-2.0` | 2 |
+| `OFL-1.1` | 1 |
 | `Unlicense` | 1 |
 
 ## (Apache-2.0 AND MIT)
@@ -969,6 +970,10 @@ competitor copy — are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 - `next-mdx-remote@6.0.0`
 - `web-push@3.6.7`
+
+## OFL-1.1
+
+- `@fontsource-variable/roboto-flex@5.3.0`
 
 ## Unlicense
 
