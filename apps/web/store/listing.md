@@ -55,47 +55,52 @@ Group expenses, no signup
 Commas, no spaces. Words already in the name and subtitle are left out, because Apple indexes those
 fields too.
 
-Limit: 100. Length: 98.
+Limit: 100. Length: 96.
 
 ```text
-bill,trip,travel,roommates,flatmates,friends,owe,iou,receipt,scan,costs,share,dinner,holiday,house
+trip,travel,roommates,friends,owe,iou,receipt,scan,costs,share,dinner,vacation,rent,currency,tab
 ```
 
 ### `ios.promotionalText`: Promotional text
 
-Limit: 170. Length: 116.
+Limit: 170. Length: 160.
 
 ```text
-Share one link with your group. Everyone adds what they paid, and Split shows who owes whom. No signup, no password.
+Good accounting makes good friends. Share one link with your group, everyone picks their name and adds what they paid, and Split shows who owes whom. No signup.
 ```
 
 ### `ios.description`: Description
 
-Limit: 4000. Length: 1917.
+Limit: 4000. Length: 2123.
 
 ```text
-Split keeps track of shared costs for trips, flats, dinners and anything else a group pays for together.
+Good accounting makes good friends. Split keeps track of shared costs for trips, shared homes, dinners and anything else a group pays for together.
 
-Start a room, share its link in your group chat, and everyone joins by picking their name. There is no signup, no email and no password. The link is the key to the room, so keep it in the chat.
+HOW IT WORKS
+1. Start a room and share its link in your group chat.
+2. Everyone opens the link and picks their name. There is no signup, no email and no password.
+3. Everyone adds what they paid.
+4. Split shows every balance and a short plan of who owes whom.
+
+The link is the key to the room, so keep it in the chat.
 
 WHAT YOU CAN DO
 • Add an expense in a few taps: who paid, how much, and who it was for. Split it equally, by percentage, by shares or by exact amounts.
-• Scan a receipt with your camera. Split reads the items, you check them, then tap who had what. With your permission, the photo is sent once to an AI service to be read. Split doesn't keep it.
-• See every balance at a glance, with a short plan of who owes whom.
+• Scan a receipt with your camera. Split reads the items, you check them, then tap who had what. With your permission, Split sends the photo to Google Gemini, through OpenRouter, to be read. Split's server does not save the image.
 • Mark a debt as settled when someone pays it back, however they paid.
-• Add expenses in other currencies. Split converts them automatically for 156 currencies at the day's indicative rate, and the rate is fixed when the expense is added, so history does not move.
+• Add expenses in other currencies. Split converts them automatically for 156 currencies at the day's indicative rate. The rate is fixed when the expense is added, so history does not move.
 • Turn on notifications for a room to hear when someone adds an expense.
-• Tap a room link in any chat and the room opens in the app.
+• Tap a room link and the room opens in the app.
 • Share a room link with your phone's share sheet.
 
 MADE FOR GROUPS
 A room holds up to twenty people. Everyone sees the same numbers and the same history of changes.
 
 WHEN THE SIGNAL DROPS
-Rooms need a connection to load. If you lose signal in an open room, Split can hold a new expense for someone already in the room and send it when you reconnect.
+Rooms need a connection to load. If you lose signal in an open room, Split can hold a new expense paid by someone already in the room and try again when you reconnect.
 
-YOUR ROOMS STAY ON YOUR PHONE
-Your list of rooms and the name you picked in each room are saved on your phone, not in an account. Rooms themselves are stored on our servers so the whole group sees the same numbers.
+NO ACCOUNT
+Your phone keeps your list of rooms and which member you are in each one. There is no account to sign in to. Rooms, with the names and expenses in them, are stored on our servers so the whole group sees the same numbers.
 
 LANGUAGES
 English, German, Spanish, French, Polish, Portuguese and Ukrainian.
@@ -104,6 +109,7 @@ FREE
 Split is free to use and has no paid tier. Squirrel Labs maintains Split and pays every project cost.
 
 Privacy policy: https://peanutsplit.com/privacy
+Source code (AGPL-3.0-or-later): https://peanutsplit.com/source
 ```
 
 ### `ios.category`: Category
@@ -152,10 +158,10 @@ Peanut Split: Split Bills
 
 ### `play.shortDescription`: Short description
 
-Limit: 80. Length: 65.
+Limit: 80. Length: 78.
 
 ```text
-Split bills with your group. No signup: share one link and start.
+One link for your group. Everyone adds expenses. See who owes whom. No signup.
 ```
 
 ### `play.fullDescription`: Full description
@@ -163,31 +169,36 @@ Split bills with your group. No signup: share one link and start.
 The same text as `ios.description`. It already uses no platform words, so one text serves both
 stores.
 
-Limit: 4000. Length: 1917.
+Limit: 4000. Length: 2123.
 
 ```text
-Split keeps track of shared costs for trips, flats, dinners and anything else a group pays for together.
+Good accounting makes good friends. Split keeps track of shared costs for trips, shared homes, dinners and anything else a group pays for together.
 
-Start a room, share its link in your group chat, and everyone joins by picking their name. There is no signup, no email and no password. The link is the key to the room, so keep it in the chat.
+HOW IT WORKS
+1. Start a room and share its link in your group chat.
+2. Everyone opens the link and picks their name. There is no signup, no email and no password.
+3. Everyone adds what they paid.
+4. Split shows every balance and a short plan of who owes whom.
+
+The link is the key to the room, so keep it in the chat.
 
 WHAT YOU CAN DO
 • Add an expense in a few taps: who paid, how much, and who it was for. Split it equally, by percentage, by shares or by exact amounts.
-• Scan a receipt with your camera. Split reads the items, you check them, then tap who had what. With your permission, the photo is sent once to an AI service to be read. Split doesn't keep it.
-• See every balance at a glance, with a short plan of who owes whom.
+• Scan a receipt with your camera. Split reads the items, you check them, then tap who had what. With your permission, Split sends the photo to Google Gemini, through OpenRouter, to be read. Split's server does not save the image.
 • Mark a debt as settled when someone pays it back, however they paid.
-• Add expenses in other currencies. Split converts them automatically for 156 currencies at the day's indicative rate, and the rate is fixed when the expense is added, so history does not move.
+• Add expenses in other currencies. Split converts them automatically for 156 currencies at the day's indicative rate. The rate is fixed when the expense is added, so history does not move.
 • Turn on notifications for a room to hear when someone adds an expense.
-• Tap a room link in any chat and the room opens in the app.
+• Tap a room link and the room opens in the app.
 • Share a room link with your phone's share sheet.
 
 MADE FOR GROUPS
 A room holds up to twenty people. Everyone sees the same numbers and the same history of changes.
 
 WHEN THE SIGNAL DROPS
-Rooms need a connection to load. If you lose signal in an open room, Split can hold a new expense for someone already in the room and send it when you reconnect.
+Rooms need a connection to load. If you lose signal in an open room, Split can hold a new expense paid by someone already in the room and try again when you reconnect.
 
-YOUR ROOMS STAY ON YOUR PHONE
-Your list of rooms and the name you picked in each room are saved on your phone, not in an account. Rooms themselves are stored on our servers so the whole group sees the same numbers.
+NO ACCOUNT
+Your phone keeps your list of rooms and which member you are in each one. There is no account to sign in to. Rooms, with the names and expenses in them, are stored on our servers so the whole group sees the same numbers.
 
 LANGUAGES
 English, German, Spanish, French, Polish, Portuguese and Ukrainian.
@@ -196,6 +207,7 @@ FREE
 Split is free to use and has no paid tier. Squirrel Labs maintains Split and pays every project cost.
 
 Privacy policy: https://peanutsplit.com/privacy
+Source code (AGPL-3.0-or-later): https://peanutsplit.com/source
 ```
 
 ### `play.category`: App category

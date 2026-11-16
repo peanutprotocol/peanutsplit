@@ -24,9 +24,8 @@ recipient to the page in the same push as you add it here.
 - **Firebase Cloud Messaging**: delivers notifications on Android, operated by Google. It can read
   the notification title and text, which include names and amounts. Source: ARCHITECTURE 10.2,
   `src/server/push-native/fcm.ts`.
-- **language-model provider**: reads a receipt photo, only after the person allows it in the app.
-  Today that is Google Gemini, reached through OpenRouter (`src/server/model.ts`), which is what the
-  in-app consent names. Source: research 1.4 (Apple 5.1.2(i)), PLAN 4.2 `room.scan.consent.body`.
+- **Google Gemini, through OpenRouter**: reads a receipt photo, only after the person allows it in
+  the app (`src/server/model.ts`). The in-app consent names the same provider. Source: research 1.4 (Apple 5.1.2(i)), PLAN 4.2 `room.scan.consent.body`.
 - **PostHog**: product analytics, with no room link, name or amount on any event. Source:
   `src/lib/analytics.ts`, ARCHITECTURE 12.1.
 - **Sentry**: error reports, with room links removed before sending. Source:
@@ -111,7 +110,7 @@ Source: research 2.3.
 | App info and performance | Diagnostics                                                           | Yes       | No     | No                        | App functionality            | No                    |
 | Device or other IDs      | Device or other IDs (PostHog id, FCM token)                           | Yes       | No     | No                        | Analytics, App functionality | No                    |
 
-- "Shared" is No for every row: PostHog, Sentry, the language-model provider and Firebase Cloud
+- "Shared" is No for every row: PostHog, Sentry, Google Gemini through OpenRouter, and Firebase Cloud
   Messaging act as service providers. Google's service-provider wording is UNVERIFIED (research 2.3).
 - Data encrypted in transit: **Yes** (HTTPS only).
 - Account creation: **No accounts**, so the account-deletion URL does not apply. Source: research 2.3

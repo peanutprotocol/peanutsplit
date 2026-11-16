@@ -28,13 +28,13 @@ No login is needed. Split has no accounts.
 
 To start: tap "New split" on the home screen, add two names, then tap "Add expense". Or open this test room, which already has people, expenses and balances: <REVIEW_ROOM_URL>
 
-Peanut Split is a bundled app. The UI ships in the binary. Rooms need a connection to load, and a new expense added in an open room after the signal drops syncs when you reconnect.
+Peanut Split is a bundled app. The UI ships in the binary. Rooms need a connection to load, and the app can hold a new expense paid by someone already in that room when the signal drops, and try it again when you reconnect. Edits, settlements and a new payer need a connection.
 
 Native features:
 1. Push notifications per room, through APNs: Room → "Settings" → Notifications. Turn on the row named after the room. iOS asks for permission at that tap, never at launch.
 2. Universal links. Tap a room link (https://peanutsplit.com/r/...) in Messages or Mail and the room opens in the app.
 3. Native share sheet for the room link and share cards.
-4. Camera receipt scan. In a room, tap "Add expense", then "Scan receipt". Before the first photo leaves the phone, the app asks "Read this receipt with AI?" and sends nothing until you tap "Allow". The photo then goes once to Google Gemini through OpenRouter and is not stored. Room "Settings" has a "Read receipts with AI" switch to change the choice.
+4. Camera receipt scan. In a room, tap "Add expense", then "Scan receipt". Before the first photo leaves the phone, the app asks "Read this receipt with AI?" and sends nothing until you tap "Allow". The photo then goes once to Google Gemini through OpenRouter. Split's server does not save the image. Room "Settings" has a "Read receipts with AI" switch to change the choice.
 
 Accounts: Split has no accounts, so account deletion does not apply. A room is shared by its link; joining means picking a display name in that room. To leave a room, open "Settings" and tap "Leave room".
 
@@ -53,7 +53,7 @@ No login is needed. Split has no accounts.
 
 To start: tap "New split" on the home screen, add two names, then tap "Add expense". Or open this test room, which already has people, expenses and balances: <REVIEW_ROOM_URL>
 
-The UI ships in the app. Rooms need a connection to load, and a new expense added in an open room after the signal drops syncs when you reconnect.
+The UI ships in the app. Rooms need a connection to load, and the app can hold a new expense paid by someone already in that room when the signal drops, and try it again when you reconnect. Edits, settlements and a new payer need a connection.
 
 Notifications: Room → "Settings" → Notifications. Turn on the row named after the room. Android asks for permission at that tap, never at launch.
 
